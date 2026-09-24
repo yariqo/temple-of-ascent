@@ -83,6 +83,12 @@ function scatterRays(): Texture {
   return (raysTex = Texture.from(c));
 }
 
+/** stele material by stage: stone (base / stage 1), bronze (2), diamond (3), obsidian (4) */
+let steleKey = 'T';
+export function steleKeyForStage(stage: number): string {
+  return stage >= 4 ? 'TO' : stage === 3 ? 'TD' : stage === 2 ? 'TB' : 'T';
+}
+
 /** One symbol on the board. */
 class SymbolView extends Container {
   sym: BoardSymbol = { name: 'L1' };
@@ -116,7 +122,7 @@ class SymbolView extends Container {
   set(sym: BoardSymbol, golden = false, blurred = false) {
     this.sym = sym;
     this.golden = golden;
-    const key = sym.name === 'T' && golden ? 'TG' : sym.name;
+    const key = sym.name === 'T' ? (golden ? 'TG' : steleKey) : sym.name;
     this.sprite.texture = (blurred ? TEX.blur[key] : TEX.sym[key]) ?? TEX.sym.L1;
     this.sprite.width = this.sprite.height = SYM_SIZE;
     const isS = sym.name === 'S' && !blurred;
@@ -348,6 +354,7 @@ export class Board {
   }
 
   setTheme(stage: number) {
+    steleKey = steleKeyForStage(stage);
     this.frame.tint = stage >= 4 ? 0xd8c8ff : stage === 3 ? 0xffc0a0 : stage === 2 ? 0xffe0b0 : 0xffffff;
   }
 

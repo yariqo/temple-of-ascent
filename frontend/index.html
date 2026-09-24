@@ -6,9 +6,6 @@
     <title>BALAM</title>
   </head>
   <body>
-    <div id="scene-a" class="scene"></div>
-    <div id="scene-b" class="scene"></div>
-    <div id="mist"></div>
 
     <div id="loading">
       <div class="load-logo" id="load-logo">BALAM</div>
@@ -101,6 +98,16 @@
       <div class="am-row"><h4 id="am-spins-t"></h4><div class="am-chips" id="am-spins"></div></div>
       <div class="am-row"><h4 id="am-speed-t"></h4><div class="am-chips" id="am-speed"></div></div>
       <button class="gold am-start" id="am-start"></button>
+    </dialog>
+    <dialog id="intro">
+      <div class="in-logo" id="in-logo"></div>
+      <div class="in-cards">
+        <div class="in-card c1"><i class="in-gem"></i><h3 id="in-t1"></h3><div class="in-art" id="in-a1"></div><p id="in-d1"></p></div>
+        <div class="in-card c2"><i class="in-gem"></i><h3 id="in-t2"></h3><div class="in-art" id="in-a2"></div><div class="in-big" id="in-v2"></div></div>
+        <div class="in-card c3"><i class="in-gem"></i><h3 id="in-t3"></h3><div class="in-art" id="in-a3"></div><p id="in-d3"></p></div>
+      </div>
+      <button class="gold in-go" id="in-go"></button>
+      <label class="in-skip"><input type="checkbox" id="in-skip" /><span id="in-skip-t"></span></label>
     </dialog>
     <dialog id="rules"><div id="rules-body"></div><button id="rules-close" class="gold"></button></dialog>
     <script type="module" src="/src/main.ts"></script>

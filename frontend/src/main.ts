@@ -3,15 +3,18 @@ import { Application } from 'pixi.js';
 import { Board } from './board';
 import { Ui } from './ui';
 import { RoundPlayer } from './player';
-import { MODES, PAYTABLE } from './config';
-import { rulesHtml, setLanguage, t } from './i18n';
+import { MODES } from './config';
+import { setLanguage, t } from './i18n';
+import { rulesPage } from './rules';
+import { money } from './format';
 import { setCurrency } from './format';
 import { fetchReplay, StakeRgs, urlParam } from './rgs';
 import { sleepReal, speed } from './anim';
 import { loadFonts } from './fonts';
 import { drawLogo } from './art/logo';
 import { buildTextures, SYM_CANVAS } from './art/textures';
-import { drawScene } from './art/scene';
+import { Backdrop } from './backdrop';
+import { drawMascotHead } from './art/mascot';
 import { makeCanvas } from './art/draw';
 import { sound } from './sound';
 import type { AuthInfo, Rgs, Round } from './types';
@@ -22,23 +25,6 @@ function iconUrl(name: string, size = 64): string {
   const [c, ctx] = makeCanvas(size);
   ctx.drawImage(SYM_CANVAS[name], 0, 0, size, size);
   return c.toDataURL();
-}
-
-function paytableHtml(): string {
-  const rows = Object.entries(PAYTABLE)
-    .map(([s, p]) => `<tr><td><img src="${iconUrl(s)}" alt="${s}"></td><td>3× ${p[0]}</td><td>4× ${p[1]}</td><td>5× ${p[2]}</td></tr>`)
-    .join('');
-  const head = LANG === 'de' ? 'Gewinntabelle (× Einsatz)' : 'Paytable (× bet)';
-  const wild =
-    LANG === 'de'
-      ? 'WILD (Walze 2–5) ersetzt alle normalen Symbole. Die Sonnen-Glyphe startet Freispiele und zählt in den Freispielen als Rune.'
-      : 'WILD (reels 2–5) substitutes for all regular symbols. The sun glyph triggers free spins and counts as a rune during free spins.';
-  return `<h4>${head}</h4><table>${rows}</table><p><img src="${iconUrl('W')}" alt="Wild"> <img src="${iconUrl('S')}" alt="Glyph"> <img src="${iconUrl('T')}" alt="Stele"><br>${wild}</p>`;
-}
-
-async function sceneUrl(stage: number): Promise<string> {
-  const c = drawScene(stage);
-  return new Promise((res) => c.toBlob((b) => res(b ? URL.createObjectURL(b) : c.toDataURL('image/jpeg', 0.85)), 'image/jpeg', 0.86));
 }
 
 async function main() {
@@ -68,8 +54,18 @@ async function main() {
   ui.runeIcon = iconUrl('S', 88);
   ui.icons = { S: iconUrl('S', 116), TG: iconUrl('TG', 116) };
   ui.setLoading(0.55);
-  const scenes = await Promise.all([0, 1, 2, 3, 4].map(sceneUrl));
-  ui.setSceneUrls(scenes);
+  // animated jungle-temple backdrop (stage 0 now, the others are painted in idle time)
+  const backdrop = new Backdrop();
+  ui.onStage = (st) => backdrop.setStage(st);
+  const warmUp = (st: number) => {
+    if (st > 4) return;
+    const idle = (window as any).requestIdleCallback ?? ((f: () => void) => window.setTimeout(f, 200));
+    idle(() => {
+      backdrop.warm(st);
+      warmUp(st + 1);
+    });
+  };
+  warmUp(1);
   ui.setLoading(0.8);
 
   const host = document.getElementById('canvas-host')!;
@@ -122,7 +118,8 @@ async function main() {
     sound.setMusic(!sound.musicOn);
     ui.setMusicIcon(sound.musicOn);
   };
-  document.getElementById('rules-btn')!.onclick = () => ui.showRules(rulesHtml(LANG) + paytableHtml());
+  document.getElementById('rules-btn')!.onclick = () =>
+    ui.showRules(rulesPage(LANG, (n) => iconUrl(n, 96), (window as any).__rulesBet ?? 1, money));
 
   // ---------- replay of a finished round ----------
   if (urlParam('replay') === 'true') {
@@ -169,6 +166,11 @@ async function main() {
     setLanguage(LANG, true);
     ui.applyTexts();
   }
+  // start screen with the three feature tablets (not when an unfinished round is resumed)
+  if (!auth.resumeRound) {
+    const logo = (document.querySelector('#title img') as HTMLImageElement | null)?.src ?? '';
+    void ui.intro({ logo, bonus: iconUrl('S', 96), face: drawMascotHead('roar').toDataURL(), stele: iconUrl('TO', 128), stele2: iconUrl('TD', 128) });
+  }
   ui.hideTurbo(!!jur.disabledTurbo);
   ui.hideBuy(!!jur.disabledBuyFeature);
 
@@ -180,6 +182,7 @@ async function main() {
   let busy = false;
 
   const bet = () => levels[betIdx];
+  Object.defineProperty(window, '__rulesBet', { get: bet, configurable: true });
   const refresh = () => {
     ui.setBalance(balance);
     ui.setBet(bet());
@@ -395,7 +398,8 @@ async function main() {
       return auto ? auto.left : null;
     },
   };
-  // test hook (demo / dev only): window.__toa.bigwin(amount, bet)
+  // test hooks (demo / dev only): window.__toa.bigwin(amount, bet), window.__toa.bg(stage)
+  if (import.meta.env.MODE !== 'production') (window as any).__toa.bg = (st: number) => backdrop.setStage(st);
   if (import.meta.env.MODE !== 'production')
     (window as any).__toa.bigwin = (amount: number, b = 1, max = false) =>
       ui.bigWin(amount, b, { max, onTier: (lv) => {

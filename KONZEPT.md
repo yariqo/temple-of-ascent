@@ -1,4 +1,4 @@
-# BALAM – Spielkonzept (v0.13)
+# BALAM – Spielkonzept (v0.14)
 
 *Name: **BALAM** (Maya-Wort für Jaguar; Arbeitstitel vorher „Temple of Ascent“). Die internen IDs bleiben: game_id `temple_of_ascent`, Ordner `math/temple_of_ascent`. Thema: Azteken-Dschungel (siehe THEMA.md). Maskottchen: der Jaguar Balam.*
 
@@ -48,6 +48,34 @@ Weitere Funktionen:
 - **Musik:** generierte, kinoreife Tempelmusik aus Streichern, Chor und Hall.
   - Im Bonus kommen Taiko-Trommeln und ein Streicher-Ostinato dazu.
   - Man kann sie separat ein- und ausschalten.
+
+## Stelen-Materialien
+Das Material zeigt, wie stark eine Stele sein kann:
+
+| Material | Stufe | Werte |
+|---|---|---|
+| Stein (grau) | Basisspiel / Stufe 1 | 2×–10× / 2×–25× |
+| Bronze | Stufe 2 | 5×–50× |
+| Diamant | Stufe 3 | 10×–250× |
+| Obsidian mit Goldglut | Stufe 4 | 25×–500× |
+| Gold | Jaguar-Spin | 5×–50× |
+
+Die Pyramide im Tempel färbt sich passend.
+
+## Präsentation
+- **Start-Screen:**
+  - Logo und drei Steintafeln: „3 · 4 · 5 BONUS“, „MAX WIN 10.000×“ mit brüllendem Jaguar, „MULTIS BLEIBEN“.
+  - Dazu der Knopf SPIELEN und „Nicht mehr anzeigen“.
+  - Bei einer fortgesetzten Runde erscheint der Start-Screen nicht.
+- **Animierter Hintergrund (`src/backdrop.ts`):** Ebenen mit Parallaxe.
+  - Himmel mit Sternen, Mond, Sonne oder Finsternis und Wolken
+  - Berge und Dunst
+  - große Stufenpyramide mit Fackeln
+  - Klippe mit Wasserfall, Bäume, Ranken
+  - Vordergrundblätter, Nebel, Glühwürmchen
+  - Lichtstrahlen und eine langsame Kamerafahrt
+  - Jede Bonus-Stufe hat eine eigene Stimmung: Nacht, Morgen, Goldene Stunde, Blutrot, Finsternis.
+- **Info-Menü (?):** Reiter für Übersicht, Symbole, Stelen, Bonus, Features, Linien und Bedienung, mit Bildern, Beispielen und einer Grafik der 20 Linien.
 
 ## Big-Win-Stufen
 Ein großer Gewinn wird gefeiert, wenn er mindestens 20× Einsatz beträgt und nicht unter den Kosten der Runde liegt. Beim Hochzählen steigt der Titel Stufe für Stufe:

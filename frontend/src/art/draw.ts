@@ -867,23 +867,101 @@ function drawScatter(ctx: Ctx) {
 }
 
 /** Stele: carved stone pillar. The value plate (bottom) is left empty – the game writes the multiplier there. */
-export function drawStele(ctx: Ctx, golden: boolean) {
+export type SteleSkin = 'stone' | 'gold' | 'bronze' | 'diamond' | 'obsidian';
+
+/** materials of the steles: stone (2–25×), bronze (5–50×), diamond (10–250×), obsidian (25–500×), gold (Jaguar-Spin) */
+const STELE_SKINS: Record<SteleSkin, { body: Stops; edge: string; carve: string; light: string; eye: string; plate: string }> = {
+  stone: {
+    body: [
+      [0, '#4a4136'],
+      [0.35, '#9d917c'],
+      [0.6, '#b8ab93'],
+      [1, '#4f463a'],
+    ],
+    edge: '#1e1a14',
+    carve: 'rgba(25,20,14,0.85)',
+    light: 'rgba(255,255,255,0.22)',
+    eye: '#37c4a0',
+    plate: 'rgba(18,14,10,0.88)',
+  },
+  gold: {
+    body: [
+      [0, '#7a4a07'],
+      [0.3, '#ffd65a'],
+      [0.55, '#fff3b8'],
+      [0.8, '#d0901c'],
+      [1, '#6e4106'],
+    ],
+    edge: '#4a2a02',
+    carve: 'rgba(90,50,0,0.85)',
+    light: 'rgba(255,255,220,0.6)',
+    eye: '#1c8f6a',
+    plate: 'rgba(60,30,0,0.85)',
+  },
+  bronze: {
+    body: [
+      [0, '#4a2310'],
+      [0.3, '#b8672c'],
+      [0.52, '#f0b27a'],
+      [0.75, '#a4561f'],
+      [1, '#4a2310'],
+    ],
+    edge: '#2a1206',
+    carve: 'rgba(52,22,6,0.88)',
+    light: 'rgba(255,220,180,0.5)',
+    eye: '#2fd6b4',
+    plate: 'rgba(40,16,4,0.88)',
+  },
+  diamond: {
+    body: [
+      [0, '#123a63'],
+      [0.28, '#5fc7f0'],
+      [0.5, '#e6fbff'],
+      [0.72, '#7fd6f5'],
+      [1, '#153f6b'],
+    ],
+    edge: '#0a2440',
+    carve: 'rgba(10,40,80,0.75)',
+    light: 'rgba(255,255,255,0.8)',
+    eye: '#ffffff',
+    plate: 'rgba(6,24,48,0.88)',
+  },
+  obsidian: {
+    body: [
+      [0, '#050507'],
+      [0.35, '#2a2733'],
+      [0.55, '#4a4658'],
+      [0.8, '#1d1b24'],
+      [1, '#050507'],
+    ],
+    edge: '#000000',
+    carve: 'rgba(255,200,70,0.95)',
+    light: 'rgba(200,190,255,0.4)',
+    eye: '#ff9d2a',
+    plate: 'rgba(0,0,0,0.9)',
+  },
+};
+
+export function drawStele(ctx: Ctx, skin: SteleSkin | boolean) {
+  const k: SteleSkin = skin === true ? 'gold' : skin === false ? 'stone' : skin;
+  const P = STELE_SKINS[k];
   const c = 128;
-  const body = golden
-    ? lin(ctx, 40, 0, 216, 0, [
-        [0, '#7a4a07'],
-        [0.3, '#ffd65a'],
-        [0.55, '#fff3b8'],
-        [0.8, '#d0901c'],
-        [1, '#6e4106'],
-      ])
-    : lin(ctx, 40, 0, 216, 0, [
-        [0, '#4a4136'],
-        [0.35, '#9d917c'],
-        [0.6, '#b8ab93'],
-        [1, '#4f463a'],
-      ]);
-  const edge = golden ? '#4a2a02' : '#1e1a14';
+  // obsidian and diamond get an aura
+  if (k === 'obsidian' || k === 'diamond') {
+    ctx.beginPath();
+    ctx.ellipse(c, 128, 118, 122, 0, 0, Math.PI * 2);
+    ctx.fillStyle = rad(ctx, c, 128, 20, 124, k === 'obsidian'
+      ? [
+          [0, 'rgba(255,170,40,0.45)'],
+          [1, 'rgba(255,170,40,0)'],
+        ]
+      : [
+          [0, 'rgba(160,235,255,0.5)'],
+          [1, 'rgba(160,235,255,0)'],
+        ]);
+    ctx.fill();
+  }
+  const body = lin(ctx, 40, 0, 216, 0, P.body);
   shadow(ctx, 16, 8, 0.65);
   // pillar
   ctx.beginPath();
@@ -895,9 +973,38 @@ export function drawStele(ctx: Ctx, golden: boolean) {
   ctx.fillStyle = body;
   ctx.fill();
   noShadow(ctx);
-  ctx.strokeStyle = edge;
+  ctx.strokeStyle = P.edge;
   ctx.lineWidth = 5;
   ctx.stroke();
+  // crystal facets
+  if (k === 'diamond') {
+    ctx.save();
+    ctx.clip();
+    ctx.strokeStyle = 'rgba(255,255,255,0.45)';
+    ctx.lineWidth = 2;
+    const lines: [number, number, number, number][] = [
+      [c - 70, 26, c - 20, 140],
+      [c - 20, 140, c + 70, 26],
+      [c - 20, 140, c - 78, 236],
+      [c - 20, 140, c + 40, 236],
+      [c + 40, 236, c + 78, 120],
+      [c + 78, 120, c + 70, 26],
+    ];
+    for (const [x0, y0, x1, y1] of lines) {
+      ctx.beginPath();
+      ctx.moveTo(x0, y0);
+      ctx.lineTo(x1, y1);
+      ctx.stroke();
+    }
+    ctx.fillStyle = 'rgba(255,255,255,0.18)';
+    ctx.beginPath();
+    ctx.moveTo(c - 70, 26);
+    ctx.lineTo(c - 20, 140);
+    ctx.lineTo(c - 78, 236);
+    ctx.closePath();
+    ctx.fill();
+    ctx.restore();
+  }
   // headdress
   poly(ctx, [
     [c - 82, 38],
@@ -907,9 +1014,14 @@ export function drawStele(ctx: Ctx, golden: boolean) {
   ]);
   ctx.fillStyle = body;
   ctx.fill();
+  ctx.strokeStyle = P.edge;
   ctx.stroke();
-  const carve = golden ? 'rgba(90,50,0,0.85)' : 'rgba(25,20,14,0.85)';
-  const light = golden ? 'rgba(255,255,220,0.6)' : 'rgba(255,255,255,0.22)';
+  const carve = P.carve;
+  const light = P.light;
+  if (k === 'obsidian') {
+    ctx.shadowColor = '#ffb030';
+    ctx.shadowBlur = 10;
+  }
   // headdress step pattern
   ctx.strokeStyle = carve;
   ctx.lineWidth = 3;
@@ -922,12 +1034,13 @@ export function drawStele(ctx: Ctx, golden: boolean) {
   ctx.fillRect(c - 56, 54, 112, 8);
   for (const sx of [-1, 1]) {
     ctx.fillRect(c + sx * 30 - 16, 72, 32, 14);
-    ctx.fillStyle = golden ? '#1c8f6a' : '#37c4a0';
+    ctx.fillStyle = P.eye;
     ctx.fillRect(c + sx * 30 - 6, 75, 12, 8);
     ctx.fillStyle = carve;
   }
   ctx.fillRect(c - 7, 90, 14, 26);
   ctx.fillRect(c - 30, 122, 60, 10);
+  noShadow(ctx);
   ctx.fillStyle = light;
   ctx.fillRect(c - 56, 62, 112, 2);
   ctx.fillRect(c - 30, 132, 60, 2);
@@ -940,16 +1053,20 @@ export function drawStele(ctx: Ctx, golden: boolean) {
     ctx.stroke();
   }
   // value plate recess
-  ctx.fillStyle = golden ? 'rgba(60,30,0,0.85)' : 'rgba(18,14,10,0.88)';
+  ctx.fillStyle = P.plate;
   ctx.beginPath();
   ctx.roundRect(c - 64, 150, 128, 68, 10);
   ctx.fill();
-  ctx.strokeStyle = light;
+  ctx.strokeStyle = k === 'obsidian' ? 'rgba(255,200,70,0.8)' : light;
   ctx.lineWidth = 2;
   ctx.stroke();
+  // glints
+  if (k === 'diamond' || k === 'bronze' || k === 'gold') {
+    const pts = k === 'diamond' ? [[c - 50, 44, 9], [c + 58, 196, 7], [c + 40, 70, 5]] : [[c - 50, 44, 6]];
+    ctx.fillStyle = 'rgba(255,255,255,0.95)';
+    for (const [x, y, r] of pts) star(ctx, x, y, r, 1.6);
+  }
 }
-
-// ---------------------------------------------------------------- public
 
 export function drawSymbol(name: string): HTMLCanvasElement {
   const [cv, ctx] = makeCanvas(SYM);
@@ -976,7 +1093,16 @@ export function drawSymbol(name: string): HTMLCanvasElement {
       drawStele(ctx, false);
       break;
     case 'TG':
-      drawStele(ctx, true);
+      drawStele(ctx, 'gold');
+      break;
+    case 'TB':
+      drawStele(ctx, 'bronze');
+      break;
+    case 'TD':
+      drawStele(ctx, 'diamond');
+      break;
+    case 'TO':
+      drawStele(ctx, 'obsidian');
       break;
     default:
       drawGem(ctx, GEMS[name] ?? GEMS.L1);
@@ -984,4 +1110,4 @@ export function drawSymbol(name: string): HTMLCanvasElement {
   return cv;
 }
 
-export const ALL_SYMBOLS = ['H1', 'H2', 'H3', 'H4', 'L1', 'L2', 'L3', 'L4', 'L5', 'W', 'S', 'T', 'TG'];
+export const ALL_SYMBOLS = ['H1', 'H2', 'H3', 'H4', 'L1', 'L2', 'L3', 'L4', 'L5', 'W', 'S', 'T', 'TG', 'TB', 'TD', 'TO'];

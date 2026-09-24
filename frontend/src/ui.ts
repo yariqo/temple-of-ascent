@@ -15,8 +15,6 @@ export class Ui {
   private toastTimer = 0;
   private stage = 0;
   private runes = 0;
-  private sceneUrls: string[] = [];
-  private sceneFront: 'a' | 'b' = 'a';
   private sceneShown = -1;
   runeIcon = '';
 
@@ -155,20 +153,12 @@ export class Ui {
   }
 
   // ---------------------------------------------------------------- scenes
-  setSceneUrls(urls: string[]) {
-    this.sceneUrls = urls;
-    this.showScene(0);
-  }
+  /** set by main: switches the animated backdrop to a stage */
+  onStage?: (stage: number) => void;
   private showScene(stage: number) {
-    if (stage === this.sceneShown || !this.sceneUrls[stage]) return;
+    if (stage === this.sceneShown) return;
     this.sceneShown = stage;
-    const next = this.sceneFront === 'a' ? 'b' : 'a';
-    const nextEl = $(`scene-${next}`);
-    const curEl = $(`scene-${this.sceneFront}`);
-    nextEl.style.backgroundImage = `url(${this.sceneUrls[stage]})`;
-    nextEl.classList.add('on');
-    curEl.classList.remove('on');
-    this.sceneFront = next;
+    this.onStage?.(stage);
   }
 
   /** Background + pyramid state for a stage (0 = base game). */
@@ -491,10 +481,80 @@ export class Ui {
     $('auto-btn').hidden = hide;
   }
 
+  /** start screen with three feature tablets; resolves when the player continues */
+  intro(art: { logo: string; bonus: string; face: string; stele: string; stele2: string }): Promise<void> {
+    let skip = false;
+    try {
+      skip = localStorage.getItem('balam-intro-skip') === '1';
+    } catch {
+      /* storage blocked */
+    }
+    if (skip) return Promise.resolve();
+    const dlg = $<HTMLDialogElement>('intro');
+    $('in-logo').innerHTML = `<img src="${art.logo}" alt="BALAM">`;
+    $('in-t1').textContent = t('introT1');
+    $('in-d1').textContent = t('introD1');
+    $('in-t2').textContent = t('introT2');
+    $('in-v2').textContent = t('introV2');
+    $('in-t3').textContent = t('introT3');
+    $('in-d3').textContent = t('introD3');
+    $('in-go').textContent = t('introGo');
+    $('in-skip-t').textContent = t('introSkip');
+    $('in-a1').innerHTML = [3, 4, 5].map((n) => `<div class="in-row">${`<img src="${art.bonus}" alt="">`.repeat(n)}</div>`).join('');
+    $('in-a2').innerHTML = `<div class="in-face"><img src="${art.face}" alt=""></div>`;
+    $('in-a3').innerHTML = `<img class="st a" src="${art.stele}" alt=""><img class="st b" src="${art.stele2}" alt="">`;
+    dlg.showModal();
+    return new Promise((resolve) => {
+      const done = () => {
+        sound.click();
+        try {
+          if (($('in-skip') as HTMLInputElement).checked) localStorage.setItem('balam-intro-skip', '1');
+        } catch {
+          /* ignore */
+        }
+        dlg.classList.add('out');
+        window.setTimeout(() => {
+          dlg.close();
+          dlg.classList.remove('out');
+          resolve();
+        }, 350);
+      };
+      $('in-go').onclick = done;
+      dlg.oncancel = (e) => {
+        e.preventDefault();
+        done();
+      };
+    });
+  }
+
   showRules(html: string) {
     const dlg = $<HTMLDialogElement>('rules');
-    $('rules-body').innerHTML = html;
+    const body = $('rules-body');
+    body.innerHTML = html;
     dlg.showModal();
+    body.scrollTop = 0;
+    $('rules-close').textContent = '✕';
     $('rules-close').onclick = () => dlg.close();
+    const tabs = Array.from(body.querySelectorAll<HTMLButtonElement>('.rt-tab'));
+    const sections = Array.from(body.querySelectorAll<HTMLElement>('.rs'));
+    const tabBar = body.querySelector('.rt-tabs') as HTMLElement;
+    for (const b of tabs)
+      b.onclick = () => {
+        sound.click();
+        const sec = body.querySelector<HTMLElement>('#' + b.dataset.go);
+        if (sec) body.scrollTo({ top: sec.offsetTop - tabBar.offsetHeight - 6, behavior: 'smooth' });
+      };
+    body.onscroll = () => {
+      const y = body.scrollTop + tabBar.offsetHeight + 20;
+      let cur = 0;
+      sections.forEach((s, i) => {
+        if (s.offsetTop <= y) cur = i;
+      });
+      tabs.forEach((b, i) => b.classList.toggle('on', i === cur));
+    };
+    dlg.onclick = (e) => {
+      const r = dlg.getBoundingClientRect();
+      if (e.clientX < r.left || e.clientX > r.right || e.clientY < r.top || e.clientY > r.bottom) dlg.close();
+    };
   }
 }
