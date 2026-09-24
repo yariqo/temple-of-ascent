@@ -63,7 +63,9 @@ export class RoundPlayer {
         break;
       }
       case 'totemMultiplier': {
-        await this.board.totemPower(ev.totems, ev.totalMult);
+        // make clear that the steles multiply the LINE win, not the bet
+        const explain = `${t('lineWin')} ${money(this.money(ev.baseWin))} × ${ev.totalMult} = ${money(this.money(ev.totalWin))}`;
+        await this.board.totemPower(ev.totems, ev.totalMult, explain);
         break;
       }
       case 'setWin':

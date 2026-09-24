@@ -25,6 +25,7 @@ const en: Dict = {
   runes: 'Runes {r}',
   runesToNext: '{n} more rune(s) to the next stage',
   maxStage: 'Summit reached',
+  lineWin: 'Line win',
   jaguarRoar: 'JAGUAR ROAR!',
   goldenJaguar: 'GOLDEN JAGUAR!',
   totalFs: 'FREE SPINS WIN',
@@ -70,6 +71,7 @@ const de: Dict = {
   runes: 'Runen {r}',
   runesToNext: 'noch {n} Rune(n) bis zur nächsten Stufe',
   maxStage: 'Gipfel erreicht',
+  lineWin: 'Liniengewinn',
   jaguarRoar: 'JAGUAR-RUF!',
   goldenJaguar: 'GOLDENER JAGUAR!',
   totalFs: 'FREISPIEL-GEWINN',
@@ -115,7 +117,7 @@ export function rulesHtml(lang: string): string {
 <h3>Temple of Ascent</h3>
 <p>5 Walzen × 4 Reihen, 20 feste Gewinnlinien, Gewinne von links nach rechts. Alle Gewinne in × Einsatz. RTP: <b>96,00 %</b> in allen Modi. Max. Gewinn: <b>10.000×</b> Einsatz.</p>
 <h4>Götter-Stelen</h4>
-<p>Jede Stele trägt einen Multiplikator. Gibt es im Spin einen Liniengewinn, werden alle Stelen auf dem Feld <b>addiert</b> und multiplizieren den Gewinn dieses Spins.</p>
+<p>Jede Stele trägt einen Multiplikator. Gibt es im Spin einen Liniengewinn, werden alle Stelen auf dem Feld <b>addiert</b> und multiplizieren den <b>Liniengewinn</b> dieses Spins (nicht den Einsatz). Beispiel: Liniengewinn 0,40 € und Stelen 5× + 10× = 15× ergibt 6,00 €. Ohne Liniengewinn zahlen die Stelen nichts.</p>
 <h4>Jaguar-Ruf</h4>
 <p>Nach dem Walzenstopp kann der Jaguar 1–3 zusätzliche Stelen (2×–25×) auf normale Felder werfen.</p>
 <h4>Freispiele & Pyramide</h4>
@@ -128,7 +130,7 @@ export function rulesHtml(lang: string): string {
 <h3>Temple of Ascent</h3>
 <p>5 reels × 4 rows, 20 fixed paylines, wins pay left to right. All wins in × bet. RTP: <b>96.00%</b> in all modes. Max win: <b>10,000×</b> bet.</p>
 <h4>God Steles</h4>
-<p>Every stele carries a multiplier. If the spin has a line win, all steles on the board are <b>added</b> and multiply that spin's win.</p>
+<p>Every stele carries a multiplier. If the spin has a line win, all steles on the board are <b>added</b> and multiply that spin's <b>line win</b> (not the bet). Example: a line win of $0.40 with steles 5× + 10× = 15× pays $6.00. Without a line win the steles pay nothing.</p>
 <h4>Jaguar Roar</h4>
 <p>After the reels stop, the jaguar may throw 1–3 extra steles (2×–25×) onto regular positions.</p>
 <h4>Free Spins & Pyramid</h4>

@@ -20,6 +20,15 @@ const bigStyle = new TextStyle({
   dropShadow: { color: 0x000000, blur: 12, distance: 0, alpha: 0.8 },
 });
 
+const subStyle = new TextStyle({
+  fontSize: 38,
+  fontWeight: '800',
+  fontFamily: 'Georgia, serif',
+  fill: 0xffffff,
+  stroke: { color: 0x000000, width: 7 },
+  align: 'center',
+});
+
 /** One symbol tile (placeholder art). */
 class SymbolView extends Container {
   sym: BoardSymbol = { name: 'L1' };
@@ -86,14 +95,18 @@ export class Board {
   /** visible symbols [reel][row] */
   cells: SymbolView[][] = [];
   private bigText = new Text({ text: '', style: bigStyle });
+  private subText = new Text({ text: '', style: subStyle });
   private stage = 0;
 
   constructor(private app: Application) {
     app.stage.addChild(this.root);
-    this.root.addChild(this.bg, this.frame, this.reelsLayer, this.lines, this.fx, this.bigText);
+    this.root.addChild(this.bg, this.frame, this.reelsLayer, this.lines, this.fx, this.bigText, this.subText);
     this.bigText.anchor.set(0.5);
     this.bigText.position.set(W / 2, H / 2);
     this.bigText.visible = false;
+    this.subText.anchor.set(0.5);
+    this.subText.position.set(W / 2, H / 2 + 95);
+    this.subText.visible = false;
 
     for (let r = 0; r < REELS; r++) {
       const a = new Graphics().roundRect(r * CELL + 2, -6, CELL - 4, H + 12, 16).fill({ color: 0xffd34d, alpha: 0.28 });
@@ -275,24 +288,32 @@ export class Board {
   }
 
   /** Totems add up and multiply the spin win. */
-  async totemPower(totems: Pos[], totalMult: number) {
+  async totemPower(totems: Pos[], totalMult: number, explain = '') {
     const views = totems.map((p) => this.cellAt(p)).filter(Boolean) as SymbolView[];
     views.forEach((v) => {
       v.alpha = 1;
       v.setGlow(true);
     });
     await this.pulse(views, 1.25, 500);
-    await this.flashText(`×${totalMult}`, 900);
+    await this.flashText(`×${totalMult}`, explain ? 1500 : 900, explain);
     views.forEach((v) => v.setGlow(false));
   }
 
-  async flashText(text: string, ms = 900) {
+  /** Big centred text, optionally with an explaining line underneath. */
+  async flashText(text: string, ms = 900, sub = '') {
     this.bigText.text = text;
     this.bigText.visible = true;
     this.bigText.alpha = 1;
+    this.subText.text = sub;
+    this.subText.visible = !!sub;
+    this.subText.alpha = 1;
     await tween(260, (t) => this.bigText.scale.set(lerp(0.3, 1, t)), ease.outBack);
     await wait(ms);
-    await tween(200, (t) => (this.bigText.alpha = 1 - t));
+    await tween(200, (t) => {
+      this.bigText.alpha = 1 - t;
+      this.subText.alpha = 1 - t;
+    });
     this.bigText.visible = false;
+    this.subText.visible = false;
   }
 }
