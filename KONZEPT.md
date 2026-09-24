@@ -1,4 +1,4 @@
-# TEMPLE OF ASCENT – Spielkonzept (v0.4)
+# TEMPLE OF ASCENT – Spielkonzept (v0.5)
 
 *Name: Temple of Ascent. Thema: Azteken-Dschungel (siehe THEMA.md).*
 
@@ -93,8 +93,8 @@ Im `reveal`-Board trägt jedes Totem seinen Wert als `multiplier`.
 - [x] Alle 4 Modi bestehen die Stake-Prüfungen des SDK (Format, RTP ≤ 96,7 %, Volatilitätsgrenzen)
 - [x] Thema: Azteken-Dschungel (siehe THEMA.md)
 - [x] Name: Temple of Ascent
-- [ ] Grafik
-- [ ] Frontend mit dem Web SDK (Svelte + PixiJS)
+- [x] Frontend v0.1 (Vite + PixiJS, eigener RGS-Client, Platzhalter-Grafik), Ordner `frontend/`
+- [ ] Echte Grafik, Animationen, Sound
 - [x] Jaguar-Ruf, Bonus-Jagd (1,5×) und Jaguar-Spin (25×) eingebaut
 - [ ] Optional: „Super Bonus“-Kauf, der auf Stufe 2 startet
 - [ ] Upload und Test auf Stake Engine

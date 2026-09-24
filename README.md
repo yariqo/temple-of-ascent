@@ -4,6 +4,9 @@
 StakeGame/
 ├─ KONZEPT.md                       Spielregeln, Modi, Multis, Stufen, Events, Statistik
 ├─ THEMA.md                         Azteken-Dschungel-Look, Sound, Momente
+├─ frontend/                       Spiel-Oberfläche (Vite + PixiJS), siehe frontend/README.md
+│  ├─ Demo-spielen.html             Doppelklick = Demo im Browser (Spielgeld)
+│  └─ dist/                         >>> Upload-Dateien „Frontend“ für Stake <<<
 └─ math/temple_of_ascent/               Spiel-Mathe (Stake Math SDK)
    ├─ game_config.py                Paytable, Linien, Totem-Tabellen, Bet-Modes
    ├─ gamestate.py                  Ablauf Basisspiel / Freispiele
