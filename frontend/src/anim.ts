@@ -9,7 +9,7 @@ export const speed = {
     return this.level > 0;
   },
   factor(): number {
-    return this.skip ? 7 : [1, 2, 3.6][this.level] ?? 1;
+    return this.skip ? 3.5 : [1, 2, 3.6][this.level] ?? 1;
   },
 };
 
