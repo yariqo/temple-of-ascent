@@ -23,6 +23,13 @@ export class RoundPlayer {
   private finalAmount = 0;
   /** a single-spin round that ends in a big win: keep the amount hidden until the big-win screen */
   private quiet = false;
+  /** a free spin whose own win is a big win (≥20×): same treatment inside the bonus */
+  private spinQuiet = false;
+  private events: GameEvent[] = [];
+  private idx = 0;
+  private get hidden() {
+    return this.quiet || this.spinQuiet;
+  }
 
   constructor(private board: Board, private ui: Ui) {
     // chime for every scatter / rune that lands, rising in pitch
@@ -47,8 +54,10 @@ export class RoundPlayer {
     this.ui.setWin(null);
     const hasBonus = round.events.some((e) => e.type === 'freeSpinTrigger');
     this.quiet = !hasBonus && !!this.tierFor(this.finalAmount);
-    for (const ev of round.events) await this.handle(ev);
+    this.events = round.events;
+    for (this.idx = 0; this.idx < this.events.length; this.idx++) await this.handle(this.events[this.idx]);
     this.quiet = false;
+    this.spinQuiet = false;
     if (this.inFreeSpins) this.leaveFreeSpins();
   }
 
@@ -74,6 +83,7 @@ export class RoundPlayer {
     switch (ev.type) {
       case 'reveal': {
         this.scatterCount = 0;
+        this.spinQuiet = this.inFreeSpins && this.spinWinAhead() / this.bet >= BIG_TIERS[0].min;
         this.board.mascot.watch();
         await this.board.spin(Board.visibleFromReveal(ev.board), ev.anticipation);
         this.board.mascot.relax();
@@ -88,8 +98,8 @@ export class RoundPlayer {
       }
       case 'winInfo': {
         // the jaguar only cheers for real wins (≥ round cost) – or any win inside free spins
-        if (!this.quiet && (this.inFreeSpins || this.money(ev.totalWin) >= this.bet * this.cost)) void this.board.mascot.happy();
-        await this.board.showWins(ev.wins, this.quiet ? '' : money(this.money(ev.totalWin)));
+        if (!this.hidden && (this.inFreeSpins || this.money(ev.totalWin) >= this.bet * this.cost)) void this.board.mascot.happy();
+        await this.board.showWins(ev.wins, this.hidden ? '' : money(this.money(ev.totalWin)));
         break;
       }
       case 'totemMultiplier': {
@@ -99,12 +109,18 @@ export class RoundPlayer {
           kept > 0
             ? t('keptExplain', { a: `${t('lineWin')} ${money(this.money(ev.baseWin))}`, m: ev.totalMult, b: ev.totalMult - kept, k: kept, c: money(this.money(ev.totalWin)) })
             : `${t('lineWin')} ${money(this.money(ev.baseWin))} × ${ev.totalMult} = ${money(this.money(ev.totalWin))}`;
-        if (this.quiet) await this.board.totemPower(ev.totems, ev.totalMult, '', '');
+        if (this.hidden) await this.board.totemPower(ev.totems, ev.totalMult, '', '');
         else await this.board.totemPower(ev.totems, ev.totalMult, explain, money(this.money(ev.totalWin)));
         break;
       }
-      case 'setWin':
+      case 'setWin': {
+        // big free-spin win: the celebration reveals the amount, the bonus total counts on afterwards
+        if (this.spinQuiet) {
+          this.spinQuiet = false;
+          await this.ui.bigWin(this.money(ev.amount), this.bet, { onTier: (lv) => this.onTier(lv) });
+        }
         break;
+      }
       case 'setTotalWin': {
         const v = this.money(ev.amount);
         if (v !== this.totalWin) {
@@ -195,6 +211,16 @@ export class RoundPlayer {
       default:
         break;
     }
+  }
+
+  /** win of the current free spin (from its setWin event), looked up before the reels stop */
+  private spinWinAhead(): number {
+    for (let i = this.idx + 1; i < this.events.length; i++) {
+      const e = this.events[i];
+      if (e.type === 'setWin') return this.money(e.amount);
+      if (e.type === 'reveal' || e.type === 'updateFreeSpin' || e.type === 'freeSpinEnd') break;
+    }
+    return 0;
   }
 
   /** Big-win celebration only from 20× bet and never for wins below the round cost. */
