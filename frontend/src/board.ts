@@ -83,16 +83,22 @@ function scatterRays(): Texture {
   return (raysTex = Texture.from(c));
 }
 
-/** stele material by stage: stone (base / stage 1), bronze (2), diamond (3), obsidian (4) */
-let steleKey = 'T';
-export function steleKeyForStage(stage: number): string {
-  return stage >= 4 ? 'TO' : stage === 3 ? 'TD' : stage === 2 ? 'TB' : 'T';
+/** stele material by VALUE: stone < 10×, bronze 10×–25×, diamond 50×–100×, obsidian 250×+.
+ *  Every stele lands as stone – strong ones burst into their material when the value is revealed. */
+export function steleLevel(v: number): number {
+  return v >= 250 ? 3 : v >= 50 ? 2 : v >= 10 ? 1 : 0;
 }
+const STELE_KEYS = ['T', 'TB', 'TD', 'TO'];
+const STELE_COLORS = [0xc9c2b8, 0xf0a060, 0x9fe8ff, 0xffb030];
+/** set by the board: particles / shake when a stele bursts into a stronger material */
+let upgradeFx: ((v: SymbolView, lvl: number) => void) | null = null;
 
 /** One symbol on the board. */
 class SymbolView extends Container {
   sym: BoardSymbol = { name: 'L1' };
   golden = false;
+  /** material after the reveal (null = stone until revealed) */
+  revealedKey: string | null = null;
   private glow = new Sprite(TEX.glow);
   private sprite = new Sprite(Texture.EMPTY);
   private _rays: Sprite | null = null;
@@ -122,7 +128,7 @@ class SymbolView extends Container {
   set(sym: BoardSymbol, golden = false, blurred = false) {
     this.sym = sym;
     this.golden = golden;
-    const key = sym.name === 'T' ? (golden ? 'TG' : steleKey) : sym.name;
+    const key = sym.name === 'T' ? (golden ? 'TG' : this.revealedKey ?? 'T') : sym.name;
     this.sprite.texture = (blurred ? TEX.blur[key] : TEX.sym[key]) ?? TEX.sym.L1;
     this.sprite.width = this.sprite.height = SYM_SIZE;
     const isS = sym.name === 'S' && !blurred;
@@ -175,32 +181,60 @@ class SymbolView extends Container {
     this.glow.alpha = 0.75;
   }
 
-  /** Rattle through values, then stop on the real multiplier. */
+  /** Rattle through values, then stop on the real multiplier. Strong steles rattle longer,
+   *  shake harder and then burst into their material (bronze / diamond / obsidian). */
   async spinPlate(values: number[], final: number, ms = 650) {
     if (this.sym.name !== 'T' || this.destroyed) return;
+    const lvl = this.golden ? 0 : steleLevel(final);
+    const dur = ms + lvl * 280;
     let last = -1;
     const plate = this.plate;
+    const baseX = this.sprite.x;
     await tween(
-      ms,
+      dur,
       (t) => {
         if (this.destroyed) return;
-        const step = Math.floor(t * 12);
+        const step = Math.floor(t * (12 + lvl * 3));
         if (step !== last) {
           last = step;
           this.setPlate(values[Math.floor(Math.random() * values.length)], true);
           sound.steleTick();
         }
         plate.y = lerp(PLATE_Y - 10, PLATE_Y, (t * 12) % 1);
+        // the stone starts to tremble and glow before it bursts
+        if (lvl > 0 && t > 0.45) {
+          const k = (t - 0.45) / 0.55;
+          this.sprite.x = baseX + Math.sin(t * 90) * k * (1.5 + lvl * 1.6);
+          this.setGlow(true, STELE_COLORS[lvl]);
+          this.glow.alpha = 0.25 + 0.6 * k;
+        }
       },
       ease.inCubic,
     );
     if (this.destroyed) return;
+    this.sprite.x = baseX;
+    if (lvl > 0) {
+      this.revealedKey = STELE_KEYS[lvl];
+      this.sprite.texture = TEX.sym[this.revealedKey];
+      this.sprite.width = this.sprite.height = SYM_SIZE;
+      upgradeFx?.(this, lvl);
+      sound.steleUpgrade(lvl);
+    }
     this.setPlate(final);
     plate.y = PLATE_Y;
-    this.setGlow(true, totemTier(final).color);
+    this.setGlow(true, lvl > 0 ? STELE_COLORS[lvl] : totemTier(final).color);
+    this.glow.alpha = lvl > 0 ? 1 : 0.75;
     sound.steleReveal(tierName(final));
-    await tween(260, (t) => !this.destroyed && plate.scale.set(lerp(1.7, 1, t)), ease.outBack);
-    await tween(300, (t) => !this.destroyed && (this.glow.alpha = 0.75 * (1 - t)), ease.linear);
+    await tween(
+      lvl > 0 ? 380 : 260,
+      (t) => {
+        if (this.destroyed) return;
+        plate.scale.set(lerp(1.7, 1, t));
+        if (lvl > 0) this.sprite.width = this.sprite.height = SYM_SIZE * lerp(1.28, 1, t);
+      },
+      ease.outBack,
+    );
+    await tween(lvl > 0 ? 500 : 300, (t) => !this.destroyed && (this.glow.alpha = (lvl > 0 ? 1 : 0.75) * (1 - t)), ease.linear);
     if (!this.destroyed) this.setGlow(false);
   }
 }
@@ -317,6 +351,13 @@ export class Board {
     for (const a of this.antic) this.reelsLayer.addChild(a);
     this.buildEyes();
     this.buildKept();
+    upgradeFx = (v, lvl) => {
+      const lp = this.root.toLocal(v.getGlobalPosition());
+      const tint = [[0xc9c2b8], [0xffb070, 0xffe0b0, 0xc9c2b8], [0x9fe8ff, 0xffffff, 0x7fd6f5], [0xffb030, 0xffe27a, 0x2a2733]][lvl];
+      this.particles.emit(TEX.spark, lp.x, lp.y, { n: 14 + lvl * 10, speed: [80, 220 + lvl * 80], life: [400, 900], scale: [0.7, 0.05], tint, blend: 'add' });
+      this.particles.emit(TEX.dust, lp.x, lp.y + 20, { n: 8, speed: [40, 140], life: [300, 700], scale: [0.5, 1], alpha: 0.35 });
+      if (lvl >= 2) void this.shake(6 + lvl * 4, 320);
+    };
     this.layout();
     let time = 0;
     app.ticker.add((tk) => {
@@ -354,7 +395,6 @@ export class Board {
   }
 
   setTheme(stage: number) {
-    steleKey = steleKeyForStage(stage);
     this.frame.tint = stage >= 4 ? 0xd8c8ff : stage === 3 ? 0xffc0a0 : stage === 2 ? 0xffe0b0 : 0xffffff;
   }
 
@@ -858,42 +898,62 @@ export class Board {
   }
 
   /** Steles add up (beams to the centre) and multiply the line win. */
+  /** The steles are added up one after another (×5 → ×15 → ×40 …), then the line win is multiplied. */
   async totemPower(totems: Pos[], totalMult: number, explain: string, resultText: string) {
-    const views = totems.map((p) => this.cellAt(p)).filter(Boolean) as SymbolView[];
-    views.forEach((v) => {
-      v.alpha = 1;
-      v.setGlow(true, 0xffd24a);
-    });
-    const beams = new Graphics();
-    this.fx.addChild(beams);
     const cx = W / 2;
     const cy = H / 2 - 20;
-    const from = totems.map((p) => this.center(p));
-    if (this.keptBox.visible && this.keptValue > 0) from.push({ x: this.keptBox.x, y: this.keptBox.y });
+    const items = totems
+      .map((p) => ({ p, v: this.cellAt(p), m: (p as any).multiplier as number | undefined }))
+      .filter((x) => x.v) as { p: Pos; v: SymbolView; m?: number }[];
+    const kept = this.keptBox.visible ? this.keptValue : 0;
+    let sum = 0;
+    const b = this.bigText;
+    b.visible = true;
+    b.alpha = 1;
+    this.subText.visible = false;
+    const show = (v: number, i: number) => {
+      b.text = `×${v}`;
+      sound.multTick(i);
+      this.particles.emit(TEX.spark, cx, cy, { n: 10 + i * 3, speed: [80, 240], life: [300, 700], scale: [0.6, 0.05], tint: [0xffe066, 0xfff3c4], blend: 'add' });
+      void tween(220, (k) => b.scale.set(lerp(1.35, 1, k)), ease.outBack);
+    };
+    const beam = async (from: { x: number; y: number }) => {
+      const g = new Graphics();
+      this.fx.addChild(g);
+      await tween(
+        200,
+        (t) => {
+          g.clear();
+          g.moveTo(from.x, from.y).lineTo(lerp(from.x, cx, t), lerp(from.y, cy, t));
+          g.stroke({ width: 14, color: 0xffc94a, alpha: 0.35, cap: 'round' });
+          g.moveTo(from.x, from.y).lineTo(lerp(from.x, cx, t), lerp(from.y, cy, t));
+          g.stroke({ width: 4, color: 0xfff6c8, alpha: 0.95, cap: 'round' });
+        },
+        ease.inCubic,
+      );
+      void tween(160, (t) => (g.alpha = 1 - t)).then(() => g.destroy());
+    };
+    let i = 0;
+    if (kept > 0) {
+      await beam({ x: this.keptBox.x, y: this.keptBox.y });
+      sum += kept;
+      show(sum, i++);
+      await wait(120);
+    }
+    for (const it of items) {
+      it.v.alpha = 1;
+      it.v.setGlow(true, 0xffd24a);
+      void this.pulse([it.v], 1.18, 260);
+      await beam(this.center(it.p));
+      sum += it.m ?? it.v.sym.multiplier ?? 0;
+      show(sum, i++);
+      await wait(90);
+      it.v.setGlow(false);
+    }
+    if (sum !== totalMult) show(totalMult, i);
     sound.multiply();
-    await tween(
-      450,
-      (t) => {
-        beams.clear();
-        for (const f of from) {
-          beams.moveTo(f.x, f.y).lineTo(lerp(f.x, cx, t), lerp(f.y, cy, t));
-          beams.stroke({ width: 14, color: 0xffc94a, alpha: 0.35, cap: 'round' });
-          beams.moveTo(f.x, f.y).lineTo(lerp(f.x, cx, t), lerp(f.y, cy, t));
-          beams.stroke({ width: 4, color: 0xfff6c8, alpha: 0.95, cap: 'round' });
-        }
-      },
-      ease.inOutCubic,
-    );
-    this.particles.emit(TEX.spark, cx, cy, {
-      n: 26,
-      speed: [120, 380],
-      life: [400, 900],
-      scale: [0.7, 0.05],
-      tint: [0xffe066, 0xfff3c4, 0xff9a2a],
-      blend: 'add',
-    });
-    beams.destroy();
-    views.forEach((v) => v.setGlow(false));
+    await wait(260);
+    b.visible = false;
     await this.flashText(`×${totalMult}`, explain ? 1300 : 650, explain);
     await this.popWin(resultText, 500);
   }

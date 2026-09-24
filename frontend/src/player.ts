@@ -4,7 +4,7 @@ import { BONUS_BY_SCATTERS, GOLDEN_TOTEMS, ROAR_TOTEMS, STAGE_TOTEMS } from './c
 import { BIG_TIERS } from './bigwin';
 import { t } from './i18n';
 import { money } from './format';
-import { wait } from './anim';
+import { speed, wait } from './anim';
 import { sound } from './sound';
 import type { GameEvent, Round } from './types';
 
@@ -154,6 +154,8 @@ export class RoundPlayer {
         break;
       }
       case 'updateFreeSpin': {
+        // a tap skips only the spin that is running – every new free spin plays at normal speed again
+        speed.skip = false;
         this.ui.setFsCounter(ev.amount + 1, ev.total);
         this.board.clearWins();
         await wait(120);

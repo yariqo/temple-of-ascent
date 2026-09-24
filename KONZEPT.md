@@ -1,4 +1,4 @@
-# BALAM – Spielkonzept (v0.14)
+# BALAM – Spielkonzept (v0.15)
 
 *Name: **BALAM** (Maya-Wort für Jaguar; Arbeitstitel vorher „Temple of Ascent“). Die internen IDs bleiben: game_id `temple_of_ascent`, Ordner `math/temple_of_ascent`. Thema: Azteken-Dschungel (siehe THEMA.md). Maskottchen: der Jaguar Balam.*
 
@@ -50,17 +50,21 @@ Weitere Funktionen:
   - Man kann sie separat ein- und ausschalten.
 
 ## Stelen-Materialien
-Das Material zeigt, wie stark eine Stele sein kann:
+Jede Stele landet als Stein und rattert. Das Material richtet sich nach dem **Wert**, im Basisspiel wie im Bonus:
 
-| Material | Stufe | Werte |
+| Material | Wert | Enthüllung |
 |---|---|---|
-| Stein (grau) | Basisspiel / Stufe 1 | 2×–10× / 2×–25× |
-| Bronze | Stufe 2 | 5×–50× |
-| Diamant | Stufe 3 | 10×–250× |
-| Obsidian mit Goldglut | Stufe 4 | 25×–500× |
-| Gold | Jaguar-Spin | 5×–50× |
+| Stein (grau) | 2×–5× | normal |
+| Bronze | 10×–25× | Die Stele zittert, glüht und platzt zu Bronze auf, mit Funken und Klang. |
+| Diamant | 50×–100× | wie Bronze, dazu bebt das Spielfeld |
+| Obsidian mit Goldglut | 250×+ | wie Diamant, dazu ein Gong |
+| Gold | Jaguar-Spin | – |
 
-Die Pyramide im Tempel färbt sich passend.
+Starke Stelen rattern länger.
+
+Der Multiplikator wird **Stele für Stele hochgezählt** (z. B. ×3 → ×13 → ×63), mit steigendem Ton. Erst danach kommt der Gewinn.
+
+Fehlt in den Freispielen nur noch ein BONUS-Symbol zur nächsten Stufe, pulsiert diese Stufe in der Pyramide.
 
 ## Präsentation
 - **Start-Screen:**

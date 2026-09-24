@@ -720,10 +720,6 @@ export class Backdrop {
     this.art = this.get(0);
     const r = rng(77);
     for (let i = 0; i < 36; i++) this.flies.push({ x: r() * VW, y: VH * 0.35 + r() * VH * 0.6, vx: (r() - 0.5) * 12, vy: (r() - 0.5) * 8, ph: r() * 6 });
-    window.addEventListener('pointermove', (e) => {
-      this.px = (e.clientX / innerWidth - 0.5) * 2;
-      this.py = (e.clientY / innerHeight - 0.5) * 2;
-    });
     requestAnimationFrame(this.frame);
   }
 

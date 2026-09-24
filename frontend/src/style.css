@@ -2685,3 +2685,93 @@ dialog button.gold,
     animation: none !important;
   }
 }
+
+/* ---------- clean stats (v0.15): no boxes, no icons, thin dividers ---------- */
+.st-ico {
+  display: none !important;
+}
+.stat,
+#stat-win,
+#stat-win:has(#win.big) {
+  background: none;
+  border: none;
+  border-left: 1px solid rgba(255, 211, 90, 0.18);
+  border-radius: 0;
+  box-shadow: none;
+  animation: none;
+  padding: 2px 18px;
+}
+.stat:first-child {
+  border-left: none;
+}
+.stat span {
+  font-size: 10px;
+  letter-spacing: 0.24em;
+  color: #b89a5e;
+}
+.stat b {
+  color: #fff4dc;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.7);
+}
+#win {
+  font-size: clamp(18px, 2.3vw, 27px);
+  transition: color 0.3s;
+}
+#win.big {
+  color: #ffe08a;
+  animation: winPop 0.6s ease-out;
+}
+@keyframes winPop {
+  0% {
+    transform: scale(1.18);
+    text-shadow: 0 0 18px rgba(255, 220, 120, 0.9);
+  }
+  100% {
+    transform: scale(1);
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.7);
+  }
+}
+#win {
+  display: inline-block;
+  transform-origin: left center;
+}
+@media (max-width: 760px) {
+  .stat,
+  #stat-win,
+  #stat-win:has(#win.big) {
+    padding: 2px 8px;
+  }
+  .stat span {
+    font-size: 8.5px;
+    letter-spacing: 0.12em;
+  }
+  #win {
+    font-size: 16px;
+  }
+}
+@media (max-height: 520px) and (orientation: landscape) {
+  .stat,
+  #stat-win,
+  #stat-win:has(#win.big) {
+    border-left: none;
+    border-top: 1px solid rgba(255, 211, 90, 0.14);
+    padding: 3px 4px;
+  }
+  .stat:first-child {
+    border-top: none;
+  }
+  #win {
+    font-size: 14px;
+  }
+}
+
+.tier.almost {
+  animation: almost 0.9s ease-in-out infinite;
+  filter: none;
+}
+@keyframes almost {
+  50% {
+    box-shadow: 0 0 18px 4px rgba(127, 243, 255, 0.85);
+    transform: scale(1.06);
+  }
+}

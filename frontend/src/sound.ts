@@ -159,6 +159,22 @@ class Sound {
     map[tier].forEach((f, i) => this.tone(f, 0.5 + i * 0.05, { type: 'triangle', vol: 0.16, at: i * 0.06 }));
     if (tier === 'sun' || tier === 'obsidian') this.gong(0.25);
   }
+  /** one stele added to the multiplier – rising pitch */
+  multTick(i: number) {
+    const f = 523 * Math.pow(2, Math.min(i, 12) * 2 / 12);
+    this.tone(f, 0.22, { type: 'triangle', vol: 0.16 });
+    this.tone(f * 1.5, 0.3, { type: 'sine', vol: 0.08, at: 0.03 });
+  }
+  /** a stele bursts into bronze (1), diamond (2) or obsidian (3) */
+  steleUpgrade(lvl: number) {
+    if (!this.ok()) return;
+    this.noise(0.25, { freq: 900, sweep: 300, vol: 0.2, type: 'lowpass' });
+    this.tone(90, 0.35, { type: 'sine', vol: 0.35, slide: 0.5 });
+    const base = [0, 784, 1047, 1319][lvl];
+    [0, 4, 7, 12].slice(0, 2 + lvl).forEach((st, i) => this.tone(base * Math.pow(2, st / 12), 0.6, { type: 'triangle', vol: 0.1, at: 0.04 + i * 0.05 }));
+    this.noise(0.8, { freq: 6000, sweep: 12000, vol: 0.05 * lvl, type: 'highpass', at: 0.05 });
+    if (lvl >= 3) this.gong(0.3);
+  }
   win(level: number) {
     // short pentatonic run, longer for bigger wins
     const n = Math.min(3 + level, 9);

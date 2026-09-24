@@ -207,6 +207,8 @@ export class Ui {
         el.classList.add('bump');
       }
       const filled = this.runes - (s - 1) * RUNES_PER_STAGE;
+      // one BONUS symbol away from the next stage: the next tier pulses
+      el.classList.toggle('almost', this.stage > 0 && s === this.stage + 1 && this.stage * RUNES_PER_STAGE - this.runes === 1);
       el.querySelectorAll('.rune').forEach((r, i) => r.classList.toggle('on', this.stage > 0 && i < filled));
     }
     const info = $('pyr-info');
@@ -483,13 +485,6 @@ export class Ui {
 
   /** start screen with three feature tablets; resolves when the player continues */
   intro(art: { logo: string; bonus: string; face: string; stele: string; stele2: string }): Promise<void> {
-    let skip = false;
-    try {
-      skip = localStorage.getItem('balam-intro-skip') === '1';
-    } catch {
-      /* storage blocked */
-    }
-    if (skip) return Promise.resolve();
     const dlg = $<HTMLDialogElement>('intro');
     $('in-logo').innerHTML = `<img src="${art.logo}" alt="BALAM">`;
     $('in-t1').textContent = t('introT1');
@@ -499,7 +494,6 @@ export class Ui {
     $('in-t3').textContent = t('introT3');
     $('in-d3').textContent = t('introD3');
     $('in-go').textContent = t('introGo');
-    $('in-skip-t').textContent = t('introSkip');
     $('in-a1').innerHTML = [3, 4, 5].map((n) => `<div class="in-row">${`<img src="${art.bonus}" alt="">`.repeat(n)}</div>`).join('');
     $('in-a2').innerHTML = `<div class="in-face"><img src="${art.face}" alt=""></div>`;
     $('in-a3').innerHTML = `<img class="st a" src="${art.stele}" alt=""><img class="st b" src="${art.stele2}" alt="">`;
@@ -507,11 +501,6 @@ export class Ui {
     return new Promise((resolve) => {
       const done = () => {
         sound.click();
-        try {
-          if (($('in-skip') as HTMLInputElement).checked) localStorage.setItem('balam-intro-skip', '1');
-        } catch {
-          /* ignore */
-        }
         dlg.classList.add('out');
         window.setTimeout(() => {
           dlg.close();
