@@ -93,6 +93,9 @@ const STELE_COLORS = [0xc9c2b8, 0xf0a060, 0x9fe8ff, 0xffb030];
 /** set by the board: particles / shake when a stele bursts into a stronger material */
 let upgradeFx: ((v: SymbolView, lvl: number) => void) | null = null;
 
+/** true while a spin is running */
+let reelsSpinning = false;
+
 /** One symbol on the board. */
 class SymbolView extends Container {
   sym: BoardSymbol = { name: 'L1' };
@@ -152,7 +155,8 @@ class SymbolView extends Container {
   animate(time: number) {
     if (!this._rays?.visible) return;
     this._rays.rotation = time * 0.6;
-    this._rays.alpha = 0.45 + 0.25 * Math.sin(time * 3);
+    // while the reels spin (and during a bonus tease) the light ring is off – the only blue glow is the teased reel
+    this._rays.alpha = reelsSpinning ? 0 : 0.45 + 0.25 * Math.sin(time * 3);
     this.sprite.width = this.sprite.height = SYM_SIZE * (1 + 0.045 * Math.sin(time * 3));
   }
 
@@ -409,6 +413,7 @@ export class Board {
   //   longer and visibly slows down while the rest of the board darkens.
   async spin(target: BoardSymbol[][], anticipation: number[] = []) {
     this.clearWins();
+    reelsSpinning = true;
     sound.spinStart();
     const START_GAP = 60;
     const FIRST_STOP = 820;
@@ -440,6 +445,7 @@ export class Board {
       }
     }
     await Promise.all(jobs);
+    reelsSpinning = false;
     this.endTease();
     if (teasing) await this.zoomTo(1, 320);
   }
