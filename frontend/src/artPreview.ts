@@ -1,7 +1,7 @@
 import { ALL_SYMBOLS, drawSymbol, SYM } from './art/draw';
 import { drawScene } from './art/scene';
 import { loadFonts } from './fonts';
-import { drawMascotBody, drawMascotHead, drawMascotTail } from './art/mascot';
+import { drawMascotBody, drawMascotHead, drawMascotTail, MASCOT_GEO } from './art/mascot';
 (async () => {
   await loadFonts();
   const c = document.getElementById('c') as HTMLCanvasElement;
@@ -13,15 +13,19 @@ import { drawMascotBody, drawMascotHead, drawMascotTail } from './art/mascot';
     c.height = Math.ceil(ALL_SYMBOLS.length / cols) * SYM;
     ALL_SYMBOLS.forEach((n, i) => ctx.drawImage(drawSymbol(n), (i % cols) * SYM, Math.floor(i / cols) * SYM));
   } else if (mode === 'mascot') {
-    c.width = 1100;
-    c.height = 420;
-    ctx.fillStyle = '#4a4133';
-    ctx.fillRect(0, 150, 1100, 40);
-    ctx.drawImage(drawMascotTail(), 380, 150);
-    ctx.drawImage(drawMascotBody(), 20, 20);
-    ctx.drawImage(drawMascotHead('open'), 20 + 95 - 95, 20 + 70 - 98);
-    (['closed', 'happy', 'roar'] as const).forEach((f, i) => ctx.drawImage(drawMascotHead(f, i === 2), 500 + i * 200, 20));
-    ctx.drawImage(drawMascotHead('open', true), 700, 220);
+    c.width = 1200;
+    c.height = 520;
+    ctx.fillStyle = '#20302a';
+    ctx.fillRect(0, 0, 1200, 520);
+    ctx.fillStyle = '#6a5a44';
+    ctx.fillRect(0, 180, 1200, 30);
+    const G = MASCOT_GEO;
+    const ox = 20, oy = 180 - G.belly + 10;
+    ctx.drawImage(drawMascotTail(), ox + G.tail.x - G.tail.ax, oy + G.tail.y - G.tail.ay);
+    ctx.drawImage(drawMascotBody(), ox, oy);
+    ctx.drawImage(drawMascotHead('open'), ox + G.head.x - G.head.ax, oy + G.head.y - G.head.ay);
+    (['closed', 'happy', 'roar'] as const).forEach((f, i) => ctx.drawImage(drawMascotHead(f, i === 2), 520 + i * 230, 0));
+    ctx.drawImage(drawMascotHead('open', true), 750, 260);
   } else {
     c.width = 1600;
     c.height = 1500;

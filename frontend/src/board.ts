@@ -7,6 +7,7 @@ import { drawFrame } from './art/frame';
 import { Particles } from './fx/particles';
 import { sound, type Tier } from './sound';
 import { Mascot } from './mascot';
+import { MASCOT_GEO } from './art/mascot';
 import { t } from './i18n';
 
 export const CELL = 150;
@@ -16,7 +17,7 @@ const MARGIN = 40;
 /** room above the frame for the jaguar mascot, and to the right for its tail */
 const TOP = 112;
 const SIDE = 22;
-const MASCOT_SCALE = 0.62;
+const MASCOT_SCALE = 0.7;
 const KEPT_SCALE = 0.95;
 const SYM_SIZE = CELL * 0.94;
 /** plate centre of the stele texture (y = 184 of 256) relative to the symbol centre */
@@ -250,7 +251,7 @@ export class Board {
 
     this.mascot = new Mascot(app.ticker);
     this.mascot.root.scale.set(MASCOT_SCALE);
-    this.mascot.root.position.set(W + MARGIN - 10 - 404 * MASCOT_SCALE, -MARGIN + 12);
+    this.mascot.root.position.set(W + MARGIN - 6 - MASCOT_GEO.right * MASCOT_SCALE, -MARGIN + 14);
     this.root.addChild(this.frame, this.mascot.root, cellBg, this.reelsLayer, this.overlay, this.lines, this.fx, this.particles.layer, this.eyes, this.keptBox, this.winText, this.bigText, this.subText);
     for (const t of [this.bigText, this.subText, this.winText]) {
       t.anchor.set(0.5);

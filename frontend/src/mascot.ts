@@ -1,5 +1,5 @@
 import { Container, Sprite, Texture, type Ticker } from 'pixi.js';
-import { drawMascotBody, drawMascotHead, drawMascotTail, type Face } from './art/mascot';
+import { drawMascotBody, drawMascotHead, drawMascotTail, MASCOT_GEO as G, type Face } from './art/mascot';
 import { TEX } from './art/textures';
 import { ease, lerp, tween, wait } from './anim';
 import { sound } from './sound';
@@ -12,8 +12,9 @@ function faceTex(face: Face, glow: boolean): Texture {
   return t;
 }
 
-const HEAD_X = 95;
-const HEAD_Y = -72;
+const HEAD_X = G.head.x;
+const HEAD_Y = G.head.y - G.belly;
+const BODY_Y = -G.belly;
 
 /**
  * Balam, the temple jaguar – lies on the reel frame and reacts to the game.
@@ -38,14 +39,14 @@ export class Mascot {
     this.aura.anchor.set(0.5);
     this.aura.width = 560;
     this.aura.height = 300;
-    this.aura.position.set(210, -70);
+    this.aura.position.set(250, -80);
     this.aura.tint = 0xffc23a;
     this.aura.blendMode = 'add';
     this.aura.alpha = 0;
-    this.body.position.set(0, -142);
-    this.tail.anchor.set(20 / 90, 10 / 220);
-    this.tail.position.set(392, -14);
-    this.head.anchor.set(95 / 190, 128 / 210);
+    this.body.position.set(0, BODY_Y);
+    this.tail.anchor.set(G.tail.ax / G.tail.w, G.tail.ay / G.tail.h);
+    this.tail.position.set(G.tail.x, G.tail.y - G.belly);
+    this.head.anchor.set(G.head.ax / G.head.w, G.head.ay / G.head.h);
     this.head.position.set(HEAD_X, HEAD_Y);
     this.rig.addChild(this.aura, this.tail, this.body, this.head);
     this.root.addChild(this.rig);
@@ -57,8 +58,8 @@ export class Mascot {
     this.time += dt;
     const t = this.time;
     // breathing, tail sway
-    this.body.scale.y = 1 + 0.014 * Math.sin(t * 2.1);
-    this.body.y = -142 - 142 * 0.014 * Math.sin(t * 2.1);
+    this.body.scale.y = 1 + 0.012 * Math.sin(t * 2.1);
+    this.body.y = BODY_Y - G.belly * 0.012 * Math.sin(t * 2.1);
     this.tail.rotation = 0.13 * Math.sin(t * 1.25) + 0.04 * Math.sin(t * 3.1);
     if (!this.busy) {
       this.head.y = HEAD_Y + 2.2 * Math.sin(t * 2.1 + 0.6) + this.look * 10;

@@ -1,326 +1,684 @@
 /**
- * "Balam" – the jaguar mascot that lies on top of the reel frame.
- * Drawn in parts so it can be animated: body (with paws), head (several faces), tail.
+ * "Balam" – the temple jaguar that lies on top of the reel frame.
+ * Drawn in parts so it can be animated: body (with fore paws), head (several faces), tail.
+ * All drawing is procedural Canvas2D (no image files).
  */
 import { lin, makeCanvas, rad } from './draw';
 
-const INK = '#241204';
-const FUR = (ctx: CanvasRenderingContext2D, y0: number, y1: number) =>
-  lin(ctx, 0, y0, 0, y1, [
-    [0, '#ffd27a'],
-    [0.45, '#f0a02a'],
-    [1, '#b8610c'],
-  ]);
+type Ctx = CanvasRenderingContext2D;
 
-function rosette(ctx: CanvasRenderingContext2D, x: number, y: number, r: number) {
+/** Geometry shared with the animation code (src/mascot.ts). Body canvas coordinates. */
+export const MASCOT_GEO = {
+  bodyW: 480,
+  bodyH: 200,
+  belly: 160, // y of the line the jaguar lies on
+  head: { w: 240, h: 290, ax: 120, ay: 176, x: 102, y: 74 }, // head canvas size, anchor, position on the body
+  tail: { w: 120, h: 250, ax: 26, ay: 14, x: 436, y: 136 },
+  right: 462, // right end of the body
+};
+
+const INK = '#2b1606';
+const SPOT = '#23110a';
+const CREAM = '#fbecc9';
+
+/** tiny deterministic random so the pattern is always the same */
+function rng(seed: number) {
+  let s = seed;
+  return () => {
+    s = (s * 16807) % 2147483647;
+    return (s - 1) / 2147483646;
+  };
+}
+
+/** jaguar rosette: broken black ring around a darker golden centre (sometimes with a dot) */
+function rosette(ctx: Ctx, x: number, y: number, r: number, rnd: () => number) {
+  ctx.save();
+  ctx.translate(x, y);
+  ctx.rotate(rnd() * Math.PI);
+  ctx.scale(1, 0.78 + rnd() * 0.2);
   ctx.beginPath();
-  for (let i = 0; i < 4; i++) {
-    const a = (i / 4) * Math.PI * 2 + 0.4;
-    ctx.moveTo(x + Math.cos(a) * r + 2.2, y + Math.sin(a) * r);
-    ctx.arc(x + Math.cos(a) * r, y + Math.sin(a) * r, 2.2, 0, Math.PI * 2);
-  }
-  ctx.fillStyle = '#4a2204';
+  ctx.arc(0, 0, r * 0.82, 0, Math.PI * 2);
+  ctx.fillStyle = 'rgba(176,92,14,0.55)';
   ctx.fill();
+  const n = 4 + Math.floor(rnd() * 3);
+  ctx.strokeStyle = SPOT;
+  ctx.lineCap = 'round';
+  for (let i = 0; i < n; i++) {
+    const a0 = (i / n) * Math.PI * 2 + rnd() * 0.3;
+    const a1 = a0 + ((Math.PI * 2) / n) * (0.45 + rnd() * 0.3);
+    ctx.beginPath();
+    ctx.arc(0, 0, r, a0, a1);
+    ctx.lineWidth = r * (0.34 + rnd() * 0.18);
+    ctx.stroke();
+  }
+  if (rnd() < 0.5) {
+    ctx.beginPath();
+    ctx.arc((rnd() - 0.5) * r * 0.4, (rnd() - 0.5) * r * 0.4, r * 0.16, 0, Math.PI * 2);
+    ctx.fillStyle = SPOT;
+    ctx.fill();
+  }
+  ctx.restore();
+}
+
+function dot(ctx: Ctx, x: number, y: number, r: number) {
   ctx.beginPath();
-  ctx.arc(x, y, r * 0.35, 0, Math.PI * 2);
-  ctx.fillStyle = 'rgba(120,60,10,0.6)';
+  ctx.ellipse(x, y, r, r * 0.85, 0.4, 0, Math.PI * 2);
+  ctx.fillStyle = SPOT;
   ctx.fill();
 }
 
-/** Lying body seen from the front-side, 420×170. The head sits at x≈95, y≈70 (drawn separately). */
-export function drawMascotBody(): HTMLCanvasElement {
-  const [c, ctx] = makeCanvas(420, 170);
-  ctx.shadowColor = 'rgba(0,0,0,0.55)';
-  ctx.shadowBlur = 14;
-  ctx.shadowOffsetY = 6;
-  // body
+// ------------------------------------------------------------------ body
+function bodyPath(ctx: Ctx) {
   ctx.beginPath();
-  ctx.moveTo(60, 128);
-  ctx.bezierCurveTo(70, 60, 170, 44, 260, 52);
-  ctx.bezierCurveTo(340, 56, 400, 80, 404, 124);
-  ctx.bezierCurveTo(404, 138, 390, 142, 370, 142);
-  ctx.lineTo(80, 142);
-  ctx.bezierCurveTo(62, 142, 58, 136, 60, 128);
+  ctx.moveTo(96, 160);
+  ctx.bezierCurveTo(88, 120, 104, 84, 140, 66); // chest -> neck
+  ctx.bezierCurveTo(168, 52, 196, 56, 214, 64); // shoulder blade
+  ctx.bezierCurveTo(262, 80, 316, 74, 356, 58); // back
+  ctx.bezierCurveTo(398, 42, 440, 56, 456, 92); // hip
+  ctx.bezierCurveTo(466, 116, 464, 146, 452, 160); // rump
   ctx.closePath();
-  ctx.fillStyle = FUR(ctx, 44, 142);
+}
+
+function drawPaw(ctx: Ctx, x: number, top: number, bottom: number, w: number) {
+  // fore leg hanging over the frame edge
+  ctx.beginPath();
+  ctx.moveTo(x - w / 2, top);
+  ctx.bezierCurveTo(x - w / 2 - 2, top + 20, x - w / 2 - 4, bottom - 18, x - w / 2 - 3, bottom - 10);
+  ctx.quadraticCurveTo(x, bottom + 8, x + w / 2 + 3, bottom - 10);
+  ctx.bezierCurveTo(x + w / 2 + 4, bottom - 18, x + w / 2 + 2, top + 20, x + w / 2, top);
+  ctx.closePath();
+  ctx.fillStyle = lin(ctx, x - w / 2, 0, x + w / 2, 0, [
+    [0, '#c77a1c'],
+    [0.45, '#f2b44e'],
+    [1, '#d68a26'],
+  ]);
   ctx.fill();
-  ctx.shadowColor = 'transparent';
   ctx.strokeStyle = INK;
-  ctx.lineWidth = 5;
-  ctx.stroke();
-  // belly light
-  ctx.beginPath();
-  ctx.moveTo(100, 138);
-  ctx.bezierCurveTo(160, 118, 300, 118, 370, 136);
-  ctx.lineTo(370, 141);
-  ctx.lineTo(100, 141);
-  ctx.closePath();
-  ctx.fillStyle = 'rgba(255,240,205,0.75)';
-  ctx.fill();
-  // rosettes
-  const spots: [number, number, number][] = [
-    [150, 76, 8], [190, 66, 7], [232, 70, 8], [276, 66, 7], [318, 76, 8], [356, 92, 7],
-    [170, 100, 7], [214, 96, 8], [258, 96, 7], [302, 100, 8], [340, 112, 6], [128, 104, 6],
-  ];
-  for (const [x, y, r] of spots) rosette(ctx, x, y, r);
-  // hind leg bump
-  ctx.beginPath();
-  ctx.ellipse(350, 118, 40, 26, -0.2, Math.PI * 1.05, Math.PI * 1.95);
-  ctx.strokeStyle = 'rgba(80,35,5,0.6)';
   ctx.lineWidth = 3;
   ctx.stroke();
-  // front paws hanging over the frame edge
-  for (const x of [118, 172]) {
+  // paw tip lighter
+  ctx.save();
+  ctx.clip();
+  ctx.fillStyle = 'rgba(255,236,200,0.75)';
+  ctx.beginPath();
+  ctx.ellipse(x, bottom - 4, w * 0.6, 12, 0, 0, Math.PI * 2);
+  ctx.fill();
+  const r = rng(Math.round(x));
+  for (let i = 0; i < 5; i++) dot(ctx, x - w * 0.3 + r() * w * 0.6, top + 8 + r() * (bottom - top - 30), 2.2 + r() * 2);
+  ctx.restore();
+  // toes
+  ctx.strokeStyle = 'rgba(60,28,4,0.8)';
+  ctx.lineWidth = 2;
+  for (const dx of [-w * 0.2, 0, w * 0.2]) {
     ctx.beginPath();
-    ctx.roundRect(x - 18, 118, 36, 46, 16);
-    ctx.fillStyle = FUR(ctx, 118, 164);
-    ctx.fill();
-    ctx.strokeStyle = INK;
-    ctx.lineWidth = 4;
+    ctx.moveTo(x + dx, bottom - 12);
+    ctx.lineTo(x + dx, bottom - 2);
     ctx.stroke();
-    ctx.strokeStyle = 'rgba(60,25,0,0.7)';
-    ctx.lineWidth = 2.5;
-    for (const dx of [-7, 0, 7]) {
+  }
+  // small claws
+  ctx.fillStyle = '#fff6e6';
+  for (const dx of [-w * 0.3, -w * 0.1, w * 0.1, w * 0.3]) {
+    ctx.beginPath();
+    ctx.moveTo(x + dx - 2, bottom);
+    ctx.lineTo(x + dx + 2, bottom);
+    ctx.lineTo(x + dx, bottom + 5);
+    ctx.fill();
+  }
+}
+
+export function drawMascotBody(): HTMLCanvasElement {
+  const G = MASCOT_GEO;
+  const [c, ctx] = makeCanvas(G.bodyW, G.bodyH);
+
+  // soft contact shadow on the frame
+  ctx.beginPath();
+  ctx.ellipse(280, 162, 190, 10, 0, 0, Math.PI * 2);
+  ctx.fillStyle = 'rgba(0,0,0,0.35)';
+  ctx.fill();
+
+  // hind leg (back side, darker)
+  ctx.beginPath();
+  ctx.ellipse(392, 128, 58, 36, -0.15, 0, Math.PI * 2);
+  ctx.fillStyle = '#b76a16';
+  ctx.fill();
+
+  // body
+  ctx.save();
+  ctx.shadowColor = 'rgba(0,0,0,0.5)';
+  ctx.shadowBlur = 14;
+  ctx.shadowOffsetY = 5;
+  bodyPath(ctx);
+  ctx.fillStyle = lin(ctx, 0, 44, 0, 160, [
+    [0, '#e39a34'],
+    [0.35, '#f3b24b'],
+    [0.7, '#eaa441'],
+    [1, '#d88b2a'],
+  ]);
+  ctx.fill();
+  ctx.restore();
+
+  ctx.save();
+  bodyPath(ctx);
+  ctx.clip();
+  // belly (cream) along the bottom
+  ctx.beginPath();
+  ctx.moveTo(90, 170);
+  ctx.bezierCurveTo(160, 128, 330, 130, 470, 150);
+  ctx.lineTo(470, 175);
+  ctx.closePath();
+  ctx.fillStyle = lin(ctx, 0, 128, 0, 165, [
+    [0, 'rgba(251,236,201,0)'],
+    [0.45, 'rgba(251,236,201,0.85)'],
+    [1, CREAM],
+  ]);
+  ctx.fill();
+  // rim light along the back, shade under it
+  ctx.fillStyle = lin(ctx, 0, 50, 0, 90, [
+    [0, 'rgba(255,238,190,0.55)'],
+    [1, 'rgba(255,238,190,0)'],
+  ]);
+  ctx.fillRect(80, 40, 400, 50);
+  // thigh muscle
+  ctx.beginPath();
+  ctx.ellipse(398, 118, 52, 40, -0.3, 0, Math.PI * 2);
+  ctx.fillStyle = rad(ctx, 390, 100, 4, 60, [
+    [0, 'rgba(255,214,140,0.5)'],
+    [1, 'rgba(160,80,10,0.0)'],
+  ]);
+  ctx.fill();
+  ctx.beginPath();
+  ctx.ellipse(398, 122, 50, 36, -0.3, Math.PI * 0.95, Math.PI * 1.9);
+  ctx.strokeStyle = 'rgba(110,52,6,0.55)';
+  ctx.lineWidth = 3;
+  ctx.stroke();
+  // shoulder muscle
+  ctx.beginPath();
+  ctx.ellipse(176, 104, 44, 38, 0.2, Math.PI * 1.05, Math.PI * 1.85);
+  ctx.strokeStyle = 'rgba(110,52,6,0.45)';
+  ctx.lineWidth = 3;
+  ctx.stroke();
+
+  // rosettes – big on the flank, smaller towards belly and legs
+  const r = rng(11);
+  const placed: [number, number, number][] = [];
+  for (let tries = 0; tries < 900 && placed.length < 38; tries++) {
+    const x = 150 + r() * 310;
+    const y = 62 + r() * 86;
+    const size = 6 + (1 - (y - 62) / 86) * 6 + r() * 2.5;
+    if (placed.some(([px, py, ps]) => Math.hypot(px - x, py - y) < (ps + size) * 1.35)) continue;
+    placed.push([x, y, size]);
+  }
+  for (const [x, y, size] of placed) {
+    if (y > 134) dot(ctx, x, y, 2.4 + r() * 1.6);
+    else rosette(ctx, x, y, size, r);
+  }
+  // spine line of small spots
+  for (let i = 0; i < 16; i++) {
+    const t = i / 15;
+    const x = 180 + t * 250;
+    const y = 64 - Math.sin(t * Math.PI) * 6 + (t > 0.7 ? (t - 0.7) * 40 : 0);
+    dot(ctx, x, y + 4, 2.6);
+  }
+  ctx.restore();
+
+  // outline
+  bodyPath(ctx);
+  ctx.strokeStyle = INK;
+  ctx.lineWidth = 3.5;
+  ctx.stroke();
+
+  // fore paws draped over the frame edge (under the head)
+  drawPaw(ctx, 70, 120, 188, 34);
+  drawPaw(ctx, 146, 128, 192, 36);
+  return c;
+}
+
+// ------------------------------------------------------------------ tail
+export function drawMascotTail(): HTMLCanvasElement {
+  const T = MASCOT_GEO.tail;
+  const [c, ctx] = makeCanvas(T.w, T.h);
+  const pts: [number, number][] = [];
+  for (let i = 0; i <= 40; i++) {
+    const t = i / 40;
+    pts.push([T.ax + Math.sin(t * 2.6) * 34 + t * 30, T.ay + t * 216]);
+  }
+  const width = (t: number) => 20 - t * 8;
+  // body of the tail as a tapered stroke (many segments)
+  for (let pass = 0; pass < 2; pass++) {
+    for (let i = 0; i < pts.length - 1; i++) {
+      const t = i / (pts.length - 1);
       ctx.beginPath();
-      ctx.moveTo(x + dx, 154);
-      ctx.lineTo(x + dx, 162);
+      ctx.moveTo(pts[i][0], pts[i][1]);
+      ctx.lineTo(pts[i + 1][0], pts[i + 1][1]);
+      ctx.lineCap = 'round';
+      ctx.lineWidth = width(t) + (pass === 0 ? 6 : 0);
+      ctx.strokeStyle = pass === 0 ? INK : t > 0.93 ? SPOT : t > 0.6 ? (i % 4 < 2 ? SPOT : '#eeaa45') : '#eeaa45';
       ctx.stroke();
     }
   }
-  // gold arm bands (warrior jewellery)
-  for (const x of [118, 172]) {
-    ctx.fillStyle = lin(ctx, 0, 124, 0, 134, [
-      [0, '#fff3b0'],
-      [1, '#b8800f'],
-    ]);
-    ctx.fillRect(x - 18, 124, 36, 8);
-    ctx.fillStyle = '#1fc1c9';
-    ctx.fillRect(x - 4, 125, 8, 6);
+  // spots on the upper part
+  const r = rng(5);
+  for (let i = 3; i < 24; i += 3) {
+    const [x, y] = pts[i];
+    dot(ctx, x + (r() - 0.5) * 8, y, 3 + r() * 1.5);
   }
-  return c;
-}
-
-/** Tail hanging down, 90×220, pivot at the top (x≈20, y≈10). */
-export function drawMascotTail(): HTMLCanvasElement {
-  const [c, ctx] = makeCanvas(90, 220);
-  const path = () => {
-    ctx.beginPath();
-    ctx.moveTo(20, 10);
-    ctx.bezierCurveTo(60, 50, 10, 110, 40, 160);
-    ctx.bezierCurveTo(55, 185, 75, 190, 70, 205);
-  };
-  path();
-  ctx.strokeStyle = INK;
-  ctx.lineWidth = 24;
-  ctx.stroke();
-  path();
-  ctx.strokeStyle = FUR(ctx, 0, 220);
-  ctx.lineWidth = 17;
-  ctx.stroke();
-  // rings
-  path();
-  ctx.setLineDash([6, 16]);
-  ctx.strokeStyle = '#3a1a04';
-  ctx.lineWidth = 17;
-  ctx.stroke();
-  ctx.setLineDash([]);
+  // highlight
   ctx.beginPath();
-  ctx.arc(70, 205, 9, 0, Math.PI * 2);
-  ctx.fillStyle = '#2a1204';
-  ctx.fill();
+  ctx.moveTo(pts[0][0] - 4, pts[0][1]);
+  for (let i = 1; i < 22; i++) ctx.lineTo(pts[i][0] - 5, pts[i][1]);
+  ctx.strokeStyle = 'rgba(255,236,190,0.35)';
+  ctx.lineWidth = 3;
+  ctx.stroke();
   return c;
 }
 
+// ------------------------------------------------------------------ head
 export type Face = 'open' | 'closed' | 'happy' | 'roar';
 
-/** Head, 190×210, face centre ≈ (95, 128). */
+function headPath(ctx: Ctx, cx: number, cy: number) {
+  ctx.beginPath();
+  ctx.moveTo(cx - 60, cy - 34);
+  ctx.bezierCurveTo(cx - 52, cy - 86, cx + 52, cy - 86, cx + 60, cy - 34); // skull
+  ctx.bezierCurveTo(cx + 76, cy - 10, cx + 84, cy + 14, cx + 72, cy + 30); // right cheek
+  ctx.lineTo(cx + 80, cy + 34); // fur tuft
+  ctx.lineTo(cx + 64, cy + 40);
+  ctx.bezierCurveTo(cx + 50, cy + 66, cx + 22, cy + 76, cx, cy + 76); // jaw
+  ctx.bezierCurveTo(cx - 22, cy + 76, cx - 50, cy + 66, cx - 64, cy + 40);
+  ctx.lineTo(cx - 80, cy + 34);
+  ctx.lineTo(cx - 72, cy + 30);
+  ctx.bezierCurveTo(cx - 84, cy + 14, cx - 76, cy - 10, cx - 60, cy - 34);
+  ctx.closePath();
+}
+
 export function drawMascotHead(face: Face, glowEyes = false): HTMLCanvasElement {
-  const [c, ctx] = makeCanvas(190, 210);
-  const cx = 95;
-  const cy = 128;
-  // feather crest
-  const feathers = ['#e8423c', '#1fc1c9', '#f4c542', '#1fc1c9', '#e8423c'];
-  feathers.forEach((col, i) => {
+  const H = MASCOT_GEO.head;
+  const [c, ctx] = makeCanvas(H.w, H.h);
+  const cx = H.ax;
+  const cy = H.ay;
+
+  // quetzal feathers behind the head (right side)
+  const feathers: [number, string][] = [
+    [-0.15, '#1f9e7a'],
+    [0.2, '#2bc4b4'],
+    [0.55, '#1a7f63'],
+  ];
+  feathers.forEach(([rot, col], i) => {
     ctx.save();
-    ctx.translate(cx, cy - 20);
-    ctx.rotate((i - 2) * 0.3);
+    ctx.translate(cx + 40, cy - 66);
+    ctx.rotate(rot + 0.35);
     ctx.beginPath();
-    ctx.ellipse(0, -62, 9, 26, 0, 0, Math.PI * 2);
-    ctx.fillStyle = col;
+    ctx.moveTo(0, 0);
+    ctx.bezierCurveTo(18, -26, 34, -66 - i * 6, 16, -96 - i * 8);
+    ctx.bezierCurveTo(-4, -70, -14, -30, 0, 0);
+    ctx.fillStyle = lin(ctx, 0, 0, 0, -100, [
+      [0, col],
+      [0.8, '#8ff0c8'],
+      [1, '#ffe27a'],
+    ]);
     ctx.fill();
     ctx.strokeStyle = INK;
-    ctx.lineWidth = 2.5;
+    ctx.lineWidth = 2;
+    ctx.stroke();
+    ctx.beginPath();
+    ctx.moveTo(0, 0);
+    ctx.quadraticCurveTo(12, -50, 14, -96 - i * 8);
+    ctx.strokeStyle = '#ffd35a';
+    ctx.lineWidth = 1.5;
     ctx.stroke();
     ctx.restore();
   });
-  // ears
-  for (const sx of [-1, 1]) {
-    ctx.beginPath();
-    ctx.ellipse(cx + sx * 48, cy - 44, 20, 22, sx * 0.4, 0, Math.PI * 2);
-    ctx.fillStyle = '#d98a18';
-    ctx.fill();
-    ctx.strokeStyle = INK;
-    ctx.lineWidth = 4;
-    ctx.stroke();
-    ctx.beginPath();
-    ctx.ellipse(cx + sx * 48, cy - 42, 10, 12, sx * 0.4, 0, Math.PI * 2);
-    ctx.fillStyle = '#5a2a05';
-    ctx.fill();
-  }
-  // head shape
-  ctx.shadowColor = 'rgba(0,0,0,0.45)';
-  ctx.shadowBlur = 10;
-  ctx.shadowOffsetY = 4;
-  ctx.beginPath();
-  ctx.moveTo(cx - 62, cy - 24);
-  ctx.quadraticCurveTo(cx, cy - 70, cx + 62, cy - 24);
-  ctx.quadraticCurveTo(cx + 74, cy + 30, cx + 28, cy + 64);
-  ctx.quadraticCurveTo(cx, cy + 76, cx - 28, cy + 64);
-  ctx.quadraticCurveTo(cx - 74, cy + 30, cx - 62, cy - 24);
-  ctx.closePath();
-  ctx.fillStyle = FUR(ctx, cy - 70, cy + 70);
-  ctx.fill();
-  ctx.shadowColor = 'transparent';
-  ctx.strokeStyle = INK;
-  ctx.lineWidth = 5;
-  ctx.stroke();
-  // forehead rosettes
-  for (const [x, y] of [
-    [-34, -30],
-    [-12, -44],
-    [12, -44],
-    [34, -30],
-    [0, -26],
-    [-48, 4],
-    [48, 4],
-  ])
-    rosette(ctx, cx + x, cy + y, 5);
-  // muzzle
-  ctx.fillStyle = '#fff1d0';
-  ctx.beginPath();
-  ctx.ellipse(cx - 14, cy + 30, 19, 15, 0, 0, Math.PI * 2);
-  ctx.ellipse(cx + 14, cy + 30, 19, 15, 0, 0, Math.PI * 2);
-  ctx.fill();
-  // eyes
+
+  // ears (small and round, black backs, cream inside)
   for (const sx of [-1, 1]) {
     ctx.save();
-    ctx.translate(cx + sx * 26, cy - 6);
-    ctx.rotate(sx * -0.2);
-    if (face === 'closed') {
-      ctx.beginPath();
-      ctx.moveTo(-14, 0);
-      ctx.quadraticCurveTo(0, 7, 14, 0);
-      ctx.strokeStyle = INK;
-      ctx.lineWidth = 4;
-      ctx.stroke();
-    } else if (face === 'happy') {
-      ctx.beginPath();
-      ctx.moveTo(-14, 4);
-      ctx.quadraticCurveTo(0, -10, 14, 4);
-      ctx.strokeStyle = INK;
-      ctx.lineWidth = 4.5;
-      ctx.stroke();
-    } else {
-      const big = face === 'roar';
-      ctx.beginPath();
-      ctx.ellipse(0, 0, big ? 17 : 15, big ? 11 : 10, 0, 0, Math.PI * 2);
-      ctx.fillStyle = rad(ctx, 0, 0, 1, 16, glowEyes
-        ? [
-            [0, '#ffffff'],
-            [0.4, '#7ff3ff'],
-            [1, '#1aa6c9'],
-          ]
-        : [
-            [0, '#eafff6'],
-            [0.4, '#5ef0b0'],
-            [1, '#128a5a'],
-          ]);
-      ctx.fill();
-      ctx.strokeStyle = INK;
-      ctx.lineWidth = 3.5;
-      ctx.stroke();
-      ctx.beginPath();
-      ctx.ellipse(1, 0, big ? 2.5 : 3.2, 8, 0, 0, Math.PI * 2);
-      ctx.fillStyle = '#0b0b0b';
-      ctx.fill();
-      ctx.beginPath();
-      ctx.arc(-5, -4, 2.5, 0, Math.PI * 2);
-      ctx.fillStyle = '#fff';
-      ctx.fill();
-    }
-    ctx.restore();
-  }
-  // nose
-  ctx.beginPath();
-  ctx.moveTo(cx - 12, cy + 12);
-  ctx.lineTo(cx + 12, cy + 12);
-  ctx.lineTo(cx, cy + 25);
-  ctx.closePath();
-  ctx.fillStyle = '#6b2c1a';
-  ctx.fill();
-  ctx.strokeStyle = INK;
-  ctx.lineWidth = 3;
-  ctx.stroke();
-  // mouth
-  if (face === 'roar') {
+    ctx.translate(cx + sx * 48, cy - 62);
+    ctx.rotate(sx * 0.35);
     ctx.beginPath();
-    ctx.ellipse(cx, cy + 50, 24, 18, 0, 0, Math.PI * 2);
-    ctx.fillStyle = '#5a0c14';
+    ctx.ellipse(0, 0, 19, 17, 0, 0, Math.PI * 2);
+    ctx.fillStyle = '#d08424';
     ctx.fill();
-    ctx.strokeStyle = INK;
-    ctx.lineWidth = 3.5;
-    ctx.stroke();
-    ctx.fillStyle = '#ffffff';
-    for (const sx of [-1, 1]) {
-      ctx.beginPath();
-      ctx.moveTo(cx + sx * 16, cy + 36);
-      ctx.lineTo(cx + sx * 8, cy + 36);
-      ctx.lineTo(cx + sx * 12, cy + 50);
-      ctx.fill();
-      ctx.beginPath();
-      ctx.moveTo(cx + sx * 16, cy + 66);
-      ctx.lineTo(cx + sx * 8, cy + 66);
-      ctx.lineTo(cx + sx * 12, cy + 54);
-      ctx.fill();
-    }
-    ctx.beginPath();
-    ctx.ellipse(cx, cy + 58, 10, 5, 0, 0, Math.PI * 2);
-    ctx.fillStyle = '#e8526a';
-    ctx.fill();
-  } else {
-    ctx.beginPath();
-    ctx.moveTo(cx - 14, cy + 38);
-    ctx.quadraticCurveTo(cx - 5, cy + (face === 'happy' ? 50 : 44), cx, cy + 36);
-    ctx.quadraticCurveTo(cx + 5, cy + (face === 'happy' ? 50 : 44), cx + 14, cy + 38);
     ctx.strokeStyle = INK;
     ctx.lineWidth = 3;
     ctx.stroke();
-    // little fangs
-    ctx.fillStyle = '#fff';
+    ctx.beginPath();
+    ctx.ellipse(0, 3, 11, 10, 0, 0, Math.PI * 2);
+    ctx.fillStyle = '#3a1c08';
+    ctx.fill();
+    ctx.beginPath();
+    ctx.ellipse(0, 5, 7, 6, 0, 0, Math.PI * 2);
+    ctx.fillStyle = '#f3d9ad';
+    ctx.fill();
+    ctx.restore();
+  }
+
+  // head base
+  ctx.save();
+  ctx.shadowColor = 'rgba(0,0,0,0.5)';
+  ctx.shadowBlur = 12;
+  ctx.shadowOffsetY = 4;
+  headPath(ctx, cx, cy);
+  ctx.fillStyle = rad(ctx, cx, cy - 26, 8, 96, [
+    [0, '#f7c164'],
+    [0.6, '#eba23c'],
+    [1, '#c97a1c'],
+  ]);
+  ctx.fill();
+  ctx.restore();
+
+  ctx.save();
+  headPath(ctx, cx, cy);
+  ctx.clip();
+  // cream areas: around the eyes, muzzle, chin
+  ctx.fillStyle = CREAM;
+  for (const sx of [-1, 1]) {
+    ctx.beginPath();
+    ctx.ellipse(cx + sx * 26, cy - 4, 22, 13, sx * -0.25, 0, Math.PI * 2);
+    ctx.globalAlpha = 0.55;
+    ctx.fill();
+    ctx.globalAlpha = 1;
+  }
+  ctx.beginPath();
+  ctx.ellipse(cx - 17, cy + 34, 23, 19, 0.15, 0, Math.PI * 2);
+  ctx.ellipse(cx + 17, cy + 34, 23, 19, -0.15, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.beginPath();
+  ctx.ellipse(cx, cy + 66, 30, 16, 0, 0, Math.PI * 2);
+  ctx.fill();
+  // nose bridge highlight
+  ctx.fillStyle = lin(ctx, 0, cy - 30, 0, cy + 16, [
+    [0, 'rgba(255,226,160,0)'],
+    [1, 'rgba(255,226,160,0.7)'],
+  ]);
+  ctx.beginPath();
+  ctx.moveTo(cx - 12, cy - 20);
+  ctx.lineTo(cx + 12, cy - 20);
+  ctx.lineTo(cx + 9, cy + 16);
+  ctx.lineTo(cx - 9, cy + 16);
+  ctx.fill();
+  // forehead spots
+  const r = rng(3);
+  for (let i = 0; i < 34; i++) {
+    const a = r() * Math.PI;
+    const d = 26 + r() * 40;
+    const x = cx + Math.cos(a) * d * 1.1 - 0;
+    const y = cy - 30 - Math.sin(a) * d * 0.55;
+    if (Math.abs(x - cx) < 10 && y > cy - 46) continue;
+    dot(ctx, x, y, 1.6 + r() * 2.4);
+  }
+  // cheek rosettes
+  for (const sx of [-1, 1]) {
+    rosette(ctx, cx + sx * 58, cy + 4, 7, r);
+    dot(ctx, cx + sx * 48, cy + 20, 3);
+    dot(ctx, cx + sx * 62, cy + 22, 2.4);
+  }
+  ctx.restore();
+
+  headPath(ctx, cx, cy);
+  ctx.strokeStyle = INK;
+  ctx.lineWidth = 3.5;
+  ctx.stroke();
+
+  // gold headband with jade stone
+  ctx.beginPath();
+  ctx.moveTo(cx - 56, cy - 50);
+  ctx.quadraticCurveTo(cx, cy - 76, cx + 56, cy - 50);
+  ctx.lineWidth = 9;
+  ctx.strokeStyle = INK;
+  ctx.stroke();
+  ctx.lineWidth = 6;
+  ctx.strokeStyle = lin(ctx, 0, cy - 72, 0, cy - 48, [
+    [0, '#fff3b0'],
+    [0.5, '#e6b43a'],
+    [1, '#8a5a08'],
+  ]);
+  ctx.stroke();
+  ctx.beginPath();
+  ctx.moveTo(cx, cy - 76);
+  ctx.lineTo(cx + 10, cy - 63);
+  ctx.lineTo(cx, cy - 50);
+  ctx.lineTo(cx - 10, cy - 63);
+  ctx.closePath();
+  ctx.fillStyle = rad(ctx, cx - 3, cy - 67, 1, 12, [
+    [0, '#b8ffe6'],
+    [1, '#10805e'],
+  ]);
+  ctx.fill();
+  ctx.strokeStyle = '#6b4204';
+  ctx.lineWidth = 2.5;
+  ctx.stroke();
+
+  // eyes
+  for (const sx of [-1, 1]) {
+    ctx.save();
+    ctx.translate(cx + sx * 25, cy - 6);
+    ctx.rotate(sx * 0.18);
+    if (face === 'closed' || face === 'happy') {
+      ctx.beginPath();
+      if (face === 'closed') {
+        ctx.moveTo(-14, -1);
+        ctx.quadraticCurveTo(0, 6, 14, -1);
+      } else {
+        ctx.moveTo(-14, 3);
+        ctx.quadraticCurveTo(0, -8, 14, 3);
+      }
+      ctx.strokeStyle = SPOT;
+      ctx.lineWidth = 4;
+      ctx.lineCap = 'round';
+      ctx.stroke();
+    } else {
+      const h = face === 'roar' ? 6.5 : 9;
+      ctx.beginPath();
+      ctx.moveTo(-15, 1);
+      ctx.quadraticCurveTo(-2, -h - 3, 15, -2);
+      ctx.quadraticCurveTo(2, h + 2, -15, 1);
+      ctx.closePath();
+      ctx.fillStyle = rad(ctx, 0, 0, 1, 14, glowEyes
+        ? [
+            [0, '#ffffff'],
+            [0.35, '#8ff7ff'],
+            [1, '#1597b8'],
+          ]
+        : [
+            [0, '#fbf6a0'],
+            [0.45, '#d6c83c'],
+            [1, '#7c8e1c'],
+          ]);
+      ctx.fill();
+      // round jaguar pupil
+      ctx.beginPath();
+      ctx.arc(sx * 1.5, 0, face === 'roar' ? 3 : 4.6, 0, Math.PI * 2);
+      ctx.fillStyle = '#0a0604';
+      ctx.fill();
+      ctx.beginPath();
+      ctx.arc(sx * 1.5 - 2, -2.5, 1.7, 0, Math.PI * 2);
+      ctx.fillStyle = '#ffffff';
+      ctx.fill();
+      // black liner
+      ctx.beginPath();
+      ctx.moveTo(-15, 1);
+      ctx.quadraticCurveTo(-2, -h - 3, 15, -2);
+      ctx.quadraticCurveTo(2, h + 2, -15, 1);
+      ctx.strokeStyle = SPOT;
+      ctx.lineWidth = 2.8;
+      ctx.stroke();
+      if (glowEyes) {
+        ctx.globalCompositeOperation = 'lighter';
+        ctx.beginPath();
+        ctx.arc(0, 0, 16, 0, Math.PI * 2);
+        ctx.fillStyle = rad(ctx, 0, 0, 2, 16, [
+          [0, 'rgba(127,243,255,0.5)'],
+          [1, 'rgba(127,243,255,0)'],
+        ]);
+        ctx.fill();
+        ctx.globalCompositeOperation = 'source-over';
+      }
+    }
+    // brow (angry for the roar)
+    ctx.beginPath();
+    if (face === 'roar') {
+      ctx.moveTo(-sx * 12 - 4, -12);
+      ctx.lineTo(sx * 14, -16);
+    } else {
+      ctx.moveTo(-14, -12);
+      ctx.quadraticCurveTo(0, -17, 14, -13);
+    }
+    ctx.strokeStyle = 'rgba(40,18,4,0.8)';
+    ctx.lineWidth = 2.5;
+    ctx.stroke();
+    // tear line
+    ctx.beginPath();
+    ctx.moveTo(-sx * 12, 4);
+    ctx.quadraticCurveTo(-sx * 16, 16, -sx * 12, 26);
+    ctx.strokeStyle = SPOT;
+    ctx.lineWidth = 2.5;
+    ctx.stroke();
+    ctx.restore();
+  }
+
+  // nose
+  ctx.beginPath();
+  ctx.moveTo(cx - 13, cy + 12);
+  ctx.quadraticCurveTo(cx, cy + 6, cx + 13, cy + 12);
+  ctx.quadraticCurveTo(cx + 12, cy + 20, cx, cy + 27);
+  ctx.quadraticCurveTo(cx - 12, cy + 20, cx - 13, cy + 12);
+  ctx.closePath();
+  ctx.fillStyle = lin(ctx, 0, cy + 6, 0, cy + 27, [
+    [0, '#d99583'],
+    [1, '#8e4b3c'],
+  ]);
+  ctx.fill();
+  ctx.strokeStyle = INK;
+  ctx.lineWidth = 2.5;
+  ctx.stroke();
+  ctx.beginPath();
+  ctx.ellipse(cx - 3, cy + 12, 5, 2, 0, 0, Math.PI * 2);
+  ctx.fillStyle = 'rgba(255,255,255,0.45)';
+  ctx.fill();
+
+  // whisker spots
+  for (const sx of [-1, 1])
+    for (const [dx, dy] of [
+      [12, 32],
+      [20, 30],
+      [28, 34],
+      [16, 40],
+      [24, 42],
+    ])
+      dot(ctx, cx + sx * dx, cy + dy, 1.4);
+
+  // mouth
+  if (face === 'roar') {
+    ctx.beginPath();
+    ctx.moveTo(cx - 26, cy + 38);
+    ctx.quadraticCurveTo(cx, cy + 30, cx + 26, cy + 38);
+    ctx.quadraticCurveTo(cx + 24, cy + 76, cx, cy + 80);
+    ctx.quadraticCurveTo(cx - 24, cy + 76, cx - 26, cy + 38);
+    ctx.closePath();
+    ctx.fillStyle = rad(ctx, cx, cy + 60, 2, 30, [
+      [0, '#7a1420'],
+      [1, '#3a060c'],
+    ]);
+    ctx.fill();
+    ctx.strokeStyle = INK;
+    ctx.lineWidth = 3;
+    ctx.stroke();
+    ctx.beginPath();
+    ctx.ellipse(cx, cy + 70, 13, 6, 0, 0, Math.PI * 2);
+    ctx.fillStyle = '#d9566a';
+    ctx.fill();
+    ctx.fillStyle = '#fffaf0';
+    for (const sx of [-1, 1]) {
+      // upper fangs
+      ctx.beginPath();
+      ctx.moveTo(cx + sx * 20, cy + 37);
+      ctx.lineTo(cx + sx * 12, cy + 36);
+      ctx.lineTo(cx + sx * 16, cy + 54);
+      ctx.fill();
+      // lower fangs
+      ctx.beginPath();
+      ctx.moveTo(cx + sx * 16, cy + 76);
+      ctx.lineTo(cx + sx * 9, cy + 77);
+      ctx.lineTo(cx + sx * 12, cy + 62);
+      ctx.fill();
+    }
+    // wrinkles on the nose
+    ctx.strokeStyle = 'rgba(60,26,4,0.7)';
+    ctx.lineWidth = 2;
     for (const sx of [-1, 1]) {
       ctx.beginPath();
-      ctx.moveTo(cx + sx * 6, cy + 40);
-      ctx.lineTo(cx + sx * 11, cy + 40);
-      ctx.lineTo(cx + sx * 8.5, cy + 48);
+      ctx.moveTo(cx + sx * 8, cy - 4);
+      ctx.quadraticCurveTo(cx + sx * 14, cy + 2, cx + sx * 12, cy + 8);
+      ctx.stroke();
+    }
+  } else {
+    ctx.beginPath();
+    ctx.moveTo(cx, cy + 27);
+    ctx.lineTo(cx, cy + 36);
+    ctx.moveTo(cx - 18, cy + 40);
+    ctx.quadraticCurveTo(cx - 8, cy + (face === 'happy' ? 50 : 44), cx, cy + 36);
+    ctx.quadraticCurveTo(cx + 8, cy + (face === 'happy' ? 50 : 44), cx + 18, cy + 40);
+    ctx.strokeStyle = SPOT;
+    ctx.lineWidth = 2.6;
+    ctx.lineCap = 'round';
+    ctx.stroke();
+    if (face === 'happy') {
+      ctx.beginPath();
+      ctx.ellipse(cx, cy + 47, 6, 4, 0, 0, Math.PI);
+      ctx.fillStyle = '#d9566a';
       ctx.fill();
     }
   }
-  // gold nose ring (warrior)
+
+  // whiskers
+  ctx.strokeStyle = 'rgba(255,250,235,0.85)';
+  ctx.lineWidth = 1.3;
+  for (const sx of [-1, 1])
+    for (let i = 0; i < 3; i++) {
+      ctx.beginPath();
+      ctx.moveTo(cx + sx * 26, cy + 34 + i * 4);
+      ctx.quadraticCurveTo(cx + sx * 60, cy + 26 + i * 8, cx + sx * (92 - i * 4), cy + 30 + i * 12);
+      ctx.stroke();
+    }
+
+  // jade & gold pendant on a collar below the chin
   ctx.beginPath();
-  ctx.arc(cx, cy + 27, 5, 0.2, Math.PI - 0.2);
-  ctx.strokeStyle = '#ffd35a';
+  ctx.moveTo(cx - 46, cy + 66);
+  ctx.quadraticCurveTo(cx, cy + 96, cx + 46, cy + 66);
+  ctx.strokeStyle = INK;
+  ctx.lineWidth = 7;
+  ctx.stroke();
+  ctx.strokeStyle = '#e6b43a';
+  ctx.lineWidth = 4;
+  ctx.stroke();
+  for (let i = 0; i <= 6; i++) {
+    const t = i / 6;
+    const x = cx - 46 + 92 * t;
+    const y = cy + 66 + Math.sin(t * Math.PI) * 15;
+    ctx.beginPath();
+    ctx.arc(x, y, 4, 0, Math.PI * 2);
+    ctx.fillStyle = i % 2 ? '#1fae86' : '#ffd35a';
+    ctx.fill();
+    ctx.strokeStyle = INK;
+    ctx.lineWidth = 1.5;
+    ctx.stroke();
+  }
+  ctx.beginPath();
+  ctx.arc(cx, cy + 92, 12, 0, Math.PI * 2);
+  ctx.fillStyle = lin(ctx, 0, cy + 80, 0, cy + 104, [
+    [0, '#fff3b0'],
+    [0.5, '#e6b43a'],
+    [1, '#8a5a08'],
+  ]);
+  ctx.fill();
+  ctx.strokeStyle = INK;
   ctx.lineWidth = 2.5;
   ctx.stroke();
-  // whisker dots
-  ctx.fillStyle = '#4a2204';
-  for (const sx of [-1, 1]) for (const [dx, dy] of [
-    [12, 26],
-    [20, 32],
-    [14, 36],
-  ]) {
-    ctx.beginPath();
-    ctx.arc(cx + sx * dx, cy + dy, 1.6, 0, Math.PI * 2);
-    ctx.fill();
-  }
+  ctx.beginPath();
+  ctx.arc(cx, cy + 92, 6, 0, Math.PI * 2);
+  ctx.fillStyle = rad(ctx, cx - 2, cy + 90, 1, 7, [
+    [0, '#b8ffe6'],
+    [1, '#10805e'],
+  ]);
+  ctx.fill();
   return c;
 }
