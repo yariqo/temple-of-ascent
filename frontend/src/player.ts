@@ -107,12 +107,12 @@ export class RoundPlayer {
         break;
       }
       case 'freeSpinTrigger': {
-        await this.board.highlight(ev.positions, 1100, 0x7ff3ff);
-        this.inFreeSpins = true;
         this.board.mascot.setFreeSpins(true);
         void this.board.mascot.roar();
         sound.bonusChime();
         window.setTimeout(() => sound.gong(), 350);
+        await this.board.bonusHit(ev.positions);
+        this.inFreeSpins = true;
         const kind = BONUS_BY_SCATTERS[Math.min(5, ev.positions?.length ?? 3)] ?? 'bonus';
         await this.ui.freeSpinsIntro(ev.totalFs, kind);
         this.ui.setFsCounter(0, ev.totalFs);

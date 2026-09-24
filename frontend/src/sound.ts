@@ -117,6 +117,25 @@ class Sound {
     this.tone(90 - i * 4, 0.18, { type: 'sine', vol: 0.45, slide: 0.5 });
     this.noise(0.08, { freq: 2200, vol: 0.08 });
   }
+  /** bonus tease: rising tension + heartbeat for the given time; higher level = later reel = more intense */
+  tease(seconds: number, level = 1) {
+    if (!this.ok()) return;
+    const dur = Math.max(0.6, seconds);
+    this.duck(dur + 0.3);
+    const base = 180 * Math.pow(2, (level - 1) / 4);
+    this.tone(base, dur, { type: 'sawtooth', vol: 0.05, slide: 2.4, attack: dur * 0.6 });
+    this.tone(base * 1.5, dur, { type: 'triangle', vol: 0.05, slide: 2.4, attack: dur * 0.7 });
+    this.noise(dur, { freq: 500, sweep: 5000, vol: 0.06, type: 'bandpass' });
+    // heartbeat, getting faster
+    let at = 0.05;
+    let gap = 0.5;
+    while (at < dur - 0.1) {
+      this.tone(62, 0.18, { type: 'sine', vol: 0.4, slide: 0.6, at });
+      this.tone(58, 0.16, { type: 'sine', vol: 0.28, slide: 0.6, at: at + 0.14 });
+      at += gap;
+      gap = Math.max(0.28, gap * 0.9);
+    }
+  }
   anticipation() {
     this.tone(220, 1.1, { type: 'sawtooth', vol: 0.06, slide: 2, attack: 0.3 });
     this.noise(1.1, { freq: 600, sweep: 3000, vol: 0.05, attack: 0.3 } as any);

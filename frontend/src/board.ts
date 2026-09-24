@@ -1,7 +1,7 @@
 import { Application, Container, Graphics, Sprite, Text, TextStyle, Texture } from 'pixi.js';
 import { FILLER, REELS, ROWS, totemTier } from './config';
 import type { BoardSymbol, Pos } from './types';
-import { ease, lerp, tween, wait } from './anim';
+import { ease, lerp, speed, tween, wait } from './anim';
 import { TEX } from './art/textures';
 import { drawFrame } from './art/frame';
 import { Particles } from './fx/particles';
@@ -203,7 +203,15 @@ export class Board {
   private frame: Sprite;
   private reelsLayer = new Container();
   private reels: Container[] = [];
-  private antic: Graphics[] = [];
+  private antic: Container[] = [];
+  private anticBorder: Graphics[] = [];
+  private anticGlow: Sprite[] = [];
+  private anticScan: Sprite[] = [];
+  private dimmers: Graphics[] = [];
+  private teaseReel = -1;
+  private teaseT = 0;
+  private baseScale = 1;
+  private zoom = 1;
   private lines = new Graphics();
   private fx = new Container();
   private overlay = new Graphics();
@@ -253,15 +261,38 @@ export class Board {
     this.winText.position.set(W / 2, H / 2);
 
     for (let r = 0; r < REELS; r++) {
-      const a = new Graphics();
-      a.roundRect(r * CELL + 3, -4, CELL - 6, H + 8, 16).fill({ color: 0xffc94a, alpha: 0.22 });
-      a.roundRect(r * CELL + 3, -4, CELL - 6, H + 8, 16).stroke({ width: 5, color: 0xffe07a, alpha: 0.9 });
+      // bonus tease ("bait") effect for this reel: glow, border, light scan (added above the symbols below)
+      const a = new Container();
+      const glow = new Sprite(TEX.glow);
+      glow.anchor.set(0.5);
+      glow.position.set(r * CELL + CELL / 2, H / 2);
+      glow.width = CELL * 1.9;
+      glow.height = H * 1.2;
+      glow.tint = 0x6ff0ff;
+      glow.blendMode = 'add';
+      const scan = new Sprite(TEX.glow);
+      scan.anchor.set(0.5);
+      scan.width = CELL * 1.3;
+      scan.height = 90;
+      scan.x = r * CELL + CELL / 2;
+      scan.tint = 0xe8ffff;
+      scan.blendMode = 'add';
+      const border = new Graphics();
+      const scanMask = new Graphics().rect(r * CELL, 0, CELL, H).fill(0xffffff);
+      scan.mask = scanMask;
+      a.addChild(glow, scanMask, scan, border);
       a.visible = false;
       this.antic.push(a);
+      this.anticBorder.push(border);
+      this.anticGlow.push(glow);
+      this.anticScan.push(scan);
+      const dim = new Graphics().rect(r * CELL, 0, CELL, H).fill({ color: 0x000000 });
+      dim.alpha = 0;
+      this.dimmers.push(dim);
       const reel = new Container();
       reel.x = r * CELL;
       const mask = new Graphics().rect(r * CELL, 0, CELL, H).fill(0xffffff);
-      this.reelsLayer.addChild(a, mask, reel);
+      this.reelsLayer.addChild(mask, reel);
       reel.mask = mask;
       this.reels.push(reel);
       this.cells.push([]);
@@ -272,6 +303,9 @@ export class Board {
         this.cells[r].push(s);
       }
     }
+    // dimmers and tease effects sit above the symbols
+    for (const d of this.dimmers) this.reelsLayer.addChild(d);
+    for (const a of this.antic) this.reelsLayer.addChild(a);
     this.buildEyes();
     this.buildKept();
     this.layout();
@@ -279,6 +313,7 @@ export class Board {
     app.ticker.add((tk) => {
       time += tk.deltaMS / 1000;
       for (const col of this.cells) for (const v of col) if (!v.destroyed) v.animate(time);
+      this.animateTease(tk.deltaMS / 1000);
     });
   }
 
@@ -287,10 +322,26 @@ export class Board {
     const sh = this.app.screen.height;
     // the same room is reserved above and below, so the reels sit exactly in the centre
     const s = Math.min((sw - 8) / (W + 2 * MARGIN + 2 * SIDE), (sh - 8) / (H + 2 * MARGIN + 2 * TOP));
+    this.baseScale = s;
+    this.applyZoom();
+  }
+
+  /** zoom around the centre of the reels (used for the bonus tease) */
+  private applyZoom() {
+    const sw = this.app.screen.width;
+    const sh = this.app.screen.height;
+    const s = this.baseScale * this.zoom;
     this.root.scale.set(s);
     this.root.position.set((sw - W * s) / 2, (sh - H * s) / 2);
     this.baseX = this.root.x;
     this.baseY = this.root.y;
+  }
+  private zoomTo(z: number, ms: number) {
+    const from = this.zoom;
+    return tween(ms, (p) => {
+      this.zoom = lerp(from, z, p);
+      this.applyZoom();
+    }, ease.inOutCubic);
   }
 
   setTheme(stage: number) {
@@ -302,68 +353,145 @@ export class Board {
   }
 
   // ------------------------------------------------------------------ spinning
+  // Timing of a spin (ms, at normal speed):
+  //   reels start one after another (60 ms apart), kick up, accelerate, spin at full speed,
+  //   and stop one after another with a small bounce. A reel with a bonus tease keeps spinning
+  //   longer and visibly slows down while the rest of the board darkens.
   async spin(target: BoardSymbol[][], anticipation: number[] = []) {
     this.clearWins();
     sound.spinStart();
-    const jobs: Promise<void>[] = [];
+    const START_GAP = 60;
+    const FIRST_STOP = 820;
+    const STOP_GAP = 210;
+    const TEASE = 1900;
+    const stops: number[] = [];
     let extra = 0;
-    let anticSound = false;
     for (let r = 0; r < REELS; r++) {
       const ant = (anticipation[r] ?? 0) > 0;
-      if (ant) extra += 1200;
-      const dur = 650 + r * 180 + extra;
-      if (ant && !anticSound) {
-        anticSound = true;
-        void wait(dur - 1200).then(() => sound.anticipation());
+      if (ant) extra += TEASE;
+      stops.push(FIRST_STOP + r * STOP_GAP + extra);
+    }
+    const jobs: Promise<void>[] = [];
+    let teasing = false;
+    for (let r = 0; r < REELS; r++) {
+      const ant = (anticipation[r] ?? 0) > 0;
+      const startAt = r * START_GAP;
+      jobs.push(wait(startAt).then(() => this.spinReel(r, target[r], stops[r] - startAt, ant ? TEASE - 250 : 0)));
+      if (ant) {
+        const teaseFrom = r > 0 ? stops[r - 1] : 0;
+        const level = anticipation[r];
+        void wait(teaseFrom).then(() => {
+          this.startTease(r, (stops[r] - teaseFrom) / 1000, level);
+          if (!teasing) {
+            teasing = true;
+            void this.zoomTo(1.035, 700);
+          }
+        });
       }
-      jobs.push(this.spinReel(r, target[r], dur, ant));
     }
     await Promise.all(jobs);
+    this.endTease();
+    if (teasing) await this.zoomTo(1, 320);
   }
 
-  private async spinReel(r: number, target: BoardSymbol[], duration: number, anticipate: boolean) {
+  /**
+   * One reel: kick-up, acceleration, full speed, (optional slow-down for the tease), landing with a bounce.
+   * The whole path is computed in advance so the reel lands exactly on its symbols.
+   */
+  private async spinReel(r: number, target: BoardSymbol[], duration: number, slowdown: number) {
     const reel = this.reels[r];
     const old = this.cells[r];
-    const nFill = Math.round(duration / 38) + 6;
-    const fresh = target.map((s) => new SymbolView(s, false, true));
+    const KICK = 26; // px the reel is pulled up before it starts
+    const KICK_MS = 110;
+    const ACC = 170; // acceleration time
+    const LAND = 420; // landing time (with overshoot)
+    const C1 = 1.25; // overshoot strength of the landing
+    const SLOW = 0.62; // how much the reel slows down during a tease (fraction of full speed lost)
+    const run = Math.max(ACC + 50, duration - KICK_MS - LAND); // time until the landing starts
+    const slowFrom = slowdown > 0 ? Math.max(ACC, run - slowdown) : run;
+
+    // distance travelled for speed v = 1 px/ms (everything scales linearly with v)
+    const dist1 = (t: number): number => {
+      if (t <= ACC) return (t * t) / (2 * ACC);
+      const sAcc = ACC / 2;
+      if (t <= slowFrom) return sAcc + (t - ACC);
+      const sCruise = sAcc + (slowFrom - ACC);
+      const L = run - slowFrom;
+      const u = Math.min(1, (t - slowFrom) / L);
+      return sCruise + L * (u - SLOW * (u * u * u - (u * u * u * u) / 2));
+    };
+    const endSpeed1 = slowdown > 0 ? 1 - SLOW : 1;
+    const land1 = (endSpeed1 * LAND) / (C1 + 3); // landing distance keeps the speed continuous
+    const k = dist1(run) + land1;
+    const targetSpeed = 3.1; // px per ms at full speed ≈ 20 symbols per second
+    const n = Math.max(ROWS + 3, Math.round((k * targetSpeed - KICK) / CELL));
+    const v = (n * CELL + KICK) / k;
+
+    const fresh = target.map((sym) => new SymbolView(sym, false, true));
     const fillers: SymbolView[] = [];
-    for (let i = 0; i < nFill; i++) fillers.push(new SymbolView({ name: FILLER[Math.floor(Math.random() * FILLER.length)] }, false, true));
+    for (let i = 0; i < n - ROWS; i++) fillers.push(new SymbolView({ name: FILLER[Math.floor(Math.random() * FILLER.length)] }, false, true));
     const strip = [...fresh, ...fillers, ...old];
-    strip.forEach((s, i) => {
-      s.position.set(CELL / 2, i * CELL + CELL / 2);
-      if (!s.parent) reel.addChild(s);
+    strip.forEach((sym, i) => {
+      sym.position.set(CELL / 2, i * CELL + CELL / 2);
+      if (!sym.parent) reel.addChild(sym);
     });
-    const startY = -(fresh.length + fillers.length) * CELL;
+    const startY = -n * CELL;
     reel.y = startY;
-    // wind-up: nudge up a little, then blur and spin (the reel keeps moving the whole time)
-    await tween(150, (t) => (reel.y = startY - 30 * t), ease.outCubic);
-    old.forEach((s) => s.setBlur(true));
-    if (anticipate) this.antic[r].visible = true;
+
+    // kick up
+    await tween(KICK_MS, (p) => (reel.y = startY - KICK * p), ease.outCubic);
+
+    let blurred = false;
     let crisp = false;
-    await tween(
-      duration,
-      (t) => {
-        reel.y = lerp(startY - 30, 0, t);
-        if (!crisp && t > 0.93) {
-          crisp = true;
-          fresh.forEach((s) => {
-            s.setBlur(false);
-            s.hidePlate();
-          });
+    await new Promise<void>((resolve) => {
+      let last = performance.now();
+      let t = 0;
+      const step = (now: number) => {
+        if (reel.destroyed) return resolve();
+        t += Math.min(100, now - last) * speed.factor();
+        last = now;
+        let y: number;
+        if (t < run) {
+          y = startY - KICK + v * dist1(t);
+        } else {
+          const p = Math.min(1, (t - run) / LAND);
+          const e = 1 + (C1 + 1) * Math.pow(p - 1, 3) + C1 * Math.pow(p - 1, 2);
+          y = startY - KICK + v * dist1(run) + v * land1 * e;
+          if (!crisp) {
+            crisp = true;
+            fresh.forEach((f) => {
+              f.setBlur(false);
+              f.hidePlate();
+            });
+          }
         }
-      },
-      ease.outBackSoft,
-    );
-    this.antic[r].visible = false;
-    for (const s of [...fillers, ...old]) s.destroy({ children: true });
-    fresh.forEach((s, i) => {
-      s.setBlur(false);
-      s.hidePlate();
-      s.position.set(CELL / 2, i * CELL + CELL / 2);
+        reel.y = y;
+        if (!blurred && t > ACC * 0.5) {
+          blurred = true;
+          old.forEach((o) => o.setBlur(true));
+        }
+        if (t >= run + LAND) return resolve();
+        requestAnimationFrame(step);
+      };
+      requestAnimationFrame(step);
+    });
+
+    for (const f of [...fillers, ...old]) f.destroy({ children: true });
+    fresh.forEach((f, i) => {
+      f.setBlur(false);
+      f.hidePlate();
+      f.position.set(CELL / 2, i * CELL + CELL / 2);
     });
     reel.y = 0;
     this.cells[r] = fresh;
+    if (this.teaseReel === r) this.stopTease(r);
     sound.reelStop(r);
+    // landed bonus symbols hop and flash
+    fresh.forEach((f, i) => {
+      if (f.sym.name !== 'S') return;
+      this.particles.emit(TEX.spark, r * CELL + CELL / 2, i * CELL + CELL / 2, { n: 14, speed: [80, 240], life: [300, 700], scale: [0.6, 0.05], tint: [0x7ff3ff, 0xffffff], blend: 'add' });
+      void tween(380, (p) => !f.destroyed && f.scale.set(1 + 0.22 * Math.sin(p * Math.PI)), ease.linear);
+    });
     this.particles.emit(TEX.dust, r * CELL + CELL / 2, H - 6, {
       n: 5,
       speed: [20, 70],
@@ -373,6 +501,81 @@ export class Board {
       alpha: 0.18,
     });
     this.onReelStop?.(r, target);
+  }
+
+  // ------------------------------------------------------------------ bonus tease
+  /** Darken the reels (all except `except`), leaving BONUS symbols lit. */
+  private dimReels(to: number, except = -1, ms = 300) {
+    this.dimmers.forEach((d, i) => {
+      d.clear();
+      if (i === except) return;
+      for (let w = 0; w < ROWS; w++) {
+        if (this.cells[i]?.[w]?.sym.name === 'S') continue;
+        d.rect(i * CELL, w * CELL, CELL, CELL).fill({ color: 0x000000 });
+      }
+      const from = d.alpha;
+      void tween(ms, (p) => (d.alpha = lerp(from, to, p)));
+    });
+  }
+
+  private startTease(r: number, seconds: number, level: number) {
+    this.teaseReel = r;
+    this.teaseT = 0;
+    this.antic[r].visible = true;
+    this.antic[r].alpha = 0;
+    void tween(250, (p) => (this.antic[r].alpha = p));
+    // darken every other reel so all eyes are on the teased one – the BONUS symbols already there stay lit
+    this.dimReels(0.55, r);
+    for (const col of this.cells) for (const v of col) if (v.sym.name === 'S') v.setGlow(true, 0x7ff3ff);
+    sound.tease(seconds, level);
+    this.mascot.watch();
+  }
+
+  private stopTease(r: number) {
+    this.teaseReel = -1;
+    const a = this.antic[r];
+    void tween(200, (p) => (a.alpha = 1 - p)).then(() => (a.visible = false));
+  }
+
+  private endTease() {
+    this.teaseReel = -1;
+    for (const col of this.cells) for (const v of col) if (v.sym.name === 'S') v.setGlow(false);
+    this.dimmers.forEach((d) => {
+      const from = d.alpha;
+      if (from > 0) void tween(260, (p) => (d.alpha = lerp(from, 0, p)));
+    });
+    this.antic.forEach((a) => (a.visible = false));
+  }
+
+  private animateTease(dt: number) {
+    const r = this.teaseReel;
+    if (r < 0) return;
+    this.teaseT += dt * speed.factor();
+    const t = this.teaseT;
+    const pulse = 0.5 + 0.5 * Math.sin(t * 9);
+    this.anticGlow[r].alpha = 0.35 + 0.25 * pulse + Math.min(0.3, t * 0.12);
+    // light scan runs up the reel, faster and faster
+    const scan = this.anticScan[r];
+    const rate = 1.1 + t * 0.9;
+    scan.y = H + 45 - (((t * rate) % 1) * (H + 90));
+    scan.alpha = 0.8;
+    const b = this.anticBorder[r];
+    b.clear();
+    b.roundRect(r * CELL + 3, -3, CELL - 6, H + 6, 16).stroke({ width: 6 + 3 * pulse, color: 0x7ff3ff, alpha: 0.9 });
+    b.roundRect(r * CELL + 9, 3, CELL - 18, H - 6, 12).stroke({ width: 2, color: 0xffffff, alpha: 0.5 + 0.5 * pulse });
+    // sparks rising along both edges
+    if (Math.random() < 0.55) {
+      const side = Math.random() < 0.5 ? r * CELL + 6 : (r + 1) * CELL - 6;
+      this.particles.emit(TEX.spark, side, Math.random() * H, {
+        n: 1,
+        speed: [60, 160],
+        angle: [-Math.PI * 0.62, -Math.PI * 0.38],
+        life: [400, 800],
+        scale: [0.45, 0.05],
+        tint: [0x7ff3ff, 0xffffff, 0xffe27a],
+        blend: 'add',
+      });
+    }
   }
 
   setBoard(target: BoardSymbol[][]) {
@@ -715,6 +918,94 @@ export class Board {
     }
     await this.pulse(views, 1.2, ms);
     views.forEach((v) => v.setGlow(false));
+  }
+
+  /** The big moment when a bonus is triggered: board goes dark, BONUS symbols blaze up and link together. */
+  async bonusHit(positions: Pos[]) {
+    const views = positions.map((p) => this.cellAt(p)).filter(Boolean) as SymbolView[];
+    const pts = [...positions].sort((a, b) => a.reel - b.reel).map((p) => this.center(p));
+    this.dimReels(0.7, -1, 250);
+    // white flash + shake
+    const flash = new Graphics().rect(-MARGIN, -MARGIN, W + 2 * MARGIN, H + 2 * MARGIN).fill({ color: 0xffffff });
+    flash.blendMode = 'add';
+    this.fx.addChild(flash);
+    void tween(420, (p) => (flash.alpha = 0.75 * (1 - p))).then(() => flash.destroy());
+    void this.shake(18, 520);
+    // light bursts behind each BONUS symbol
+    const bursts: Sprite[] = [];
+    for (const c of pts) {
+      const b = new Sprite(scatterRays());
+      b.anchor.set(0.5);
+      b.position.set(c.x, c.y);
+      b.blendMode = 'add';
+      b.tint = 0x9ff8ff;
+      b.scale.set(0);
+      this.fx.addChild(b);
+      bursts.push(b);
+      this.particles.emit(TEX.spark, c.x, c.y, { n: 26, speed: [120, 420], life: [500, 1100], scale: [0.8, 0.05], tint: [0x7ff3ff, 0xffffff, 0xffe27a], blend: 'add' });
+    }
+    // the symbols move to the front and grow
+    const lifted = views.map((v) => {
+      const parent = v.parent!;
+      const g = this.fx.toLocal(v.getGlobalPosition());
+      const idx = parent.getChildIndex(v);
+      parent.removeChild(v);
+      v.position.set(g.x, g.y);
+      this.fx.addChild(v);
+      v.setGlow(true, 0x7ff3ff);
+      return { v, parent, idx, home: parent.toLocal(this.fx.toGlobal(g)) };
+    });
+    const links = new Graphics();
+    this.fx.addChildAt(links, 0);
+    await tween(
+      520,
+      (p) => {
+        views.forEach((v) => v.scale.set(lerp(1, 1.32, p)));
+        bursts.forEach((b, i) => {
+          b.scale.set(lerp(0, 2.2, p));
+          b.rotation = p * 0.8 + i;
+        });
+        // a beam of light connects the symbols one after another
+        links.clear();
+        const seg = p * (pts.length - 1);
+        for (let i = 0; i < pts.length - 1; i++) {
+          const k = Math.max(0, Math.min(1, seg - i));
+          if (k <= 0) break;
+          const a = pts[i];
+          const b = pts[i + 1];
+          const x = lerp(a.x, b.x, k);
+          const y = lerp(a.y, b.y, k);
+          links.moveTo(a.x, a.y).lineTo(x, y).stroke({ width: 22, color: 0x5fe8ff, alpha: 0.35, cap: 'round' });
+          links.moveTo(a.x, a.y).lineTo(x, y).stroke({ width: 6, color: 0xffffff, alpha: 0.95, cap: 'round' });
+        }
+      },
+      ease.outBack,
+    );
+    // hold – symbols breathe, bursts keep turning
+    await tween(
+      1100,
+      (p) => {
+        views.forEach((v) => v.scale.set(1.32 + 0.06 * Math.sin(p * Math.PI * 4)));
+        bursts.forEach((b, i) => (b.rotation = 0.8 + i + p * 1.2));
+        links.alpha = 0.7 + 0.3 * Math.sin(p * Math.PI * 6);
+      },
+      ease.linear,
+    );
+    await tween(300, (p) => {
+      views.forEach((v) => v.scale.set(lerp(1.32, 1, p)));
+      bursts.forEach((b) => (b.alpha = 1 - p));
+      links.alpha = 1 - p;
+    });
+    bursts.forEach((b) => b.destroy());
+    links.destroy();
+    for (const l of lifted) {
+      if (l.v.destroyed) continue;
+      this.fx.removeChild(l.v);
+      l.v.position.set(l.home.x, l.home.y);
+      l.parent.addChildAt(l.v, Math.min(l.idx, l.parent.children.length));
+      l.v.setGlow(false);
+    }
+    this.dimReels(0, -1, 250);
   }
 
   /** Coin fountain over the board. */
