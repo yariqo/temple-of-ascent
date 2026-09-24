@@ -103,7 +103,7 @@ export class BigWin {
   private burst(lv: number) {
     const w = this.canvas.width;
     const h = this.canvas.height;
-    const n = 20 + lv * 18;
+    const n = 6 + lv * 5;
     for (let i = 0; i < n; i++) this.spawn(w / 2, h * 0.55, lv, true);
   }
 
@@ -111,9 +111,9 @@ export class BigWin {
     const dpr = Math.min(2, window.devicePixelRatio || 1);
     const gemColors = ['#3ee6c0', '#7ff3ff', '#ff5a7a', '#b58bff', '#ffe27a'];
     const r = Math.random();
-    const kind: 0 | 1 | 2 = lv >= 3 && r < 0.25 ? 1 : r < 0.4 ? 2 : 0;
+    const kind: 0 | 1 | 2 = lv >= 3 && r < 0.12 ? 1 : r < 0.3 ? 2 : 0;
     const ang = burst ? Math.random() * Math.PI * 2 : -Math.PI / 2 + (Math.random() - 0.5) * 0.9;
-    const sp = (burst ? 6 + Math.random() * 10 : 12 + Math.random() * 9) * dpr;
+    const sp = (burst ? 4 + Math.random() * 6 : 9 + Math.random() * 6) * dpr;
     this.parts.push({
       x,
       y,
@@ -141,9 +141,9 @@ export class BigWin {
     c.clearRect(0, 0, w, h);
     // steady fountain + rain, more for higher tiers
     const lv = this.level;
-    const rate = [0, 1.2, 2.4, 3.6, 5, 7][lv] ?? 1;
-    for (let i = 0; i < rate; i++) if (Math.random() < 0.9) this.spawn(w * (0.3 + Math.random() * 0.4), h + 10, lv);
-    if (lv >= 4) for (let i = 0; i < rate / 2; i++) this.parts.push({ x: Math.random() * w, y: -20, vx: (Math.random() - 0.5) * 2, vy: 2 * dpr, r: 10 * dpr, a: Math.random() * 6, va: 0.2, life: 1, kind: 0, color: '#ffd24a' });
+    const rate = [0, 0.18, 0.3, 0.45, 0.6, 0.8][lv] ?? 0.2;
+    if (Math.random() < rate) this.spawn(w * (0.3 + Math.random() * 0.4), h + 10, lv);
+    if (lv >= 4 && Math.random() < rate / 3) this.parts.push({ x: Math.random() * w, y: -20, vx: (Math.random() - 0.5) * 2, vy: 2 * dpr, r: 10 * dpr, a: Math.random() * 6, va: 0.2, life: 1, kind: 0, color: '#ffd24a' });
     const g = 0.42 * dpr;
     this.parts = this.parts.filter((p) => p.y < h + 60 && p.life > 0);
     for (const p of this.parts) {

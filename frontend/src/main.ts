@@ -403,7 +403,6 @@ async function main() {
   if (import.meta.env.MODE !== 'production')
     (window as any).__toa.bigwin = (amount: number, b = 1, max = false) =>
       ui.bigWin(amount, b, { max, onTier: (lv) => {
-        board.celebrate(20 + lv * 16);
         if (lv >= 4) void board.mascot.roar();
         else void board.mascot.jump(lv >= 2 ? 2 : 1);
       } });

@@ -281,7 +281,7 @@ header {
 main {
   display: grid;
   /* symmetric columns keep the reels exactly in the middle of the screen */
-  grid-template-columns: 200px 1fr 200px;
+  grid-template-columns: 240px 1fr 240px;
   grid-template-areas: 'bonus stage pyr';
   gap: 10px;
   min-height: 0;
@@ -2774,4 +2774,336 @@ dialog button.gold,
     box-shadow: 0 0 18px 4px rgba(127, 243, 255, 0.85);
     transform: scale(1.06);
   }
+}
+
+/* ---------- temple v2: bigger, torches, shrine, embers ---------- */
+#pyramid {
+  padding: 16px 14px 14px;
+  min-height: min(560px, 72vh);
+  justify-content: flex-end;
+  background:
+    radial-gradient(ellipse at 50% 20%, rgba(255, 180, 70, 0.14), transparent 60%),
+    repeating-linear-gradient(0deg, transparent 0 26px, rgba(0, 0, 0, 0.16) 26px 28px),
+    linear-gradient(180deg, rgba(34, 27, 18, 0.9), rgba(10, 8, 5, 0.92));
+  border: 2px solid transparent;
+  background-clip: padding-box;
+  outline: 2px solid #8a6414;
+  outline-offset: -2px;
+}
+#pyramid.active {
+  outline-color: #ffd35a;
+  animation: templeGlow 2.4s ease-in-out infinite;
+}
+@keyframes templeGlow {
+  50% {
+    box-shadow: 0 0 40px rgba(255, 200, 70, 0.45), 0 10px 30px rgba(0, 0, 0, 0.5);
+  }
+}
+.pyr-title {
+  position: absolute;
+  top: 12px;
+  left: 0;
+  right: 0;
+  font-size: 15px;
+  z-index: 1;
+}
+.tier {
+  padding: 9px 4px 8px;
+}
+.tier .t-name {
+  font-size: 12px;
+}
+.tier .t-vals {
+  font-size: 17px;
+}
+.rune {
+  width: 14px;
+  height: 14px;
+}
+.tier.current::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(105deg, transparent 35%, rgba(255, 255, 255, 0.55) 50%, transparent 65%);
+  background-size: 250% 100%;
+  animation: tierShine 2.6s linear infinite;
+  pointer-events: none;
+}
+@keyframes tierShine {
+  from {
+    background-position: 130% 0;
+  }
+  to {
+    background-position: -30% 0;
+  }
+}
+.rune.on {
+  animation: runeGlow 1.4s ease-in-out infinite;
+}
+@keyframes runeGlow {
+  50% {
+    box-shadow: 0 0 16px #7ff3ff, 0 0 4px #ffffff;
+  }
+}
+/* shrine on top of the pyramid */
+.pyr-shrine {
+  position: relative;
+  margin: 26px auto 0;
+  width: 44%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+.sh-comb {
+  width: 60%;
+  height: 16px;
+  background: repeating-linear-gradient(90deg, #6d5f48 0 6px, transparent 6px 10px);
+  border-top: 3px solid #8a7a5c;
+}
+.sh-roof {
+  width: 112%;
+  height: 8px;
+  background: linear-gradient(180deg, #a8987a, #5a4d38);
+}
+.sh-body {
+  width: 100%;
+  height: 46px;
+  display: flex;
+  justify-content: center;
+  align-items: flex-end;
+  background: linear-gradient(90deg, #3d352a, #6d5f48 50%, #3d352a);
+}
+.sh-door {
+  width: 34%;
+  height: 72%;
+  border-radius: 10px 10px 0 0;
+  background: radial-gradient(ellipse at 50% 80%, #fff1b0, #ff9d2a 45%, #6a2a04);
+  box-shadow: 0 0 18px rgba(255, 170, 60, 0.8);
+  animation: doorFlicker 3s ease-in-out infinite;
+}
+@keyframes doorFlicker {
+  0%,
+  100% {
+    opacity: 0.75;
+  }
+  30% {
+    opacity: 1;
+  }
+  55% {
+    opacity: 0.85;
+  }
+}
+#pyramid:not(.active) .sh-door {
+  background: radial-gradient(ellipse at 50% 80%, #6d5f48, #2a241a);
+  box-shadow: none;
+  animation: none;
+}
+/* torches on both sides */
+.pyr-torch {
+  position: absolute;
+  top: 46px;
+  width: 10px;
+  height: 34px;
+  background: linear-gradient(90deg, #3a2a14, #8a6a3a, #3a2a14);
+  border-radius: 2px;
+  z-index: 1;
+}
+.pyr-torch.l {
+  left: 14px;
+}
+.pyr-torch.r {
+  right: 14px;
+}
+.pyr-torch::before {
+  content: '';
+  position: absolute;
+  left: -6px;
+  right: -6px;
+  top: -4px;
+  height: 6px;
+  border-radius: 3px;
+  background: #5a4424;
+}
+.pyr-torch i {
+  position: absolute;
+  left: 50%;
+  bottom: 30px;
+  width: 16px;
+  height: 26px;
+  margin-left: -8px;
+  border-radius: 50% 50% 45% 45% / 65% 65% 35% 35%;
+  background: radial-gradient(ellipse at 50% 75%, #fffbe0, #ffc03a 40%, #ff6a1a 75%, transparent 78%);
+  filter: drop-shadow(0 0 10px #ff9d2a);
+  transform-origin: 50% 100%;
+  animation: flame 0.45s ease-in-out infinite alternate;
+}
+.pyr-torch.r i {
+  animation-delay: 0.2s;
+}
+@keyframes flame {
+  0% {
+    transform: scale(1, 1) rotate(-3deg);
+  }
+  50% {
+    transform: scale(0.9, 1.12) rotate(2deg);
+  }
+  100% {
+    transform: scale(1.05, 0.92) rotate(-1deg);
+  }
+}
+.pyr-torch::after {
+  content: '';
+  position: absolute;
+  left: 50%;
+  bottom: 22px;
+  width: 90px;
+  height: 90px;
+  margin-left: -45px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(255, 170, 60, 0.35), transparent 70%);
+  animation: flameGlow 1.3s ease-in-out infinite alternate;
+  pointer-events: none;
+}
+@keyframes flameGlow {
+  to {
+    opacity: 0.55;
+    transform: scale(0.9);
+  }
+}
+/* rising embers */
+.pyr-embers {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  overflow: hidden;
+}
+.pyr-embers i {
+  position: absolute;
+  bottom: -6px;
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background: #ffc36a;
+  box-shadow: 0 0 6px #ff9d2a;
+  opacity: 0;
+  animation: ember 6s linear infinite;
+}
+.pyr-embers i:nth-child(1) { left: 12%; animation-delay: 0s; }
+.pyr-embers i:nth-child(2) { left: 28%; animation-delay: 1.4s; }
+.pyr-embers i:nth-child(3) { left: 44%; animation-delay: 3.1s; }
+.pyr-embers i:nth-child(4) { left: 60%; animation-delay: 0.7s; }
+.pyr-embers i:nth-child(5) { left: 76%; animation-delay: 2.2s; }
+.pyr-embers i:nth-child(6) { left: 88%; animation-delay: 4.2s; }
+.pyr-embers i:nth-child(7) { left: 36%; animation-delay: 5s; }
+.pyr-embers i:nth-child(8) { left: 68%; animation-delay: 3.7s; }
+@keyframes ember {
+  0% {
+    transform: translate(0, 0);
+    opacity: 0;
+  }
+  10% {
+    opacity: 0.9;
+  }
+  100% {
+    transform: translate(18px, -520px);
+    opacity: 0;
+  }
+}
+#pyramid.active .pyr-embers i {
+  background: #7ff3ff;
+  box-shadow: 0 0 6px #7ff3ff;
+  animation-duration: 4s;
+}
+/* door: glowing gap and slowly turning seal */
+.door-seal svg {
+  animation: spin 18s linear infinite;
+}
+.pyr-door::after {
+  content: '';
+  position: absolute;
+  left: 50%;
+  top: 0;
+  bottom: 0;
+  width: 4px;
+  margin-left: -2px;
+  background: linear-gradient(180deg, transparent, rgba(255, 200, 90, 0.85) 30%, rgba(255, 200, 90, 0.85) 70%, transparent);
+  box-shadow: 0 0 14px rgba(255, 190, 80, 0.9);
+  animation: gapGlow 2.8s ease-in-out infinite;
+  z-index: 1;
+}
+@keyframes gapGlow {
+  50% {
+    opacity: 0.35;
+  }
+}
+#pyramid.active .pyr-door::after {
+  opacity: 0;
+  animation: none;
+}
+.door-text {
+  font-size: 13px;
+}
+@media (max-width: 760px), (max-height: 520px) and (orientation: landscape) {
+  #pyramid {
+    min-height: 0;
+  }
+  .pyr-shrine,
+  .pyr-torch,
+  .pyr-embers {
+    display: none;
+  }
+  .pyr-title {
+    position: static;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .pyr-torch i,
+  .pyr-torch::after,
+  .pyr-embers i,
+  .tier.current::after,
+  .door-seal svg,
+  .pyr-door::after {
+    animation: none !important;
+  }
+}
+@media (max-height: 520px) and (orientation: landscape) {
+  #pyramid {
+    padding: 6px 4px;
+    max-height: 100%;
+    overflow: hidden;
+    justify-content: center;
+  }
+  .tier {
+    padding: 2px 2px;
+  }
+  .tier .t-name {
+    font-size: 8px;
+  }
+  .tier .t-vals {
+    font-size: 10px;
+    white-space: nowrap;
+  }
+  .rune {
+    width: 7px;
+    height: 7px;
+  }
+  .pyr-title {
+    font-size: 10px;
+  }
+}
+@media (max-width: 760px) {
+  .tier {
+    padding: 5px 4px;
+  }
+  .tier .t-vals {
+    font-size: 13px;
+    white-space: nowrap;
+  }
+}
+/* the game area never collapses and never spills over other controls */
+#stage-wrap {
+  min-height: 180px;
+}
+#canvas-host {
+  overflow: hidden;
 }

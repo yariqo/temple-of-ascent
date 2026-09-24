@@ -175,7 +175,7 @@ export class RoundPlayer {
         sound.bonusChime();
         const vals = STAGE_TOTEMS[ev.stage];
         this.setStage(ev.stage, undefined, true);
-        this.board.celebrate(24);
+        this.board.celebrate(8);
         void this.board.mascot.jump(1);
         await this.ui.stageUp(ev.stage, ev.extraSpins, `${vals[0]}–${vals[vals.length - 1]}×`);
         break;
@@ -233,7 +233,6 @@ export class RoundPlayer {
 
   /** the board and the jaguar react to every big-win tier */
   private onTier(lv: number) {
-    this.board.celebrate(20 + lv * 16);
     if (lv >= 3) void this.board.shake(8 + lv * 3, 450);
     if (lv >= 4) void this.board.mascot.roar();
     else void this.board.mascot.jump(lv >= 2 ? 2 : 1);
