@@ -7,6 +7,7 @@ import { drawFrame } from './art/frame';
 import { Particles } from './fx/particles';
 import { sound, type Tier } from './sound';
 import { Mascot } from './mascot';
+import { t } from './i18n';
 
 export const CELL = 150;
 const W = REELS * CELL;
@@ -16,6 +17,7 @@ const MARGIN = 40;
 const TOP = 112;
 const SIDE = 22;
 const MASCOT_SCALE = 0.62;
+const KEPT_SCALE = 0.95;
 const SYM_SIZE = CELL * 0.94;
 /** plate centre of the stele texture (y = 184 of 256) relative to the symbol centre */
 const PLATE_Y = ((184 - 128) / 256) * SYM_SIZE;
@@ -206,6 +208,10 @@ export class Board {
   private fx = new Container();
   private overlay = new Graphics();
   private eyes = new Container();
+  /** Divine Bonus: collected multiplier that stays */
+  private keptBox = new Container();
+  private keptText = new Text({ text: '×0', style: winStyle.clone() });
+  private keptValue = 0;
   private bigText = new Text({ text: '', style: bigStyle });
   private subText = new Text({ text: '', style: subStyle });
   private winText = new Text({ text: '', style: winStyle });
@@ -237,7 +243,7 @@ export class Board {
     this.mascot = new Mascot(app.ticker);
     this.mascot.root.scale.set(MASCOT_SCALE);
     this.mascot.root.position.set(W + MARGIN - 10 - 404 * MASCOT_SCALE, -MARGIN + 12);
-    this.root.addChild(this.frame, this.mascot.root, cellBg, this.reelsLayer, this.overlay, this.lines, this.fx, this.particles.layer, this.eyes, this.winText, this.bigText, this.subText);
+    this.root.addChild(this.frame, this.mascot.root, cellBg, this.reelsLayer, this.overlay, this.lines, this.fx, this.particles.layer, this.eyes, this.keptBox, this.winText, this.bigText, this.subText);
     for (const t of [this.bigText, this.subText, this.winText]) {
       t.anchor.set(0.5);
       t.visible = false;
@@ -267,6 +273,7 @@ export class Board {
       }
     }
     this.buildEyes();
+    this.buildKept();
     this.layout();
     let time = 0;
     app.ticker.add((tk) => {
@@ -423,6 +430,79 @@ export class Board {
     await Promise.all(jobs);
   }
 
+  // ------------------------------------------------------------------ divine multiplier
+  private buildKept() {
+    const glow = new Sprite(TEX.glow);
+    glow.anchor.set(0.5);
+    glow.width = glow.height = 230;
+    glow.tint = 0xffc23a;
+    glow.blendMode = 'add';
+    glow.alpha = 0.6;
+    const disc = new Graphics();
+    disc.circle(0, 0, 54).fill({ color: 0x2a1600 });
+    disc.circle(0, 0, 50).fill({ color: 0xc88a18 });
+    disc.circle(0, 0, 42).fill({ color: 0x3a2200 });
+    disc.circle(0, 0, 50).stroke({ width: 4, color: 0xfff0a8 });
+    for (let i = 0; i < 12; i++) {
+      const a = (i / 12) * Math.PI * 2;
+      disc.moveTo(Math.cos(a) * 56, Math.sin(a) * 56).lineTo(Math.cos(a) * 70, Math.sin(a) * 70);
+    }
+    disc.stroke({ width: 6, color: 0xffd24a, cap: 'round' });
+    const label = new Text({ text: t('keptLabel'), style: subStyle.clone() });
+    label.style.fontSize = 20;
+    label.style.fill = 0xfff0a8;
+    label.anchor.set(0.5);
+    label.y = 66;
+    const plate = new Graphics();
+    plate.roundRect(-62, 52, 124, 28, 10).fill({ color: 0x2a1600 }).stroke({ width: 2, color: 0xffd24a });
+    this.keptText.style.fontSize = 36;
+    this.keptText.anchor.set(0.5);
+    this.keptBox.addChild(glow, disc, plate, label, this.keptText);
+    this.keptBox.position.set(100, -MARGIN - 66);
+    this.keptBox.visible = false;
+    this.keptBox.scale.set(KEPT_SCALE);
+  }
+
+  /** null hides the display (not a Divine Bonus). */
+  setKept(v: number | null) {
+    this.keptBox.visible = v !== null;
+    this.keptValue = v ?? 0;
+    this.keptText.text = `×${this.keptValue}`;
+    this.keptText.style.fontSize = String(this.keptValue).length >= 4 ? 26 : String(this.keptValue).length === 3 ? 30 : 36;
+  }
+
+  /** Steles that took part in a win fly into the divine display and stay there. */
+  async collectKept(totems: { reel: number; row: number; multiplier: number }[], total: number) {
+    const target = { x: this.keptBox.x, y: this.keptBox.y };
+    const jobs = totems.map(async (tt, i) => {
+      await wait(i * 90);
+      const c = this.center(tt);
+      const chip = new Text({ text: `×${tt.multiplier}`, style: plateStyle.clone() });
+      chip.anchor.set(0.5);
+      chip.style.fill = 0xfff0a0;
+      chip.position.set(c.x, c.y + PLATE_Y);
+      this.fx.addChild(chip);
+      const sx = chip.x;
+      const sy = chip.y;
+      await tween(
+        560,
+        (p) => {
+          chip.x = lerp(sx, target.x, p);
+          chip.y = lerp(sy, target.y, p) - Math.sin(p * Math.PI) * 90;
+          chip.scale.set(lerp(1.2, 0.6, p));
+        },
+        ease.inOutCubic,
+      );
+      chip.destroy();
+      sound.rune();
+    });
+    await Promise.all(jobs);
+    this.setKept(total);
+    sound.multiply();
+    this.particles.emit(TEX.spark, target.x, target.y, { n: 22, speed: [80, 260], life: [400, 800], scale: [0.6, 0.05], tint: [0xffe066, 0xfff3c4], blend: 'add' });
+    await tween(320, (p) => this.keptBox.scale.set(KEPT_SCALE * lerp(1.45, 1, p)), ease.outBack);
+  }
+
   // ------------------------------------------------------------------ jaguar
   private buildEyes() {
     const g = new Graphics();
@@ -577,6 +657,7 @@ export class Board {
     const cx = W / 2;
     const cy = H / 2 - 20;
     const from = totems.map((p) => this.center(p));
+    if (this.keptBox.visible && this.keptValue > 0) from.push({ x: this.keptBox.x, y: this.keptBox.y });
     sound.multiply();
     await tween(
       450,

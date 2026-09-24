@@ -4,22 +4,23 @@
         "board": [
             [
                 {
-                    "name": "L3"
+                    "name": "H4"
+                },
+                {
+                    "name": "S",
+                    "scatter": true
                 },
                 {
                     "name": "L3"
-                },
-                {
-                    "name": "L3"
-                },
-                {
-                    "name": "L5"
-                },
-                {
-                    "name": "L2"
                 },
                 {
                     "name": "H4"
+                },
+                {
+                    "name": "L4"
+                },
+                {
+                    "name": "L5"
                 }
             ],
             [
@@ -66,60 +67,61 @@
             ],
             [
                 {
-                    "name": "L3"
+                    "name": "L1"
+                },
+                {
+                    "name": "H4"
                 },
                 {
                     "name": "S",
                     "scatter": true
                 },
                 {
-                    "name": "H3"
-                },
-                {
-                    "name": "L3"
-                },
-                {
-                    "name": "L3"
-                },
-                {
-                    "name": "L2"
-                }
-            ],
-            [
-                {
-                    "name": "L2"
+                    "name": "L5"
                 },
                 {
                     "name": "L1"
                 },
                 {
-                    "name": "L2"
+                    "name": "W",
+                    "wild": true
+                }
+            ],
+            [
+                {
+                    "name": "H2"
+                },
+                {
+                    "name": "H1"
+                },
+                {
+                    "name": "H4"
+                },
+                {
+                    "name": "H4"
                 },
                 {
                     "name": "H2"
                 },
                 {
-                    "name": "H2"
-                },
-                {
-                    "name": "L2"
+                    "name": "H4"
                 }
             ]
         ],
         "paddingPositions": [
-            62,
+            67,
             16,
             -1,
-            48,
-            21
+            25,
+            48
         ],
         "gameType": "basegame",
         "anticipation": [
             0,
             0,
-            0,
             1,
-            2
+            2,
+            3
         ]
     },
     "setTotalWin": {
@@ -131,6 +133,10 @@
         "totalFs": 10,
         "positions": [
             {
+                "reel": 0,
+                "row": 1
+            },
+            {
                 "reel": 1,
                 "row": 4
             },
@@ -140,13 +146,14 @@
             },
             {
                 "reel": 3,
-                "row": 1
+                "row": 2
             }
         ]
     },
     "stageInfo": {
         "type": "stageInfo",
         "stage": 2,
+        "divine": false,
         "runes": 3,
         "runesToNext": 3,
         "totemValues": [
@@ -164,30 +171,30 @@
     },
     "winInfo": {
         "type": "winInfo",
-        "totalWin": 20,
+        "totalWin": 30,
         "wins": [
             {
-                "symbol": "L4",
+                "symbol": "L3",
                 "kind": 3,
-                "win": 20,
+                "win": 30,
                 "positions": [
                     {
                         "reel": 0,
-                        "row": 3
+                        "row": 4
                     },
                     {
                         "reel": 1,
-                        "row": 2
+                        "row": 3
                     },
                     {
                         "reel": 2,
-                        "row": 1
+                        "row": 4
                     }
                 ],
                 "meta": {
-                    "lineIndex": 8,
+                    "lineIndex": 18,
                     "multiplier": 1,
-                    "winWithoutMult": 20,
+                    "winWithoutMult": 30,
                     "globalMult": 1,
                     "lineMultiplier": 1
                 }
@@ -198,39 +205,31 @@
         "type": "totemMultiplier",
         "totems": [
             {
-                "reel": 4,
-                "row": 4,
-                "multiplier": 5
+                "reel": 3,
+                "row": 3,
+                "multiplier": 15
             }
         ],
-        "totalMult": 5,
-        "baseWin": 20,
-        "totalWin": 100
+        "totalMult": 15,
+        "keptMult": 0,
+        "baseWin": 30,
+        "totalWin": 450
     },
     "setWin": {
         "type": "setWin",
-        "amount": 100,
-        "winLevel": 3
+        "amount": 450,
+        "winLevel": 4
     },
     "runeCollect": {
         "type": "runeCollect",
         "positions": [
             {
                 "reel": 2,
-                "row": 3
+                "row": 4
             }
         ],
         "runes": 4,
         "runesToNext": 2
-    },
-    "freeSpinEnd": {
-        "type": "freeSpinEnd",
-        "amount": 2500,
-        "winLevel": 5
-    },
-    "finalWin": {
-        "type": "finalWin",
-        "amount": 2500
     },
     "stageUp": {
         "type": "stageUp",
@@ -246,14 +245,23 @@
             250
         ]
     },
+    "freeSpinEnd": {
+        "type": "freeSpinEnd",
+        "amount": 4500,
+        "winLevel": 5
+    },
+    "finalWin": {
+        "type": "finalWin",
+        "amount": 4500
+    },
     "jaguarRoar": {
         "type": "jaguarRoar",
         "golden": false,
         "totems": [
             {
-                "reel": 1,
-                "row": 2,
-                "multiplier": 3
+                "reel": 2,
+                "row": 3,
+                "multiplier": 10
             }
         ]
     },

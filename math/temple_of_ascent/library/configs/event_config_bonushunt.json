@@ -206,6 +206,7 @@
             }
         ],
         "totalMult": 5,
+        "keptMult": 0,
         "baseWin": 90,
         "totalWin": 450
     },
@@ -230,6 +231,7 @@
     "stageInfo": {
         "type": "stageInfo",
         "stage": 1,
+        "divine": false,
         "runes": 0,
         "runesToNext": 3,
         "totemValues": [
@@ -293,6 +295,18 @@
                 "multiplier": 2
             }
         ]
+    },
+    "multCollect": {
+        "type": "multCollect",
+        "totems": [
+            {
+                "reel": 1,
+                "row": 1,
+                "multiplier": 25
+            }
+        ],
+        "added": 25,
+        "total": 25
     },
     "wincap": {
         "type": "wincap",

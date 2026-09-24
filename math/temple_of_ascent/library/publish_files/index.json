@@ -32,7 +32,7 @@
         },
         {
             "name": "godbonus",
-            "cost": 300.0,
+            "cost": 500.0,
             "events": "books_godbonus.jsonl.zst",
             "weights": "lookUpTable_godbonus_0.csv"
         }

@@ -201,12 +201,13 @@
             }
         ],
         "totalMult": 2,
+        "keptMult": 0,
         "baseWin": 50,
         "totalWin": 100
     },
     "freeSpinTrigger": {
         "type": "freeSpinTrigger",
-        "totalFs": 12,
+        "totalFs": 10,
         "positions": [
             {
                 "reel": 0,
@@ -228,21 +229,22 @@
     },
     "stageInfo": {
         "type": "stageInfo",
-        "stage": 1,
-        "runes": 0,
+        "stage": 2,
+        "divine": false,
+        "runes": 3,
         "runesToNext": 3,
         "totemValues": [
-            2,
-            3,
             5,
             10,
-            25
+            15,
+            25,
+            50
         ]
     },
     "updateFreeSpin": {
         "type": "updateFreeSpin",
         "amount": 0,
-        "total": 12
+        "total": 10
     },
     "runeCollect": {
         "type": "runeCollect",
@@ -252,13 +254,13 @@
                 "row": 1
             }
         ],
-        "runes": 1,
+        "runes": 4,
         "runesToNext": 2
     },
     "freeSpinEnd": {
         "type": "freeSpinEnd",
-        "amount": 1580,
-        "winLevel": 4
+        "amount": 2950,
+        "winLevel": 5
     },
     "stageUp": {
         "type": "stageUp",
@@ -288,6 +290,23 @@
                 "multiplier": 3
             }
         ]
+    },
+    "multCollect": {
+        "type": "multCollect",
+        "totems": [
+            {
+                "reel": 0,
+                "row": 1,
+                "multiplier": 20
+            },
+            {
+                "reel": 4,
+                "row": 2,
+                "multiplier": 10
+            }
+        ],
+        "added": 30,
+        "total": 30
     },
     "wincap": {
         "type": "wincap",

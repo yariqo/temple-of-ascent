@@ -25,9 +25,13 @@ class GameState(GameStateOverride):
 
     def run_freespin(self):
         self.reset_fs_spin()
-        # bonus buys can start higher up the pyramid (Super-Bonus: stage 2, Goetter-Bonus: stage 3)
-        self.stage = self.get_current_distribution_conditions().get("start_stage", 1)
+        # 3 / 4 / 5 runes (scatters) decide which bonus starts:
+        #   3 -> Temple Bonus (stage 1), 4 -> Super Bonus (stage 2), 5 -> Divine Bonus (stage 3)
+        self.stage = self.config.scatter_start_stage[min(5, self.trigger_scatters)]
         self.runes = (self.stage - 1) * self.config.runes_per_stage
+        # Divine Bonus: steles that take part in a win are collected and their value stays
+        self.divine = self.stage >= self.config.divine_stage
+        self.collected = 0
         stage_info_event(self)
         while self.fs < self.tot_fs and not self.wincap_triggered:
             self.update_freespin()

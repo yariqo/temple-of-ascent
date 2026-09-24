@@ -3,7 +3,7 @@
 import random
 
 from game_calculations import GameCalculations
-from game_events import totem_mult_event, rune_collect_event, stage_up_event, jaguar_roar_event
+from game_events import totem_mult_event, rune_collect_event, stage_up_event, jaguar_roar_event, mult_collect_event
 from src.calculations.statistics import get_random_outcome
 from src.calculations.lines import Lines
 from src.events.events import win_info_event, set_win_event, set_total_event
@@ -27,7 +27,10 @@ class GameExecutables(GameCalculations):
         base_win = self.win_data["totalWin"]
 
         totems = self.get_totems_on_board()
-        total_mult = sum(t["value"] for t in totems)
+        board_mult = sum(t["value"] for t in totems)
+        # Divine Bonus: the collected multiplier stays and is added to every later win
+        kept = self.collected if self.divine else 0
+        total_mult = board_mult + kept
         final_win = base_win
         if base_win > 0 and total_mult > 0:
             final_win = round(base_win * total_mult, 2)
@@ -37,8 +40,11 @@ class GameExecutables(GameCalculations):
         if base_win > 0:
             win_info_event(self)
             if total_mult > 0:
-                totem_mult_event(self, totems, total_mult, base_win, final_win)
+                totem_mult_event(self, totems, total_mult, base_win, final_win, kept)
                 self.record({"totemMult": self.bucket_mult(total_mult), "gametype": self.gametype})
+            if self.divine and board_mult > 0:
+                self.collected += board_mult
+                mult_collect_event(self, totems, board_mult, self.collected)
             self.evaluate_wincap()
             set_win_event(self)
         set_total_event(self)

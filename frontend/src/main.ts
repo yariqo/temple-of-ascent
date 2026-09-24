@@ -205,19 +205,21 @@ async function main() {
   }
 
   let roundStarted = 0;
-  async function play(mode: string) {
+  /** plays one round; returns its win (money) and whether a bonus was in it, or null if nothing was played */
+  async function play(mode: string): Promise<{ win: number; bonus: boolean } | null> {
     if (busy) {
       // skip / slam-stop – ignore the second half of an accidental double click
       if (!jur.disabledSlamstop && performance.now() - roundStarted > 350) speed.skip = true;
-      return;
+      return null;
     }
     roundStarted = performance.now();
     const def = MODES[mode];
     const cost = bet() * def.cost;
     if (cost > balance + 1e-9) {
       ui.toast(t('insufficient'));
-      return;
+      return null;
     }
+    let result: { win: number; bonus: boolean } | null = null;
     busy = true;
     speed.skip = false;
     sound.click();
@@ -232,6 +234,8 @@ async function main() {
       const isBonus = round.events.some((e) => e.type === 'freeSpinTrigger');
       const closeEarly = round.active && !isBonus ? rgs.endRound() : null;
       await runRound(round, bet(), closeEarly);
+      const fw = (round.events.find((e) => e.type === 'finalWin') as any)?.amount ?? 0;
+      result = { win: (fw / 100) * bet(), bonus: isBonus };
     } catch (e) {
       ui.toast(errorText(e), 6000);
     }
@@ -241,18 +245,83 @@ async function main() {
     speed.skip = false;
     busy = false;
     ui.setBusy(false, false);
+    if (auto) ui.setAuto(auto.left);
+    return result;
   }
 
-  // ---------- controls ----------
-  document.getElementById('spin')!.onclick = () => play(toggle ?? 'base');
-  document.getElementById('bet-up')!.onclick = () => {
+  // ---------- autoplay ----------
+  let auto: { left: number; loss: number | null; win: number | null; stopBonus: boolean; start: number } | null = null;
+  const stopAuto = (msg?: string) => {
+    if (!auto) return;
+    auto = null;
+    ui.setAuto(null);
+    if (msg) ui.toast(t(msg), 3500);
+  };
+  async function runAuto() {
+    while (auto && auto.left > 0) {
+      const mode = toggle ?? 'base';
+      const cost = bet() * MODES[mode].cost;
+      if (cost > balance + 1e-9) {
+        stopAuto('insufficient');
+        return;
+      }
+      // never start a spin that could push the loss past the chosen limit
+      if (auto.loss !== null && auto.start - balance + cost > auto.loss + 1e-9) {
+        stopAuto('autoStopLoss');
+        return;
+      }
+      auto.left--;
+      ui.setAuto(auto.left);
+      const r = await play(mode);
+      if (!auto) return;
+      if (!r) {
+        stopAuto();
+        return;
+      }
+      if (auto.stopBonus && r.bonus) {
+        stopAuto('autoStopBonus');
+        return;
+      }
+      if (auto.win !== null && r.win >= auto.win - 1e-9) {
+        stopAuto('autoStopWin');
+        return;
+      }
+      await sleepReal(speed.turbo ? 150 : 400);
+    }
+    stopAuto(auto ? 'autoDone' : undefined);
+  }
+  ui.hideAuto(!!jur.disabledAutoplay);
+  document.getElementById('auto-btn')!.onclick = async () => {
+    if (auto) {
+      sound.toggle(false);
+      stopAuto();
+      return;
+    }
     if (busy) return;
+    sound.menuOpen();
+    const cfg = await ui.autoMenu(bet());
+    if (!cfg || busy || auto) return;
+    sound.toggle(true);
+    auto = { left: cfg.spins, loss: cfg.loss, win: cfg.win, stopBonus: cfg.stopBonus, start: balance };
+    ui.setAuto(auto.left);
+    void runAuto();
+  };
+
+  // ---------- controls ----------
+  const spinPressed = () => {
+    // during autoplay the spin button stops autoplay (and skips the running animation)
+    if (auto) stopAuto();
+    void play(toggle ?? 'base');
+  };
+  document.getElementById('spin')!.onclick = spinPressed;
+  document.getElementById('bet-up')!.onclick = () => {
+    if (busy || auto) return;
     sound.click();
     betIdx = Math.min(levels.length - 1, betIdx + 1);
     refresh();
   };
   document.getElementById('bet-down')!.onclick = () => {
-    if (busy) return;
+    if (busy || auto) return;
     sound.click();
     betIdx = Math.max(0, betIdx - 1);
     refresh();
@@ -262,7 +331,7 @@ async function main() {
     refresh();
   };
   document.getElementById('feature-btn')!.onclick = async () => {
-    if (busy) return;
+    if (busy || auto) return;
     sound.menuOpen();
     const choice = await ui.featureMenu(bet(), balance, toggle);
     if (!choice) return;
@@ -275,7 +344,7 @@ async function main() {
     }
   };
   document.getElementById('feature-pill-off')!.onclick = () => {
-    if (busy) return;
+    if (busy || auto) return;
     sound.toggle(false);
     setToggle(null);
   };
@@ -289,7 +358,7 @@ async function main() {
     if (document.querySelector('dialog[open]')) return;
     e.preventDefault();
     if (e.repeat) return;
-    play(toggle ?? 'base');
+    spinPressed();
   });
 
   // ---------- resume an unfinished round ----------
@@ -309,9 +378,14 @@ async function main() {
   }
 
   // demo helper for automated tests
-  (window as any).__toa = { get busy() {
-    return busy;
-  } };
+  (window as any).__toa = {
+    get busy() {
+      return busy;
+    },
+    get auto() {
+      return auto ? auto.left : null;
+    },
+  };
 }
 
 main();

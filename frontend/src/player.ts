@@ -1,6 +1,6 @@
 import { Board } from './board';
 import { Ui } from './ui';
-import { GOLDEN_TOTEMS, ROAR_TOTEMS, STAGE_TOTEMS, WIN_TIERS } from './config';
+import { BONUS_BY_SCATTERS, GOLDEN_TOTEMS, ROAR_TOTEMS, STAGE_TOTEMS, WIN_TIERS } from './config';
 import { t } from './i18n';
 import { money } from './format';
 import { wait } from './anim';
@@ -50,6 +50,7 @@ export class RoundPlayer {
     this.inFreeSpins = false;
     this.stage = 0;
     this.ui.setFsCounter(null);
+    this.board.setKept(null);
     this.board.mascot.setFreeSpins(false);
     this.ui.setStage(0, 0);
     this.board.setTheme(0);
@@ -87,7 +88,11 @@ export class RoundPlayer {
       }
       case 'totemMultiplier': {
         // the steles multiply the LINE win, not the bet – say so
-        const explain = `${t('lineWin')} ${money(this.money(ev.baseWin))} × ${ev.totalMult} = ${money(this.money(ev.totalWin))}`;
+        const kept = ev.keptMult ?? 0;
+        const explain =
+          kept > 0
+            ? t('keptExplain', { a: `${t('lineWin')} ${money(this.money(ev.baseWin))}`, m: ev.totalMult, b: ev.totalMult - kept, k: kept, c: money(this.money(ev.totalWin)) })
+            : `${t('lineWin')} ${money(this.money(ev.baseWin))} × ${ev.totalMult} = ${money(this.money(ev.totalWin))}`;
         await this.board.totemPower(ev.totems, ev.totalMult, explain, money(this.money(ev.totalWin)));
         break;
       }
@@ -108,12 +113,18 @@ export class RoundPlayer {
         void this.board.mascot.roar();
         sound.bonusChime();
         window.setTimeout(() => sound.gong(), 350);
-        await this.ui.freeSpinsIntro(ev.totalFs);
+        const kind = BONUS_BY_SCATTERS[Math.min(5, ev.positions?.length ?? 3)] ?? 'bonus';
+        await this.ui.freeSpinsIntro(ev.totalFs, kind);
         this.ui.setFsCounter(0, ev.totalFs);
+        break;
+      }
+      case 'multCollect': {
+        await this.board.collectKept(ev.totems, ev.total);
         break;
       }
       case 'stageInfo': {
         this.inFreeSpins = true;
+        this.board.setKept(ev.divine ? 0 : null);
         this.board.mascot.setFreeSpins(true);
         this.setStage(ev.stage, ev.runes, true);
         if (ev.stage > 1) await this.ui.banner(t('stage', { n: ev.stage }), t('startsHigher'), 1500, 'gold');

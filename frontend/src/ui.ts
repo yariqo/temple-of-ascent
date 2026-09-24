@@ -298,8 +298,14 @@ export class Ui {
     return this.overlayBusy;
   }
 
-  async freeSpinsIntro(n: number) {
-    await this.showOverlay({ kicker: t('templeAwakes'), title: `${n} ${t('freeSpins')}`, sub: t('fsIntroSub'), ms: 2600 });
+  async freeSpinsIntro(n: number, kind = 'bonus') {
+    await this.showOverlay({
+      kicker: t('buyName_' + kind),
+      title: `${n} ${t('freeSpins')}`,
+      sub: t('intro_' + kind),
+      cls: kind === 'godbonus' ? 'god' : kind === 'superbonus' ? 'gold' : '',
+      ms: kind === 'godbonus' ? 3400 : 2600,
+    });
   }
   async stageUp(stage: number, extra: number, vals: string) {
     await this.showOverlay({
@@ -379,7 +385,7 @@ export class Ui {
         const card = document.createElement('div');
         card.className = 'fm-card';
         const pyr = Array.from({ length: MAX_STAGE }, (_, i) => `<i class="${i < b.stage ? 'lit' : ''}" style="width:${56 - i * 11}px"></i>`).join('');
-        card.innerHTML = `<div class="fm-art"><div class="fm-pyr">${pyr}</div></div><b>${t('buyName_' + b.mode)}</b><p>${t('buyDesc', { n: b.stage, v: `${vals[0]}–${vals[vals.length - 1]}×` })}</p><div class="fm-price">${money(price)}</div><button class="fm-action"></button>`;
+        card.innerHTML = `<div class="fm-art"><div class="fm-pyr">${pyr}</div></div><b>${t('buyName_' + b.mode)}</b><p>${t('buyDesc_' + b.mode, { n: b.stage, v: `${vals[0]}–${vals[vals.length - 1]}×` })}</p><div class="fm-price">${money(price)}</div><button class="fm-action"></button>`;
         const btn = card.querySelector('button')!;
         btn.textContent = t('buyBtn');
         btn.disabled = price > balance + 1e-9;
@@ -406,6 +412,66 @@ export class Ui {
   }
 
   icons: Record<string, string> = {};
+
+  /** Autoplay settings dialog. Limits are in money. */
+  autoMenu(bet: number): Promise<{ spins: number; loss: number | null; win: number | null; stopBonus: boolean } | null> {
+    const dlg = $<HTMLDialogElement>('auto-menu');
+    $('am-title').textContent = t('autoTitle');
+    $('am-spins-t').textContent = t('autoSpins');
+    $('am-loss-t').textContent = t('autoLoss');
+    $('am-win-t').textContent = t('autoWin');
+    $('am-bonus-t').textContent = t('autoBonus');
+    $('am-start').textContent = t('autoStart');
+    const pick = (id: string, opts: { label: string; v: number | null }[], def: number) => {
+      const box = $(id);
+      box.innerHTML = '';
+      let val = opts[def].v;
+      opts.forEach((o, i) => {
+        const b = document.createElement('button');
+        b.textContent = o.label;
+        if (i === def) b.classList.add('sel');
+        b.onclick = () => {
+          sound.click();
+          val = o.v;
+          box.querySelectorAll('button').forEach((x) => x.classList.remove('sel'));
+          b.classList.add('sel');
+        };
+        box.appendChild(b);
+      });
+      return () => val;
+    };
+    const spins = pick('am-spins', [10, 25, 50, 100].map((n) => ({ label: String(n), v: n })), 1);
+    const loss = pick('am-loss', [...[20, 50, 100].map((n) => ({ label: money(bet * n), v: bet * n })), { label: t('noLimit'), v: null }], 1);
+    const win = pick('am-win', [{ label: t('off'), v: null }, ...[50, 100, 500].map((n) => ({ label: money(bet * n), v: bet * n }))], 0);
+    return new Promise((resolve) => {
+      let settled = false;
+      const done = (v: { spins: number; loss: number | null; win: number | null; stopBonus: boolean } | null) => {
+        if (settled) return;
+        settled = true;
+        dlg.close();
+        resolve(v);
+      };
+      $('am-start').onclick = () => done({ spins: spins() ?? 25, loss: loss(), win: win(), stopBonus: ($('am-bonus') as HTMLInputElement).checked });
+      $('am-close').onclick = () => done(null);
+      dlg.oncancel = () => done(null);
+      dlg.onclick = (e) => {
+        const r = dlg.getBoundingClientRect();
+        if (e.clientX < r.left || e.clientX > r.right || e.clientY < r.top || e.clientY > r.bottom) done(null);
+      };
+      dlg.showModal();
+    });
+  }
+
+  /** null = autoplay off, otherwise the number of spins left */
+  setAuto(left: number | null) {
+    const b = $('auto-btn');
+    b.classList.toggle('active', left !== null);
+    $('auto-label').textContent = left === null ? t('auto') : String(left);
+    for (const id of ['feature-btn', 'bet-up', 'bet-down', 'feature-pill-off']) ($(id) as HTMLButtonElement).disabled = left !== null;
+  }
+  hideAuto(hide: boolean) {
+    $('auto-btn').hidden = hide;
+  }
 
   showRules(html: string) {
     const dlg = $<HTMLDialogElement>('rules');

@@ -72,7 +72,7 @@ class GameConfig(Config):
 
         # Free spins awarded by Runes in the base game
         self.freespin_triggers = {
-            self.basegame_type: {3: 10, 4: 12, 5: 15},
+            self.basegame_type: {3: 10, 4: 10, 5: 10},  # every bonus: 10 free spins
             self.freegame_type: {3: 0},  # runes do not retrigger, they upgrade the stage
         }
         self.anticipation_triggers = {
@@ -95,7 +95,10 @@ class GameConfig(Config):
         self.stage_up_spins = 4  # extra spins awarded on every stage-up
         self.jaguar_spin_cost = 25.0  # cost of one Jaguar-Spin (feature spin) in bets
         self.superbonus_cost = 200.0  # bonus buy starting on stage 2
-        self.godbonus_cost = 300.0  # bonus buy starting on stage 3
+        self.godbonus_cost = 500.0  # Divine Bonus buy (stage 3 + collected multiplier stays)
+        # how many runes trigger which bonus: 3 -> Temple Bonus, 4 -> Super Bonus, 5 -> Divine Bonus
+        self.scatter_start_stage = {3: 1, 4: 2, 5: 3}
+        self.divine_stage = 3  # bonuses starting on this stage keep their collected multipliers
 
         # ---------------- Reels ----------------
         reels = {"BR0": "BR0.csv", "FR0": "FR0.csv", "WCAP": "FRWCAP.csv"}
@@ -130,7 +133,8 @@ class GameConfig(Config):
                 self.basegame_type: {"BR0": 1},
                 self.freegame_type: {"FR0": 1},
             },
-            "scatter_triggers": {3: 50, 4: 10, 5: 2},
+            # base game: most bonuses are Temple Bonuses, some Super, a few Divine
+            "scatter_triggers": {3: 85, 4: 12, 5: 3},
             "jaguar": self.jaguar_roar,
             "force_wincap": False,
             "force_freegame": True,
@@ -167,10 +171,10 @@ class GameConfig(Config):
             "force_freegame": False,
         }
 
-        # Super-Bonus / Goetter-Bonus: same free spins, but they start on stage 2 / stage 3 of the pyramid
-        def with_start(cond: dict, stage: int) -> dict:
+        # bonus buys force exactly 3 / 4 / 5 runes (Temple / Super / Divine Bonus)
+        def with_runes(cond: dict, n: int) -> dict:
             c = dict(cond)
-            c["start_stage"] = stage
+            c["scatter_triggers"] = {n: 1}
             return c
 
         mode_maxwins = {"base": 10000, "bonushunt": 10000, "jaguar": 10000, "bonus": 10000,
@@ -245,12 +249,12 @@ class GameConfig(Config):
                         criteria="wincap",
                         quota=0.001,
                         win_criteria=mode_maxwins["bonus"],
-                        conditions=wincap_condition,
+                        conditions=with_runes(wincap_condition, 3),
                     ),
-                    Distribution(criteria="freegame", quota=0.999, conditions=freegame_condition),
+                    Distribution(criteria="freegame", quota=0.999, conditions=with_runes(freegame_condition, 3)),
                 ],
             ),
-            # Super-Bonus buy: free spins start on stage 2 (steles 5x-50x)
+            # Super Bonus buy (4 runes): starts on stage 2 (steles 5x-50x)
             BetMode(
                 name="superbonus",
                 cost=self.superbonus_cost,
@@ -264,12 +268,12 @@ class GameConfig(Config):
                         criteria="wincap",
                         quota=0.001,
                         win_criteria=mode_maxwins["superbonus"],
-                        conditions=with_start(wincap_condition, 2),
+                        conditions=with_runes(wincap_condition, 4),
                     ),
-                    Distribution(criteria="freegame", quota=0.999, conditions=with_start(freegame_condition, 2)),
+                    Distribution(criteria="freegame", quota=0.999, conditions=with_runes(freegame_condition, 4)),
                 ],
             ),
-            # Goetter-Bonus buy: free spins start on stage 3 (steles 10x-250x)
+            # Divine Bonus buy (5 runes): starts on stage 3, steles that win are collected and stay
             BetMode(
                 name="godbonus",
                 cost=self.godbonus_cost,
@@ -283,9 +287,9 @@ class GameConfig(Config):
                         criteria="wincap",
                         quota=0.001,
                         win_criteria=mode_maxwins["godbonus"],
-                        conditions=with_start(wincap_condition, 3),
+                        conditions=with_runes(wincap_condition, 5),
                     ),
-                    Distribution(criteria="freegame", quota=0.999, conditions=with_start(freegame_condition, 3)),
+                    Distribution(criteria="freegame", quota=0.999, conditions=with_runes(freegame_condition, 5)),
                 ],
             ),
         ]

@@ -36,13 +36,14 @@ PLAN = {
     "jaguar": {"probs": {"jaguarspin": 1.0}, "zero": None, "tilt": "jaguarspin", "tail": [(300, 0.75), (1000, 0.85)]},
     # bonus buy: wins >= 4000x reduced so that the SDK volatility check (etl40b <= 0.9) passes
     "bonus": {"probs": {"wincap": 5e-6, "freegame": 1 - 5e-6}, "zero": None, "tilt": "freegame",
-              "tail": [(1000, 0.8), (4000, 0.4)]},
+              "tail": [(1000, 0.8), (4000, 0.3)]},
     # Super-Bonus (starts on stage 2): tails trimmed so etl40b (wins >= 8000x) and etl10k pass
     "superbonus": {"probs": {"wincap": 1e-6, "freegame": 1 - 1e-6}, "zero": None, "tilt": "freegame",
-                   "tail": [(1000, 0.9), (8000, 0.45)]},
-    # Goetter-Bonus (starts on stage 3): max wins trimmed so etl10k (<= 0.8) passes
+                   "tail": [(1000, 0.9), (8000, 0.25)]},
+    # Divine Bonus (5 runes, 500x, collected multipliers stay): the max win (10000x) is trimmed
+    # so that etl10k (<= 0.8, i.e. max win at most ~1 in 12500 bonuses) passes
     "godbonus": {"probs": {"wincap": 1e-6, "freegame": 1 - 1e-6}, "zero": None, "tilt": "freegame",
-                 "tail": [(1000, 0.95), (10000, 0.3)]},
+                 "tail": [(10000, 0.06)]},
 }
 
 

@@ -14,14 +14,16 @@ def _cents(gamestate, amount: float) -> int:
     return int(round(min(amount, gamestate.config.wincap) * 100, 0))
 
 
-def totem_mult_event(gamestate, totems: list, total_mult: int, base_win: float, final_win: float):
-    """Totems on the board carved their multipliers; their SUM multiplies the spin's line wins."""
+def totem_mult_event(gamestate, totems: list, total_mult: int, base_win: float, final_win: float, kept: int = 0):
+    """Totems on the board carved their multipliers; their SUM (+ the kept Divine multiplier)
+    multiplies the spin's line wins."""
     pad = 1 if gamestate.config.include_padding else 0
     event = {
         "index": len(gamestate.book.events),
         "type": TOTEM_MULT,
         "totems": [{"reel": t["reel"], "row": t["row"] + pad, "multiplier": t["value"]} for t in totems],
         "totalMult": int(total_mult),
+        "keptMult": int(kept),
         "baseWin": _cents(gamestate, base_win),
         "totalWin": _cents(gamestate, final_win),
     }
@@ -45,11 +47,13 @@ def jaguar_roar_event(gamestate, totems: list, golden: bool):
 
 
 def stage_info_event(gamestate):
-    """Sent at free-spin start: current stage, rune progress and the stage's possible totem values."""
+    """Sent at free-spin start: current stage, rune progress and the stage's possible totem values.
+    divine = True for the Divine Bonus (collected multiplier stays)."""
     event = {
         "index": len(gamestate.book.events),
         "type": STAGE_INFO,
         "stage": gamestate.stage,
+        "divine": bool(gamestate.divine),
         "runes": gamestate.runes,
         "runesToNext": gamestate.runes_to_next_stage(),
         "totemValues": sorted(gamestate.config.stage_totem_values[gamestate.stage].keys()),
@@ -79,5 +83,21 @@ def stage_up_event(gamestate, extra_spins: int):
         "extraSpins": extra_spins,
         "totalFs": gamestate.tot_fs,
         "totemValues": sorted(gamestate.config.stage_totem_values[gamestate.stage].keys()),
+    }
+    gamestate.book.add_event(event)
+
+
+MULT_COLLECT = "multCollect"
+
+
+def mult_collect_event(gamestate, totems: list, added: int, total: int):
+    """Divine Bonus: steles that took part in a win are collected; their value stays for the rest of the bonus."""
+    pad = 1 if gamestate.config.include_padding else 0
+    event = {
+        "index": len(gamestate.book.events),
+        "type": MULT_COLLECT,
+        "totems": [{"reel": t["reel"], "row": t["row"] + pad, "multiplier": t["value"]} for t in totems],
+        "added": int(added),
+        "total": int(total),
     }
     gamestate.book.add_event(event)

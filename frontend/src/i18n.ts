@@ -16,6 +16,19 @@ const en: Dict = {
   featureBtn: 'BONUS',
   tileSub: 'Buy bonus · feature spins',
   tileActive: 'active · {v} per spin',
+  auto: 'AUTO',
+  autoTitle: 'Autoplay',
+  autoSpins: 'Number of spins',
+  autoLoss: 'Stop if balance decreases by',
+  autoWin: 'Stop on a single win of at least',
+  autoBonus: 'Stop when a bonus is triggered',
+  autoStart: 'Start autoplay',
+  noLimit: 'No limit',
+  off: 'Off',
+  autoStopLoss: 'Autoplay stopped: limit reached',
+  autoStopWin: 'Autoplay stopped: big win',
+  autoStopBonus: 'Autoplay stopped: bonus triggered',
+  autoDone: 'Autoplay finished',
   fmTitle: 'Bonus & Features',
   fmSpins: 'Feature spins',
   fmBuys: 'Buy bonus',
@@ -31,8 +44,16 @@ const en: Dict = {
   buyTitle: 'Buy Bonus',
   buyName_bonus: 'Temple Bonus',
   buyName_superbonus: 'Super Bonus',
-  buyName_godbonus: 'Gods Bonus',
+  buyName_godbonus: 'Divine Bonus',
   buyDesc: 'Free spins start on stage {n} · steles {v}',
+  buyDesc_bonus: '= 3 BONUS symbols · 10 free spins · steles {v}',
+  buyDesc_superbonus: '= 4 BONUS symbols · 10 free spins from stage 2 · steles {v}',
+  buyDesc_godbonus: '= 5 BONUS symbols · stage 3 · steles {v} · winning steles are collected and their multiplier STAYS',
+  intro_bonus: 'Collect BONUS symbols to climb the pyramid',
+  intro_superbonus: 'You start on stage 2 · steles 5–50×',
+  intro_godbonus: 'Winning steles are collected – their multiplier stays!',
+  keptLabel: 'DIVINE',
+  keptExplain: '{a} × {m} ({b} + {k} kept) = {c}',
   choose: 'Choose',
   buyNow: 'Buy for {v}',
   buyConfirm: 'Buy the free spins for {cost}?',
@@ -50,7 +71,7 @@ const en: Dict = {
   extraSpins: '+{n} spins',
   newTotems: 'steles now {v}',
   runesToNext: '{n} more rune(s) to the next stage',
-  pyrIdle: '3 sun glyphs open the temple',
+  pyrIdle: '3 / 4 / 5 BONUS symbols open the temple',
   maxStage: 'Summit reached',
   lineWin: 'Line win',
   jaguarRoar: 'JAGUAR ROAR',
@@ -95,6 +116,19 @@ const de: Dict = {
   featureBtn: 'BONUS',
   tileSub: 'Bonus kaufen · Feature-Spins',
   tileActive: 'aktiv · {v} pro Spin',
+  auto: 'AUTO',
+  autoTitle: 'Autoplay',
+  autoSpins: 'Anzahl Spins',
+  autoLoss: 'Stoppen, wenn das Guthaben sinkt um',
+  autoWin: 'Stoppen bei einem Einzelgewinn ab',
+  autoBonus: 'Stoppen, wenn ein Bonus ausgelöst wird',
+  autoStart: 'Autoplay starten',
+  noLimit: 'Kein Limit',
+  off: 'Aus',
+  autoStopLoss: 'Autoplay gestoppt: Limit erreicht',
+  autoStopWin: 'Autoplay gestoppt: großer Gewinn',
+  autoStopBonus: 'Autoplay gestoppt: Bonus ausgelöst',
+  autoDone: 'Autoplay beendet',
   fmTitle: 'Bonus & Features',
   fmSpins: 'Feature-Spins',
   fmBuys: 'Bonus kaufen',
@@ -110,8 +144,16 @@ const de: Dict = {
   buyTitle: 'Bonus kaufen',
   buyName_bonus: 'Tempel-Bonus',
   buyName_superbonus: 'Super-Bonus',
-  buyName_godbonus: 'Götter-Bonus',
+  buyName_godbonus: 'Göttlicher Bonus',
   buyDesc: 'Freispiele starten auf Stufe {n} · Stelen {v}',
+  buyDesc_bonus: '= 3 BONUS-Symbole · 10 Freispiele · Stelen {v}',
+  buyDesc_superbonus: '= 4 BONUS-Symbole · 10 Freispiele ab Stufe 2 · Stelen {v}',
+  buyDesc_godbonus: '= 5 BONUS-Symbole · Stufe 3 · Stelen {v} · Stelen, die gewinnen, werden gesammelt und ihr Multi BLEIBT',
+  intro_bonus: 'Sammle BONUS-Symbole und steig die Pyramide hinauf',
+  intro_superbonus: 'Du startest auf Stufe 2 · Stelen 5–50×',
+  intro_godbonus: 'Stelen, die gewinnen, werden gesammelt – ihr Multi bleibt!',
+  keptLabel: 'GÖTTLICH',
+  keptExplain: '{a} × {m} ({b} + {k} gesammelt) = {c}',
   choose: 'Wählen',
   buyNow: 'Kaufen für {v}',
   buyConfirm: 'Freispiele für {cost} kaufen?',
@@ -129,7 +171,7 @@ const de: Dict = {
   extraSpins: '+{n} Spins',
   newTotems: 'Stelen jetzt {v}',
   runesToNext: 'noch {n} Rune(n) bis zur nächsten Stufe',
-  pyrIdle: '3 Sonnen-Glyphen öffnen den Tempel',
+  pyrIdle: '3 / 4 / 5 BONUS-Symbole öffnen den Tempel',
   maxStage: 'Gipfel erreicht',
   lineWin: 'Liniengewinn',
   jaguarRoar: 'JAGUAR-RUF',
@@ -187,13 +229,19 @@ export function rulesHtml(lang: string): string {
 <h4>Jaguar-Ruf</h4>
 <p>Nach dem Walzenstopp kann der Jaguar 1–3 zusätzliche Stelen (2×–25×) auf normale Felder werfen.</p>
 <h4>Freispiele und Pyramide</h4>
-<p>3 / 4 / 5 Sonnen-Glyphen geben 10 / 12 / 15 Freispiele auf Stufe 1. In den Freispielen gesammelte Glyphen füllen die Pyramide: alle 3 Glyphen steigt man eine Stufe auf (max. Stufe 4) und erhält +4 Freispiele. Stelen-Werte: Stufe 1: 2–25×, Stufe 2: 5–50×, Stufe 3: 10–250×, Stufe 4: 25–500×.</p>
+<p>Die Anzahl der BONUS-Symbole entscheidet über den Bonus, jeder startet mit 10 Freispielen:<br>
+<b>3 BONUS-Symbole – Tempel-Bonus</b> (Start auf Stufe 1)<br>
+<b>4 BONUS-Symbole – Super-Bonus</b> (Start auf Stufe 2)<br>
+<b>5 BONUS-Symbole – Göttlicher Bonus</b> (Start auf Stufe 3, gesammelte Multis bleiben)<br>
+In den Freispielen gesammelte BONUS-Symbole füllen die Pyramide: alle 3 steigt man eine Stufe auf (max. Stufe 4) und erhält +4 Freispiele. Stelen-Werte: Stufe 1: 2–25×, Stufe 2: 5–50×, Stufe 3: 10–250×, Stufe 4: 25–500×.</p>
+<h4>Göttlicher Bonus</h4>
+<p>Stelen, die an einem Gewinn beteiligt sind (es gibt einen Liniengewinn im Spin), werden eingesammelt. Ihr Wert bleibt bis zum Ende des Bonus erhalten und wird zu allen Stelen späterer Gewinne addiert. Beispiel: 40× gesammelt, neuer Liniengewinn 0,50 € mit einer 10×-Stele ergibt 0,50 € × 50 = 25,00 €, danach sind 50× gesammelt.</p>
 <h4>Modi</h4>
 <p><b>Bonus-Jagd (1,5× Einsatz):</b> doppelte Chance auf Freispiele.<br>
 <b>Jaguar-Spin (25× Einsatz):</b> Der Jaguar wirft bei jedem Spin 2–4 goldene Stelen (5×–50×). Jeder Jaguar-Spin zahlt einen Gewinn, der kleiner als der Einsatz sein kann. Keine Freispiele.<br>
-<b>Tempel-Bonus (100× Einsatz):</b> Freispiele starten auf Stufe 1.<br>
-<b>Super-Bonus (200× Einsatz):</b> Freispiele starten auf Stufe 2.<br>
-<b>Götter-Bonus (300× Einsatz):</b> Freispiele starten auf Stufe 3.</p>
+<b>Tempel-Bonus kaufen (100× Einsatz):</b> wie 3 BONUS-Symbole.<br>
+<b>Super-Bonus kaufen (200× Einsatz):</b> wie 4 BONUS-Symbole.<br>
+<b>Göttlichen Bonus kaufen (500× Einsatz):</b> wie 5 BONUS-Symbole.</p>
 <p>Fehlfunktionen machen alle Gewinne und Spiele ungültig.</p>`;
   }
   return `
@@ -204,12 +252,18 @@ export function rulesHtml(lang: string): string {
 <h4>Jaguar Roar</h4>
 <p>After the reels stop, the jaguar may throw 1–3 extra steles (2×–25×) onto regular positions.</p>
 <h4>Free Spins and Pyramid</h4>
-<p>3 / 4 / 5 sun glyphs award 10 / 12 / 15 free spins at stage 1. Glyphs collected during free spins fill the pyramid: every 3 glyphs move you up one stage (max stage 4) and award +4 free spins. Stele values: stage 1: 2–25×, stage 2: 5–50×, stage 3: 10–250×, stage 4: 25–500×.</p>
+<p>The number of BONUS symbols decides the bonus; every bonus starts with 10 free spins:<br>
+<b>3 BONUS symbols – Temple Bonus</b> (starts on stage 1)<br>
+<b>4 BONUS symbols – Super Bonus</b> (starts on stage 2)<br>
+<b>5 BONUS symbols – Divine Bonus</b> (starts on stage 3, collected multipliers stay)<br>
+BONUS symbols collected during free spins fill the pyramid: every 3 move you up one stage (max stage 4) and award +4 free spins. Stele values: stage 1: 2–25×, stage 2: 5–50×, stage 3: 10–250×, stage 4: 25–500×.</p>
+<h4>Divine Bonus</h4>
+<p>Steles that take part in a win (the spin has a line win) are collected. Their value stays until the end of the bonus and is added to the steles of every later win. Example: 40× collected, a new line win of $0.50 with a 10× stele pays $0.50 × 50 = $25.00; afterwards 50× are collected.</p>
 <h4>Modes</h4>
 <p><b>Bonus Hunt (1.5× bet):</b> double chance to trigger free spins.<br>
 <b>Jaguar Spin (25× bet):</b> the jaguar throws 2–4 golden steles (5×–50×) every spin. Every Jaguar Spin pays a win, which may be less than its cost. No free spins.<br>
-<b>Temple Bonus (100× bet):</b> free spins start on stage 1.<br>
-<b>Super Bonus (200× bet):</b> free spins start on stage 2.<br>
-<b>Gods Bonus (300× bet):</b> free spins start on stage 3.</p>
+<b>Buy Temple Bonus (100× bet):</b> same as 3 BONUS symbols.<br>
+<b>Buy Super Bonus (200× bet):</b> same as 4 BONUS symbols.<br>
+<b>Buy Divine Bonus (500× bet):</b> same as 5 BONUS symbols.</p>
 <p>Malfunction voids all pays and plays.</p>`;
 }

@@ -975,6 +975,76 @@ dialog button.gold,
   vertical-align: middle;
 }
 
+/* ---------- autoplay ---------- */
+.auto-btn.active {
+  background: radial-gradient(circle at 35% 25%, #9ff5c8, #1f9a63 75%);
+  color: #06281a;
+  border-color: #b8ffd8;
+}
+.auto-btn.active svg {
+  animation: spinIcon 1.6s linear infinite;
+}
+@keyframes spinIcon {
+  to {
+    transform: rotate(360deg);
+  }
+}
+#auto-menu {
+  width: min(460px, 94vw);
+  padding: 18px 20px 20px;
+}
+.am-row {
+  margin: 12px 0;
+}
+.am-row h4 {
+  margin: 0 0 6px;
+  font-family: var(--serif);
+  color: var(--gold);
+  font-size: 13px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+.am-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.am-chips button {
+  flex: 1 1 0;
+  min-width: 64px;
+  padding: 9px 6px;
+  border-radius: 10px;
+  border: 1.5px solid #6d5a36;
+  background: linear-gradient(180deg, #3a2f20, #1d170f);
+  color: #f3e6c8;
+  font-weight: 800;
+  cursor: pointer;
+}
+.am-chips button.sel {
+  border-color: var(--gold);
+  background: linear-gradient(180deg, #ffe27a, #c88f1e);
+  color: #2a1600;
+}
+.am-check {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 14px 0 16px;
+  font-weight: 700;
+  cursor: pointer;
+}
+.am-check input {
+  width: 20px;
+  height: 20px;
+  accent-color: #d9a42a;
+}
+.am-start {
+  width: 100%;
+  padding: 12px;
+  font-size: 17px;
+  border-radius: 12px;
+}
+
 /* ---------- feature menu ---------- */
 #feature-menu {
   width: min(820px, 94vw);
@@ -1293,6 +1363,10 @@ dialog button.gold,
   .turbo-btn {
     grid-column: 5;
     justify-self: end;
+  }
+  .auto-btn {
+    grid-column: 1;
+    justify-self: start;
   }
   .turbo-btn {
     width: 56px;

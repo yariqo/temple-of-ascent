@@ -9,6 +9,14 @@ class GameStateOverride(GameExecutables):
         super().reset_book()
         self.stage = 0  # 0 = base game, 1..4 = free-spin stages
         self.runes = 0
+        self.trigger_scatters = 3
+        self.divine = False
+        self.collected = 0
+
+    def update_freespin_amount(self, scatter_key: str = "scatter") -> None:
+        # remember how many runes triggered the bonus (decides the bonus type)
+        self.trigger_scatters = self.count_special_symbols(scatter_key)
+        super().update_freespin_amount(scatter_key)
 
     def assign_special_sym_function(self):
         self.special_symbol_functions = {"T": [self.assign_totem_value]}

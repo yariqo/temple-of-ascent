@@ -48,7 +48,7 @@
             "max_win": 10000
         },
         "godbonus": {
-            "cost": 300.0,
+            "cost": 500.0,
             "feature": false,
             "buyBonus": true,
             "rtp": 0.96,
@@ -199,25 +199,40 @@
     },
     "symbols": [
         {
-            "H2": {
+            "W": {
+                "paytable": null,
+                "special_properties": [
+                    "wild"
+                ]
+            }
+        },
+        {
+            "H1": {
                 "paytable": [
                     {
-                        "5": 20
+                        "5": 30
                     },
                     {
-                        "4": 5
+                        "4": 6
                     },
                     {
-                        "3": 1.2
+                        "3": 1.5
                     }
                 ]
             }
         },
         {
-            "W": {
-                "paytable": null,
-                "special_properties": [
-                    "wild"
+            "L3": {
+                "paytable": [
+                    {
+                        "5": 3
+                    },
+                    {
+                        "4": 0.8
+                    },
+                    {
+                        "3": 0.3
+                    }
                 ]
             }
         },
@@ -252,6 +267,29 @@
             }
         },
         {
+            "S": {
+                "paytable": null,
+                "special_properties": [
+                    "scatter"
+                ]
+            }
+        },
+        {
+            "H2": {
+                "paytable": [
+                    {
+                        "5": 20
+                    },
+                    {
+                        "4": 5
+                    },
+                    {
+                        "3": 1.2
+                    }
+                ]
+            }
+        },
+        {
             "L5": {
                 "paytable": [
                     {
@@ -267,6 +305,14 @@
             }
         },
         {
+            "T": {
+                "paytable": null,
+                "special_properties": [
+                    "multiplier"
+                ]
+            }
+        },
+        {
             "L1": {
                 "paytable": [
                     {
@@ -277,37 +323,6 @@
                     },
                     {
                         "3": 0.5
-                    }
-                ]
-            }
-        },
-        {
-            "S": {
-                "paytable": null,
-                "special_properties": [
-                    "scatter"
-                ]
-            }
-        },
-        {
-            "T": {
-                "paytable": null,
-                "special_properties": [
-                    "multiplier"
-                ]
-            }
-        },
-        {
-            "H3": {
-                "paytable": [
-                    {
-                        "5": 12
-                    },
-                    {
-                        "4": 3
-                    },
-                    {
-                        "3": 1.0
                     }
                 ]
             }
@@ -328,31 +343,16 @@
             }
         },
         {
-            "H1": {
+            "H3": {
                 "paytable": [
                     {
-                        "5": 30
+                        "5": 12
                     },
                     {
-                        "4": 6
+                        "4": 3
                     },
                     {
-                        "3": 1.5
-                    }
-                ]
-            }
-        },
-        {
-            "L3": {
-                "paytable": [
-                    {
-                        "5": 3
-                    },
-                    {
-                        "4": 0.8
-                    },
-                    {
-                        "3": 0.3
+                        "3": 1.0
                     }
                 ]
             }

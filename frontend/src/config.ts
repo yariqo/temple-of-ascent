@@ -15,10 +15,10 @@ export const MODES: Record<string, ModeDef> = {
   jaguar: { key: 'jaguar', cost: 25, kind: 'toggle' },
   bonus: { key: 'bonus', cost: 100, kind: 'buy' },
   superbonus: { key: 'superbonus', cost: 200, kind: 'buy' },
-  godbonus: { key: 'godbonus', cost: 300, kind: 'buy' },
+  godbonus: { key: 'godbonus', cost: 500, kind: 'buy' },
 };
 
-/** Bonus-buy menu entries: mode, starting stage. */
+/** Bonus-buy menu entries: mode, starting stage. 3 / 4 / 5 BONUS symbols trigger the same bonuses. */
 export const BUYS: { mode: string; stage: number }[] = [
   { mode: 'bonus', stage: 1 },
   { mode: 'superbonus', stage: 2 },
@@ -38,6 +38,8 @@ export const STAGE_TOTEMS: Record<number, number[]> = {
   4: [25, 50, 100, 250, 500],
 };
 export const RUNES_PER_STAGE = 3;
+/** number of BONUS symbols -> bonus mode */
+export const BONUS_BY_SCATTERS: Record<number, string> = { 3: 'bonus', 4: 'superbonus', 5: 'godbonus' };
 export const MAX_STAGE = 4;
 
 /** Placeholder look of every symbol (final art replaces this). */
