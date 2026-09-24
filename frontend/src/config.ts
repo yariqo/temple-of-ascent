@@ -71,13 +71,6 @@ export function totemTier(m: number): { color: number; name: string } {
 }
 
 /** Big-win names (multiples of the BASE bet); only shown when the win also reaches the round cost. */
-export const WIN_TIERS: { min: number; key: string }[] = [
-  { min: 1000, key: 'winGod' },
-  { min: 500, key: 'winSun' },
-  { min: 100, key: 'winEagle' },
-  { min: 50, key: 'winJaguar' },
-  { min: 20, key: 'winBig' },
-];
 
 export const STAGE_BG: Record<number, [string, string]> = {
   0: ['#0d2b1f', '#123d2b'], // jungle

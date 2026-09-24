@@ -1,4 +1,4 @@
-# StakeGame – Temple of Ascent
+# StakeGame – BALAM
 
 ```
 StakeGame/

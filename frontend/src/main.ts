@@ -9,6 +9,7 @@ import { setCurrency } from './format';
 import { fetchReplay, StakeRgs, urlParam } from './rgs';
 import { sleepReal, speed } from './anim';
 import { loadFonts } from './fonts';
+import { drawLogo } from './art/logo';
 import { buildTextures, SYM_CANVAS } from './art/textures';
 import { drawScene } from './art/scene';
 import { makeCanvas } from './art/draw';
@@ -49,6 +50,18 @@ async function main() {
   // ---------- loading: fonts → textures → scenes → renderer ----------
   ui.setLoading(0.1);
   await loadFonts();
+  // game logo (drawn once, used in the header and on the loading screen)
+  try {
+    const logoUrl = drawLogo().toDataURL('image/png');
+    for (const id of ['title', 'load-logo']) {
+      const el = document.getElementById(id)!;
+      el.innerHTML = `<img class="logo-img" src="${logoUrl}" alt="BALAM" draggable="false">`;
+      el.classList.add('has-img');
+      el.style.setProperty('--logo-mask', `url(${logoUrl})`);
+    }
+  } catch {
+    /* keep the text logo */
+  }
   ui.applyTexts();
   ui.setLoading(0.35);
   buildTextures();
@@ -386,6 +399,14 @@ async function main() {
       return auto ? auto.left : null;
     },
   };
+  // test hook (demo / dev only): window.__toa.bigwin(amount, bet)
+  if (import.meta.env.MODE !== 'production')
+    (window as any).__toa.bigwin = (amount: number, b = 1, max = false) =>
+      ui.bigWin(amount, b, { max, onTier: (lv) => {
+        board.celebrate(20 + lv * 16);
+        if (lv >= 4) void board.mascot.roar();
+        else void board.mascot.jump(lv >= 2 ? 2 : 1);
+      } });
 }
 
 main();

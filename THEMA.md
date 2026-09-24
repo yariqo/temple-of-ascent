@@ -6,11 +6,11 @@ Man steigt mit jeder Stufe eine **Tempelpyramide im Dschungel** hinauf. Oben war
 Die Stufen der Mathe **sind** also die Stufen der Pyramide. So sieht jeder Spieler sofort, wie weit er gekommen ist, und erinnert sich daran: „Ich war schon mal ganz oben.“
 
 ## Name
-**Festgelegt: Temple of Ascent**
+**Festgelegt: BALAM**
 
 | Vorschlag | Bewertung |
 |---|---|
-| **Temple of Ascent** | Beschreibt genau das Spiel: Tempel plus Aufstieg über die Stufen. Keinen gleichnamigen Slot gefunden |
+| **BALAM** | Beschreibt genau das Spiel: Tempel plus Aufstieg über die Stufen. Keinen gleichnamigen Slot gefunden |
 | Jaguar Eclipse | Am knackigsten, aber zu nah an Playtechs „Solar Eclipse: Jaguar's Lair“ |
 | Pyramid Rising | Gibt es schon als Slot („Pyramid Rising x33“) |
 | Stelae of the Sun | Schwer auszusprechen und zu merken |

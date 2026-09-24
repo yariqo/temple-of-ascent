@@ -1,6 +1,7 @@
 import { ALL_SYMBOLS, drawSymbol, SYM } from './art/draw';
 import { drawScene } from './art/scene';
 import { loadFonts } from './fonts';
+import { drawLogo } from './art/logo';
 import { drawMascotBody, drawMascotHead, drawMascotTail, MASCOT_GEO } from './art/mascot';
 (async () => {
   await loadFonts();
@@ -12,6 +13,16 @@ import { drawMascotBody, drawMascotHead, drawMascotTail, MASCOT_GEO } from './ar
     c.width = cols * SYM;
     c.height = Math.ceil(ALL_SYMBOLS.length / cols) * SYM;
     ALL_SYMBOLS.forEach((n, i) => ctx.drawImage(drawSymbol(n), (i % cols) * SYM, Math.floor(i / cols) * SYM));
+  } else if (mode === 'logo') {
+    const l = drawLogo();
+    c.width = l.width;
+    c.height = l.height * 2 + 20;
+    ctx.fillStyle = '#10261c';
+    ctx.fillRect(0, 0, c.width, l.height);
+    ctx.fillStyle = '#3a1c10';
+    ctx.fillRect(0, l.height + 20, c.width, l.height);
+    ctx.drawImage(l, 0, 0);
+    ctx.drawImage(l, 0, l.height + 20);
   } else if (mode === 'mascot') {
     c.width = 1200;
     c.height = 520;

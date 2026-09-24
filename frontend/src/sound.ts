@@ -192,6 +192,20 @@ class Sound {
     seq.forEach((s, i) => this.tone(330 * Math.pow(2, s / 12), 0.35, { type: 'sawtooth', vol: 0.07, at: i * 0.11 }));
     seq.forEach((s, i) => this.tone(330 * Math.pow(2, s / 12), 0.35, { type: 'triangle', vol: 0.12, at: i * 0.11 }));
   }
+  /** big-win tier upgrade: brass stab + cymbal, higher and fuller each tier */
+  tierUp(level: number) {
+    if (!this.ok()) return;
+    this.duck(2);
+    const root = 196 * Math.pow(2, (level - 1) * 2 / 12);
+    for (const [i, st] of [0, 4, 7, 12].entries()) {
+      const f = root * Math.pow(2, st / 12);
+      this.tone(f, 0.9, { type: 'sawtooth', vol: 0.05, at: i * 0.02, attack: 0.02 });
+      this.tone(f, 1.0, { type: 'triangle', vol: 0.09, at: i * 0.02 });
+    }
+    this.noise(1.2, { freq: 7000, sweep: 4000, vol: 0.12, type: 'highpass' });
+    this.tone(55, 0.6, { type: 'sine', vol: 0.4, slide: 0.5 });
+    if (level >= 4) this.gong(0.3);
+  }
   coin() {
     this.tone(1800 + Math.random() * 600, 0.08, { type: 'triangle', vol: 0.06 });
   }

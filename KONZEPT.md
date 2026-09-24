@@ -1,6 +1,6 @@
-# TEMPLE OF ASCENT – Spielkonzept (v0.10)
+# BALAM – Spielkonzept (v0.13)
 
-*Name: Temple of Ascent. Thema: Azteken-Dschungel (siehe THEMA.md). Maskottchen: der Jaguar „Balam“.*
+*Name: **BALAM** (Maya-Wort für Jaguar; Arbeitstitel vorher „Temple of Ascent“). Die internen IDs bleiben: game_id `temple_of_ascent`, Ordner `math/temple_of_ascent`. Thema: Azteken-Dschungel (siehe THEMA.md). Maskottchen: der Jaguar Balam.*
 
 ## Kurzbeschreibung
 Ein 5×4-Slot mit 20 festen Gewinnlinien. Statt Glücksrädern gibt es **Stelen**: geschnitzte Säulen, die beim Landen rattern und auf einem **Multiplikator** stehen bleiben. Gibt es im Spin einen Liniengewinn, werden alle Stelen auf dem Feld **addiert** und multiplizieren diesen Gewinn.
@@ -47,6 +47,19 @@ Weitere Funktionen:
 - **Musik:** generierte, kinoreife Tempelmusik aus Streichern, Chor und Hall.
   - Im Bonus kommen Taiko-Trommeln und ein Streicher-Ostinato dazu.
   - Man kann sie separat ein- und ausschalten.
+
+## Big-Win-Stufen
+Ein großer Gewinn wird gefeiert, wenn er mindestens 20× Einsatz beträgt und nicht unter den Kosten der Runde liegt. Beim Hochzählen steigt der Titel Stufe für Stufe:
+
+| ab | Titel | Effekt |
+|---|---|---|
+| 20× | BIG WIN | Gold, Münzfontäne |
+| 50× | MEGA WIN | Sonnenstrahlen, Jaguar-Medaillon, mehr Münzen, Jaguar springt |
+| 100× | EPIC WIN | Türkis, Edelsteine, Schütteln |
+| 500× | LEGENDARY WIN | violette Sonnenfinsternis, Münzregen, der Jaguar brüllt |
+| 1000× | BALAM WIN | Regenbogen-Sonne, alles zusammen |
+
+Max-Win: **MAX WIN** in der höchsten Stufe. Jede Stufe hat eine eigene Hochzählzeit (3–9,4 s), mit Flash und Sound. Antippen springt zum Endbetrag.
 
 ## Statistik je Modus (100.000 Runden pro Modus, finale Gewichte)
 | | Normal (1×) | Bonus-Jagd (1,5×) | Jaguar-Spin (25×) | Tempel (100×) | Super (200×) | Göttlich (500×) |

@@ -82,6 +82,10 @@ const en: Dict = {
   totalFs: 'Total win',
   maxWin: 'MAX WIN',
   winBig: 'BIG WIN',
+  winMega: 'MEGA WIN',
+  winEpic: 'EPIC WIN',
+  winLegend: 'LEGENDARY WIN',
+  winBalam: 'BALAM WIN',
   winJaguar: 'JAGUAR WIN',
   winEagle: 'EAGLE WIN',
   winSun: 'SUN WIN',
@@ -182,6 +186,10 @@ const de: Dict = {
   totalFs: 'Gesamtgewinn',
   maxWin: 'MAX-GEWINN',
   winBig: 'GROSSER GEWINN',
+  winMega: 'MEGA-GEWINN',
+  winEpic: 'EPISCHER GEWINN',
+  winLegend: 'LEGENDÄRER GEWINN',
+  winBalam: 'BALAM-GEWINN',
   winJaguar: 'JAGUAR-GEWINN',
   winEagle: 'ADLER-GEWINN',
   winSun: 'SONNEN-GEWINN',
@@ -222,7 +230,7 @@ export function t(key: string, vars: Record<string, string | number> = {}): stri
 export function rulesHtml(lang: string): string {
   if (lang === 'de') {
     return `
-<h3>Temple of Ascent</h3>
+<h3>BALAM</h3>
 <p>5 Walzen × 4 Reihen, 20 feste Gewinnlinien, Gewinne von links nach rechts. Alle Gewinne in × Einsatz. RTP: <b>96,00 %</b> in allen Modi. Max. Gewinn: <b>10.000×</b> Einsatz.</p>
 <h4>Götter-Stelen</h4>
 <p>Jede Stele trägt einen Multiplikator (Basisspiel 2×–10×). Gibt es im Spin einen Liniengewinn, werden alle Stelen auf dem Feld <b>addiert</b> und multiplizieren den <b>Liniengewinn</b> dieses Spins, nicht den Einsatz. Beispiel: Liniengewinn 0,40 € und Stelen 5× + 10× = 15× ergibt 6,00 €. Ohne Liniengewinn zahlen die Stelen nichts.</p>
@@ -245,7 +253,7 @@ In den Freispielen gesammelte BONUS-Symbole füllen die Pyramide: alle 3 steigt 
 <p>Fehlfunktionen machen alle Gewinne und Spiele ungültig.</p>`;
   }
   return `
-<h3>Temple of Ascent</h3>
+<h3>BALAM</h3>
 <p>5 reels × 4 rows, 20 fixed paylines, wins pay left to right. All wins in × bet. RTP: <b>96.00%</b> in all modes. Max win: <b>10,000×</b> bet.</p>
 <h4>God Steles</h4>
 <p>Every stele carries a multiplier (base game 2×–10×). If the spin has a line win, all steles on the board are <b>added</b> and multiply that spin's <b>line win</b>, not the bet. Example: a line win of $0.40 with steles 5× + 10× = 15× pays $6.00. Without a line win the steles pay nothing.</p>

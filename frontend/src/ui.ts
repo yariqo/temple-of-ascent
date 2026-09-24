@@ -3,6 +3,7 @@ import { money } from './format';
 import { t } from './i18n';
 import { ease, sleepReal, tween, wait, speed } from './anim';
 import { sound } from './sound';
+import { BigWin } from './bigwin';
 
 const $ = <T extends HTMLElement = HTMLElement>(id: string) => document.getElementById(id) as T;
 
@@ -319,8 +320,13 @@ export class Ui {
   async summary(title: string, amount: string, good: boolean) {
     await this.showOverlay({ kicker: t('fsOver'), title, amount, cls: good ? 'gold' : '', ms: 2600 });
   }
-  async bigWin(title: string, amount: number, cls: string, kicker = '') {
-    await this.showOverlay({ kicker, title, count: amount, cls, ms: 1800 });
+  private big: BigWin | null = null;
+  /** escalating big-win celebration (BIG → MEGA → EPIC → LEGENDARY → BALAM) */
+  async bigWin(amount: number, bet: number, opts: { kicker?: string; max?: boolean; onTier?: (lv: number) => void } = {}) {
+    if (!this.big) this.big = new BigWin();
+    this.overlayBusy = true;
+    await this.big.show(amount, bet, opts);
+    this.overlayBusy = false;
   }
 
   // ---------------------------------------------------------------- dialogs

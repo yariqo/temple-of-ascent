@@ -1,4 +1,4 @@
-# Temple of Ascent – Frontend (v0.2)
+# BALAM – Frontend (v0.2)
 
 Statisches Web-Frontend (Vite + TypeScript + PixiJS 8) für Stake Engine.
 

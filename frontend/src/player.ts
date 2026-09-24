@@ -1,6 +1,7 @@
 import { Board } from './board';
 import { Ui } from './ui';
-import { BONUS_BY_SCATTERS, GOLDEN_TOTEMS, ROAR_TOTEMS, STAGE_TOTEMS, WIN_TIERS } from './config';
+import { BONUS_BY_SCATTERS, GOLDEN_TOTEMS, ROAR_TOTEMS, STAGE_TOTEMS } from './config';
+import { BIG_TIERS } from './bigwin';
 import { t } from './i18n';
 import { money } from './format';
 import { wait } from './anim';
@@ -160,10 +161,7 @@ export class RoundPlayer {
         const tier = this.tierFor(this.finalAmount);
         if (tier && !this.capShown) {
           this.capShown = true;
-          sound.fanfare();
-          this.board.celebrate(tier.min >= 500 ? 90 : tier.min >= 100 ? 60 : 36);
-          void this.board.mascot.jump(3);
-          await this.ui.bigWin(t(tier.key), this.finalAmount, tier.min >= 500 ? 'god' : tier.min >= 100 ? 'gold' : '', t('fsOver'));
+          await this.ui.bigWin(this.finalAmount, this.bet, { kicker: t('fsOver'), onTier: (lv) => this.onTier(lv) });
         } else if (!this.capShown) {
           const v = this.money(ev.amount);
           await this.ui.summary(t('totalFs'), money(v), v >= this.bet * this.cost);
@@ -173,10 +171,7 @@ export class RoundPlayer {
       }
       case 'wincap': {
         this.capShown = true;
-        sound.fanfare();
-        this.board.celebrate(80);
-        void this.board.mascot.jump(4);
-        await this.ui.bigWin(t('maxWin'), this.money(ev.amount), 'god');
+        await this.ui.bigWin(this.money(ev.amount), this.bet, { max: true, onTier: (lv) => this.onTier(lv) });
         break;
       }
       case 'finalWin': {
@@ -190,19 +185,24 @@ export class RoundPlayer {
     }
   }
 
-  /** Big-win overlay – never for wins below the round cost. */
+  /** Big-win celebration only from 20× bet and never for wins below the round cost. */
   private tierFor(win: number) {
     if (win < this.bet * this.cost) return undefined;
-    return WIN_TIERS.find((w) => win / this.bet >= w.min);
+    return [...BIG_TIERS].reverse().find((w) => win / this.bet >= w.min);
+  }
+
+  /** the board and the jaguar react to every big-win tier */
+  private onTier(lv: number) {
+    this.board.celebrate(20 + lv * 16);
+    if (lv >= 3) void this.board.shake(8 + lv * 3, 450);
+    if (lv >= 4) void this.board.mascot.roar();
+    else void this.board.mascot.jump(lv >= 2 ? 2 : 1);
   }
 
   private async celebrate(win: number) {
     if (this.capShown) return;
     const tier = this.tierFor(win);
     if (!tier) return;
-    sound.fanfare();
-    this.board.celebrate(tier.min >= 500 ? 90 : tier.min >= 100 ? 60 : 36);
-    void this.board.mascot.jump(tier.min >= 100 ? 3 : 2);
-    await this.ui.bigWin(t(tier.key), win, tier.min >= 500 ? 'god' : tier.min >= 100 ? 'gold' : '');
+    await this.ui.bigWin(win, this.bet, { onTier: (lv) => this.onTier(lv) });
   }
 }
