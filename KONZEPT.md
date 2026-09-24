@@ -1,10 +1,21 @@
-# TEMPLE OF ASCENT – Spielkonzept (v0.6)
+# TEMPLE OF ASCENT – Spielkonzept (v0.10)
 
-*Name: Temple of Ascent. Thema: Azteken-Dschungel (siehe THEMA.md).*
+*Name: Temple of Ascent. Thema: Azteken-Dschungel (siehe THEMA.md). Maskottchen: der Jaguar „Balam“.*
 
 ## Kurzbeschreibung
-Ein 5×4-Slot mit 20 festen Gewinnlinien. Statt Glücksrädern gibt es **Totems**: geschnitzte Säulen, die sich beim Landen wie eine Walze drehen und auf einem **Multiplikator** stehen bleiben. Alle Totems auf dem Feld werden **addiert** und multiplizieren den Liniengewinn dieses Spins.
-In den Freispielen sammelt man **Runen**. Alle 3 Runen steigt man eine **Stufe** auf (max. Stufe 4). Das bringt **+4 Freispiele**, und die Totems tragen **deutlich höhere Multis**.
+Ein 5×4-Slot mit 20 festen Gewinnlinien. Statt Glücksrädern gibt es **Stelen**: geschnitzte Säulen, die beim Landen rattern und auf einem **Multiplikator** stehen bleiben. Gibt es im Spin einen Liniengewinn, werden alle Stelen auf dem Feld **addiert** und multiplizieren diesen Gewinn.
+
+Die Anzahl der **BONUS-Symbole** entscheidet über den Bonus:
+
+| BONUS-Symbole | Bonus | Start |
+|---|---|---|
+| 3 | **Tempel-Bonus** | Stufe 1 |
+| 4 | **Super-Bonus** | Stufe 2 |
+| 5 | **Göttlicher Bonus** | Stufe 3, gesammelte Multis bleiben |
+
+Jeder Bonus hat 10 Freispiele. In den Freispielen füllen BONUS-Symbole die Tempel-Pyramide. Alle 3 Symbole steigt man eine **Stufe** auf (max. Stufe 4). Das bringt **+4 Freispiele**, und die Stelen tragen **höhere Multis**.
+
+**Göttlicher Bonus:** Jede Stele, die an einem Gewinn beteiligt ist, wird eingesammelt, und ihr Wert **bleibt** bis zum Ende des Bonus. Jeder spätere Gewinn wird mit „gesammelt + neue Stelen“ multipliziert.
 
 ## Eckdaten
 | | |
@@ -12,92 +23,95 @@ In den Freispielen sammelt man **Runen**. Alle 3 Runen steigt man eine **Stufe**
 | Raster | 5 Walzen × 4 Reihen, 20 Linien |
 | RTP | **96,00 %** in allen 6 Spielmodi |
 | Max. Gewinn | **10.000×** Einsatz |
-| Trefferquote Basis | ca. 1 von 3,5 Spins |
-| Freispiele im Basisspiel | 1 von 200 Spins (Bonus-Jagd: 1 von 100) |
+| Trefferquote Basis | ca. 1 von 3,6 Spins |
+| Bonus im Basisspiel | 1 von 200 Spins (Bonus-Jagd: 1 von 100) |
+| Aufteilung der Boni im Basisspiel | 85 % Tempel, 12 % Super, 3 % Göttlich |
 | Volatilität | hoch |
 
 ## Spielmodi
 | Modus | Kosten | Was passiert |
 |---|---|---|
-| **Normaler Spin** | 1× | Basisspiel. Jeder 25. Spin im Schnitt mit Jaguar-Ruf, Freispiele ca. 1 von 200 |
-| **Bonus-Jagd** | 1,5× | **Doppelte Chance** auf Freispiele (1 von 100), sonst wie ein normaler Spin |
-| **Jaguar-Spin** (Feature-Spin) | 25× | Der Jaguar brüllt **bei jedem Spin** und wirft **2–4 goldene Stelen** mit 5×–50× aufs Feld. **Jeder Jaguar-Spin bringt einen Gewinn**, oft aber weniger als die 25× Einsatz. Keine Freispiele in diesem Modus |
-| **Tempel-Bonus** (Kauf) | 100× | Freispiele sofort, Start auf Stufe 1 |
-| **Super-Bonus** (Kauf) | 200× | Freispiele starten auf **Stufe 2** (Stelen 5×–50×) |
-| **Götter-Bonus** (Kauf) | 300× | Freispiele starten auf **Stufe 3** (Stelen 10×–250×) |
+| **Normaler Spin** | 1× | Basisspiel, im Schnitt jeder 25. Spin mit Jaguar-Ruf |
+| **Bonus-Jagd** | 1,5× | Doppelte Chance auf einen Bonus |
+| **Jaguar-Spin** (Feature-Spin) | 25× | 2–4 goldene Stelen (5×–50×) bei jedem Spin, jeder Spin zahlt (oft weniger als 25×), keine Freispiele |
+| **Tempel-Bonus** (Kauf) | 100× | wie 3 BONUS-Symbole |
+| **Super-Bonus** (Kauf) | 200× | wie 4 BONUS-Symbole |
+| **Göttlicher Bonus** (Kauf) | **500×** | wie 5 BONUS-Symbole, Multis bleiben |
 
-Bonus-Jagd und Jaguar-Spin sind Schalter wie bei Hacksaw: einmal an, gelten sie für jeden Spin, bis man sie ausschaltet.
-
-## Jaguar-Ruf (Basisspiel)
-Nach dem Walzenstopp brüllt mit ca. 4 % Chance der Jaguar aus dem Dschungel und wirft **1–3 Stelen** auf zufällige normale Felder (keine Wilds oder Runen). Die Stelen tragen Werte von 2×–25× und zählen sofort mit. Im Jaguar-Spin passiert das immer, mit 2–4 **goldenen** Stelen (5×–50×) und garantiertem Gewinn.
+Weitere Funktionen:
+- **Autoplay:** 10, 25, 50 oder 100 Spins.
+  - Verlustlimit (Standard 50× Einsatz)
+  - optionaler Stopp ab einem Einzelgewinn
+  - Stopp bei Bonus (Standard an)
+  - Der Drehen-Knopf stoppt Autoplay. Bei `disabledAutoplay` ist der Knopf ausgeblendet.
+- **Musik:** generierte, kinoreife Tempelmusik aus Streichern, Chor und Hall.
+  - Im Bonus kommen Taiko-Trommeln und ein Streicher-Ostinato dazu.
+  - Man kann sie separat ein- und ausschalten.
 
 ## Statistik je Modus (100.000 Runden pro Modus, finale Gewichte)
-| | Normal (1×) | Bonus-Jagd (1,5×) | Jaguar-Spin (25×) | Tempel-Bonus (100×) | Super-Bonus (200×) | Götter-Bonus (300×) |
+| | Normal (1×) | Bonus-Jagd (1,5×) | Jaguar-Spin (25×) | Tempel (100×) | Super (200×) | Göttlich (500×) |
 |---|---|---|---|---|---|---|
 | RTP | 96,00 % | 96,00 % | 96,00 % | 96,00 % | 96,00 % | 96,00 % |
-| Gewinn ≥ Einsatz | 13,4 % | 9,7 % | 27,8 % | 22,9 % | 26,0 % | 28,6 % |
-| Median-Gewinn | 0 | 0 | 14× | 34× | 85× | 149× |
-| Gewinn ≥ 1.000× | 1 von 33.000 | 1 von 14.000 | 1 von 16.800 | 1 von 116 | 1 von 40 | 1 von 21 |
-| Max-Gewinn 10.000× | 1 von 10 Mio. | 1 von 2,2 Mio. | – | 1 von 65.000 | 1 von 20.000 | 1 von 15.500 |
+| Gewinn ≥ Einsatz | 13,4 % | 9,7 % | 27,8 % | 22,6 % | 25,9 % | 27,4 % |
+| Median-Gewinn | 0 | 0 | 14× | 34× | 85× | 200× |
+| Gewinn ≥ 1.000× | 1 von 30.000 | 1 von 11.600 | 1 von 16.800 | 1 von 113 | 1 von 40 | **1 von 8** |
+| Gewinn ≥ 5.000× | 1 von 760.000 | 1 von 279.000 | – | 1 von 14.700 | 1 von 1.550 | **1 von 190** |
+| Max-Gewinn 10.000× | 1 von 2 Mio. | 1 von 1 Mio. | – | 1 von 63.000 | 1 von 22.600 | 1 von 15.000 |
 
-**Gewichtung:** Die Books werden mit ihrer natürlichen Wahrscheinlichkeit gewichtet (`natural_weights.py`). Die sehr großen Gewinne werden leicht abgeschwächt, und die 96 % werden mit einer minimalen Korrektur exakt getroffen. Den Gauß-Optimierer des SDK nutzen wir nicht mehr, weil er die Gewinnverteilung stark verzerrt hat: Kleine Gewinne von 1–2× kamen dort praktisch nie vor.
+**Gewichtung:**
+- Die Books werden mit ihrer natürlichen Wahrscheinlichkeit gewichtet (`natural_weights.py`).
+- Nur die allergrößten Gewinne werden abgeschwächt, damit die Stake-Grenzen eingehalten werden.
+- Die 96 % werden mit einer minimalen Korrektur exakt getroffen.
 
-**Stake-Prüfung:** Alle 6 Modi bestehen die Prüfungen des SDK ohne Warnung: Format, RTP höchstens 96,7 % und die Volatilitätsgrenzen (prob5k, prob10k, etl40b, etl10k, cvar). Die Bonus-Jagd wurde dafür von „5× Chance für 3×“ auf „2× Chance für 1,5×“ umgestellt. Mit 5× für 3× lässt sich die Grenze etl40b ≤ 0,9 nur einhalten, wenn die Boni in der Jagd deutlich schwächer wären als normale Boni.
+Alle 6 Modi bestehen die Prüfungen des SDK ohne Warnung:
+- Format
+- RTP ≤ 96,7 %
+- prob5k
+- prob10k
+- etl40b
+- etl10k
+- cvar
 
 ## Symbole
-| Code | Symbol (Vorschlag) | 3 / 4 / 5 gleiche |
+| Code | Symbol | 3 / 4 / 5 gleiche |
 |---|---|---|
 | H1 | Jaguar-Maske | 1,5 / 6 / 30 |
-| H2 | Adler | 1,2 / 5 / 20 |
+| H2 | Quetzal | 1,2 / 5 / 20 |
 | H3 | Schlange | 1,0 / 3 / 12 |
 | H4 | Frosch-Idol | 0,8 / 2,5 / 10 |
-| L1–L5 | Steinrunen/Edelsteine | 0,2–0,5 / 0,5–1,2 / 2–5 |
+| L1–L5 | Edelsteine | 0,2–0,5 / 0,5–1,2 / 2–5 |
 | W | Wild (Walze 2–5) | ersetzt alle normalen Symbole |
-| S | **Geister-Rune** (Scatter) | 3/4/5 = 10/12/15 Freispiele |
-| T | **Totem** (Multiplikator) | trägt einen Multi, alle Totems werden addiert |
+| S | **BONUS** (Scatter) | 3 / 4 / 5 = Tempel / Super / Göttlicher Bonus |
+| T | **Stele** (Multiplikator) | trägt einen Multi, alle Stelen werden addiert |
 
-Gewinne in × Gesamteinsatz, gezählt von links nach rechts.
-
-## Totem-Multis pro Stufe
-| Stufe | Mögliche Totem-Werte | Freischaltung |
-|---|---|---|
-| Basisspiel | 2×, 3×, 5×, 10× | – |
-| Stufe 1 | 2×, 3×, 5×, 10×, 25× | Start der Freispiele |
-| Stufe 2 | 5×, 10×, 15×, 25×, 50× | 3 Runen, +4 Spins |
-| Stufe 3 | 10×, 20×, 25×, 50×, 100×, 250× | 6 Runen, +4 Spins |
-| Stufe 4 | 25×, 50×, 100×, 250×, 500× | 9 Runen, +4 Spins |
-
-Wie oft man welche Stufe erreicht (Rohdaten vor der Optimierung): Stufe 1 ≈ 31 %, Stufe 2 ≈ 34 %, Stufe 3 ≈ 20 %, Stufe 4 ≈ 15 %.
-
-## Ablauf eines Spins
-1. Die Walzen stoppen. Totems drehen sich und zeigen ihren Multi.
-   Eventuell brüllt der Jaguar und wirft zusätzliche Stelen aufs Feld.
-2. Die Linien werden ausgewertet.
-3. Wenn es einen Gewinn gibt und Totems auf dem Feld sind, wird der Gewinn × (Summe aller Totems) gerechnet.
-4. Basisspiel: Bei 3 oder mehr Runen starten die Freispiele.
-5. Freispiele: Runen fliegen in die Stufen-Leiste. Bei 3/6/9 Runen folgt der Stufen-Aufstieg mit +4 Spins und neuen Totem-Werten ab dem nächsten Spin.
+## Stelen-Multis pro Stufe
+| Stufe | Mögliche Werte |
+|---|---|
+| Basisspiel | 2×, 3×, 5×, 10× |
+| Stufe 1 | 2×, 3×, 5×, 10×, 25× |
+| Stufe 2 | 5×, 10×, 15×, 25×, 50× |
+| Stufe 3 | 10×, 20×, 25×, 50×, 100×, 250× |
+| Stufe 4 | 25×, 50×, 100×, 250×, 500× |
 
 ## Events für das Frontend
 Standard-Events des SDK: `reveal`, `winInfo`, `setWin`, `setTotalWin`, `freeSpinTrigger`, `updateFreeSpin`, `freeSpinEnd`, `finalWin`, `wincap`.
+
 Eigene Events:
-- `totemMultiplier`: `totems[{reel,row,multiplier}]`, `totalMult`, `baseWin`, `totalWin`
-- `stageInfo` (zu Beginn der Freispiele): `stage`, `runes`, `runesToNext`, `totemValues`
+- `totemMultiplier`: `totems[{reel,row,multiplier}]`, `totalMult`, `keptMult` (gesammelter Multi im Göttlichen Bonus), `baseWin`, `totalWin`
+- `multCollect` (nur Göttlicher Bonus): `totems`, `added`, `total`
+- `stageInfo`: `stage`, `divine`, `runes`, `runesToNext`, `totemValues`
 - `runeCollect`: `positions`, `runes`, `runesToNext`
 - `stageUp`: `stage`, `extraSpins`, `totalFs`, `totemValues`
-- `jaguarRoar` (direkt nach `reveal`): `golden` (true beim Jaguar-Spin), `totems[{reel,row,multiplier}]`. Diese Felder werden durch Stelen ersetzt
-
-Im `reveal`-Board trägt jedes Totem seinen Wert als `multiplier`.
+- `jaguarRoar`: `golden`, `totems[{reel,row,multiplier}]`
 
 ## Stand und nächste Schritte
-- [x] Mathe-Modell im Stake Math SDK (Ordner `math/temple_of_ascent`)
-- [x] 100.000 Runden pro Modus in allen 4 Modi, RTP exakt 96,00 %
-- [x] Große Gewinne erreichbar gemacht und leicht nachjustiert (1.000×+ im Basisspiel: 1 von 33.000)
-- [x] Alle 4 Modi bestehen die Stake-Prüfungen des SDK (Format, RTP ≤ 96,7 %, Volatilitätsgrenzen)
-- [x] Thema: Azteken-Dschungel (siehe THEMA.md)
-- [x] Name: Temple of Ascent
-- [x] Frontend v0.1 (Vite + PixiJS, eigener RGS-Client), Ordner `frontend/`
-- [x] Frontend v0.2: Azteken-Grafik (alles per Code gezeichnet), Stelen-Dreh-Animation, Jaguar-Augen, Partikel, Sound, Big-Win-Screens, Bonus-Kauf-Menü
-- [x] Super-Bonus (200×, Start Stufe 2) und Götter-Bonus (300×, Start Stufe 3)
-- [ ] Optional: professionelle Illustrationen statt Code-Grafik, echte Sound-Aufnahmen
-- [x] Jaguar-Ruf, Bonus-Jagd (1,5×) und Jaguar-Spin (25×) eingebaut
+- [x] Mathe-Modell, 6 Modi mit je 100.000 Runden, 96,00 %, alle Stake-Prüfungen bestanden
+- [x] Frontend (Vite + PixiJS):
+  - Azteken-Grafik und Jaguar-Maskottchen
+  - Tempel-Tür
+  - Musik und Sounds
+  - Autoplay
+  - BONUS-Menü
+- [x] 3/4/5 BONUS-Symbole für Tempel-, Super- und Göttlichen Bonus, der Göttliche Bonus kostet 500× und behält die Multis
 - [ ] Upload und Test auf Stake Engine
+- [ ] Optional: professionelle Illustrationen und echte Musikaufnahmen
