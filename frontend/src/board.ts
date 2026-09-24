@@ -829,6 +829,7 @@ export class Board {
   }
 
   private async popWin(text: string, ms: number) {
+    if (!text) return; // big wins: the amount is revealed only by the big-win screen
     const t = this.winText;
     t.text = text;
     t.visible = true;
@@ -886,7 +887,7 @@ export class Board {
     });
     beams.destroy();
     views.forEach((v) => v.setGlow(false));
-    await this.flashText(`×${totalMult}`, 1300, explain);
+    await this.flashText(`×${totalMult}`, explain ? 1300 : 650, explain);
     await this.popWin(resultText, 500);
   }
 

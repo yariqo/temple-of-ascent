@@ -21,6 +21,8 @@ export class RoundPlayer {
   private scatterCount = 0;
   private capShown = false;
   private finalAmount = 0;
+  /** a single-spin round that ends in a big win: keep the amount hidden until the big-win screen */
+  private quiet = false;
 
   constructor(private board: Board, private ui: Ui) {
     // chime for every scatter / rune that lands, rising in pitch
@@ -43,7 +45,10 @@ export class RoundPlayer {
     this.capShown = false;
     this.finalAmount = this.money(round.events.find((e) => e.type === 'finalWin')?.amount ?? 0);
     this.ui.setWin(null);
+    const hasBonus = round.events.some((e) => e.type === 'freeSpinTrigger');
+    this.quiet = !hasBonus && !!this.tierFor(this.finalAmount);
     for (const ev of round.events) await this.handle(ev);
+    this.quiet = false;
     if (this.inFreeSpins) this.leaveFreeSpins();
   }
 
@@ -83,8 +88,8 @@ export class RoundPlayer {
       }
       case 'winInfo': {
         // the jaguar only cheers for real wins (≥ round cost) – or any win inside free spins
-        if (this.inFreeSpins || this.money(ev.totalWin) >= this.bet * this.cost) void this.board.mascot.happy();
-        await this.board.showWins(ev.wins, money(this.money(ev.totalWin)));
+        if (!this.quiet && (this.inFreeSpins || this.money(ev.totalWin) >= this.bet * this.cost)) void this.board.mascot.happy();
+        await this.board.showWins(ev.wins, this.quiet ? '' : money(this.money(ev.totalWin)));
         break;
       }
       case 'totemMultiplier': {
@@ -94,7 +99,8 @@ export class RoundPlayer {
           kept > 0
             ? t('keptExplain', { a: `${t('lineWin')} ${money(this.money(ev.baseWin))}`, m: ev.totalMult, b: ev.totalMult - kept, k: kept, c: money(this.money(ev.totalWin)) })
             : `${t('lineWin')} ${money(this.money(ev.baseWin))} × ${ev.totalMult} = ${money(this.money(ev.totalWin))}`;
-        await this.board.totemPower(ev.totems, ev.totalMult, explain, money(this.money(ev.totalWin)));
+        if (this.quiet) await this.board.totemPower(ev.totems, ev.totalMult, '', '');
+        else await this.board.totemPower(ev.totems, ev.totalMult, explain, money(this.money(ev.totalWin)));
         break;
       }
       case 'setWin':
@@ -102,7 +108,7 @@ export class RoundPlayer {
       case 'setTotalWin': {
         const v = this.money(ev.amount);
         if (v !== this.totalWin) {
-          await this.ui.countWin(this.totalWin, v, 450);
+          if (!this.quiet) await this.ui.countWin(this.totalWin, v, 450);
           this.totalWin = v;
         }
         break;
@@ -176,8 +182,14 @@ export class RoundPlayer {
       }
       case 'finalWin': {
         const v = this.money(ev.amount);
-        this.ui.setWin(v, v > 0);
-        await this.celebrate(v);
+        // big win: the celebration comes first, the win bar is filled afterwards
+        if (this.quiet) {
+          await this.celebrate(v);
+          this.ui.setWin(v, v > 0);
+        } else {
+          this.ui.setWin(v, v > 0);
+          await this.celebrate(v);
+        }
         break;
       }
       default:
