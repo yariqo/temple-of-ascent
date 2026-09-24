@@ -540,7 +540,7 @@ export class Board {
     });
     reel.y = 0;
     this.cells[r] = fresh;
-    if (this.teaseReel === r) this.stopTease(r);
+    if (this.antic[r].visible) this.stopTease(r);
     sound.reelStop(r);
     // landed bonus symbols hop and flash
     fresh.forEach((f, i) => {
@@ -575,6 +575,10 @@ export class Board {
   }
 
   private startTease(r: number, seconds: number, level: number) {
+    // only the reel that is still spinning glows – switch off every other tease glow
+    this.antic.forEach((a, i) => {
+      if (i !== r) a.visible = false;
+    });
     this.teaseReel = r;
     this.teaseT = 0;
     this.antic[r].visible = true;
@@ -587,7 +591,7 @@ export class Board {
   }
 
   private stopTease(r: number) {
-    this.teaseReel = -1;
+    if (this.teaseReel === r) this.teaseReel = -1;
     const a = this.antic[r];
     void tween(200, (p) => (a.alpha = 1 - p)).then(() => (a.visible = false));
   }
