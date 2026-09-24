@@ -904,23 +904,13 @@ footer::after {
   border-color: #fff0b0;
 }
 #win.big {
-  background: linear-gradient(180deg, #fff6c8, #ffd35a 50%, #d9951c);
-  -webkit-background-clip: text;
-  background-clip: text;
-  color: transparent;
-  text-shadow: none;
-  filter: drop-shadow(0 0 8px rgba(255, 200, 70, 0.6));
+  color: #ffe08a;
+  text-shadow: 0 2px 3px rgba(0, 0, 0, 0.6);
 }
 #stat-win:has(#win.big) {
-  border-color: #ffd35a;
-  box-shadow: inset 0 2px 6px rgba(0, 0, 0, 0.4), 0 0 18px rgba(255, 200, 70, 0.45);
-  animation: winGlow 1.6s ease-in-out infinite;
+  border-color: rgba(255, 211, 90, 0.7);
 }
-@keyframes winGlow {
-  50% {
-    box-shadow: inset 0 2px 6px rgba(0, 0, 0, 0.4), 0 0 28px rgba(255, 210, 90, 0.75);
-  }
-}
+
 .controls {
   grid-area: controls;
   display: flex;
@@ -977,6 +967,37 @@ footer::after {
   position: absolute;
   opacity: 0;
   pointer-events: none;
+}
+.turbo-btn .bolts {
+  display: flex;
+  gap: 0;
+}
+.turbo-btn .bolts svg {
+  width: 21px;
+  height: 26px;
+  margin: 0 -3px;
+  opacity: 0.35;
+  transition: opacity 0.2s, filter 0.2s, color 0.2s;
+}
+.turbo-btn.lv1 .b1,
+.turbo-btn.lv2 .b1,
+.turbo-btn.lv2 .b2 {
+  opacity: 1;
+  color: #fff1a0;
+  filter: drop-shadow(0 0 4px #ffd35a) drop-shadow(0 0 8px rgba(255, 200, 70, 0.8));
+}
+.turbo-btn.lv1,
+.turbo-btn.lv2 {
+  box-shadow: 0 4px 0 #0a0704, 0 0 14px rgba(255, 200, 70, 0.45), inset 0 1px 0 rgba(255, 255, 255, 0.14);
+}
+.turbo-btn.lv2 {
+  box-shadow: 0 4px 0 #0a0704, 0 0 22px rgba(255, 210, 80, 0.8), inset 0 1px 0 rgba(255, 255, 255, 0.14);
+}
+.am-bolt {
+  width: 13px;
+  height: 15px;
+  vertical-align: -2px;
+  margin-right: -2px;
 }
 .turbo-btn:has(input:checked) {
   background: radial-gradient(circle at 35% 25%, #ffe27a, #b8800f 75%);

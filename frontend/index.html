@@ -74,7 +74,7 @@
           <button class="ctl-btn round" id="bet-down" aria-label="lower bet">−</button>
           <button id="spin" aria-label="Spin"><span class="spin-ring"></span><span class="spin-arrows" aria-hidden="true"><svg viewBox="0 0 48 48"><path fill="none" stroke="currentColor" stroke-width="4" stroke-linecap="round" d="M38 20a15 15 0 0 0-27-5M10 28a15 15 0 0 0 27 5"/><path fill="currentColor" d="M8 8v10h10zM40 40V30H30z"/></svg></span><span id="spin-label">SPIN</span></button>
           <button class="ctl-btn round" id="bet-up" aria-label="raise bet">+</button>
-          <label class="ctl-btn turbo-btn" id="turbo-wrap" title="Turbo"><input type="checkbox" id="turbo" /><svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M13 2 4 14h6l-1 8 9-12h-6z"/></svg><span id="turbo-label">TURBO</span></label>
+          <button class="ctl-btn turbo-btn" id="turbo-wrap" title="Turbo"><span class="bolts" aria-hidden="true"><svg class="b1" viewBox="0 0 24 24"><path fill="currentColor" d="M13 2 4 14h6l-1 8 9-12h-6z"/></svg><svg class="b2" viewBox="0 0 24 24"><path fill="currentColor" d="M13 2 4 14h6l-1 8 9-12h-6z"/></svg></span><span id="turbo-label">TURBO</span></button>
         </div>
       </footer>
     </div>
@@ -99,9 +99,7 @@
     <dialog id="auto-menu">
       <div class="fm-head"><h3 id="am-title"></h3><button class="fm-close" id="am-close" aria-label="close">✕</button></div>
       <div class="am-row"><h4 id="am-spins-t"></h4><div class="am-chips" id="am-spins"></div></div>
-      <div class="am-row"><h4 id="am-loss-t"></h4><div class="am-chips" id="am-loss"></div></div>
-      <div class="am-row"><h4 id="am-win-t"></h4><div class="am-chips" id="am-win"></div></div>
-      <label class="am-check"><input type="checkbox" id="am-bonus" checked /><span id="am-bonus-t"></span></label>
+      <div class="am-row"><h4 id="am-speed-t"></h4><div class="am-chips" id="am-speed"></div></div>
       <button class="gold am-start" id="am-start"></button>
     </dialog>
     <dialog id="rules"><div id="rules-body"></div><button id="rules-close" class="gold"></button></dialog>

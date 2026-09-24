@@ -1,11 +1,15 @@
 /** Promise-based tween helpers. Time advances frame by frame × speed factor (turbo / skip),
  *  so switching speed in the middle of an animation never makes it jump. */
 
+/** level 0 = normal, 1 = turbo, 2 = super turbo */
 export const speed = {
-  turbo: false,
+  level: 0,
   skip: false,
+  get turbo(): boolean {
+    return this.level > 0;
+  },
   factor(): number {
-    return this.skip ? 7 : this.turbo ? 2 : 1;
+    return this.skip ? 7 : [1, 2, 3.6][this.level] ?? 1;
   },
 };
 

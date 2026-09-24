@@ -39,11 +39,12 @@ Jeder Bonus hat 10 Freispiele. In den Freispielen füllen BONUS-Symbole die Temp
 | **Göttlicher Bonus** (Kauf) | **500×** | wie 5 BONUS-Symbole, Multis bleiben |
 
 Weitere Funktionen:
-- **Autoplay:** 10, 25, 50 oder 100 Spins.
-  - Verlustlimit (Standard 50× Einsatz)
-  - optionaler Stopp ab einem Einzelgewinn
-  - Stopp bei Bonus (Standard an)
-  - Der Drehen-Knopf stoppt Autoplay. Bei `disabledAutoplay` ist der Knopf ausgeblendet.
+- **Autoplay:**
+  - Man wählt nur die Anzahl der Spins (10/25/50/100/250) und das Tempo: Normal, Turbo oder Super-Turbo.
+  - Der Drehen-Knopf stoppt Autoplay.
+  - Autoplay stoppt auch, wenn das Guthaben nicht mehr reicht.
+  - Bei `disabledAutoplay` ist der Knopf ausgeblendet.
+- **Turbo-Knopf:** Er schaltet der Reihe nach aus → Turbo (1 Blitz leuchtet, 2× so schnell) → Super-Turbo (2 Blitze, 3,6× so schnell). `disabledTurbo` blendet ihn aus, `disabledSuperTurbo` begrenzt ihn auf Turbo.
 - **Musik:** generierte, kinoreife Tempelmusik aus Streichern, Chor und Hall.
   - Im Bonus kommen Taiko-Trommeln und ein Streicher-Ostinato dazu.
   - Man kann sie separat ein- und ausschalten.

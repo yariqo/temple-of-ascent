@@ -188,8 +188,16 @@ async function main() {
   };
   refresh();
 
-  const turbo = document.getElementById('turbo') as HTMLInputElement;
-  turbo.onchange = () => (speed.turbo = turbo.checked && !jur.disabledTurbo);
+  // turbo button cycles: off → turbo (1 bolt) → super turbo (2 bolts) → off
+  const maxSpeed = jur.disabledTurbo ? 0 : jur.disabledSuperTurbo ? 1 : 2;
+  const setSpeed = (lv: number) => {
+    speed.level = Math.max(0, Math.min(maxSpeed, lv));
+    ui.setTurbo(speed.level);
+  };
+  document.getElementById('turbo-wrap')!.onclick = () => {
+    sound.click();
+    setSpeed(speed.level >= maxSpeed ? 0 : speed.level + 1);
+  };
 
   const errorText = (e: any) => {
     const code = e?.code ?? e?.message ?? 'ERR_GEN';
@@ -263,7 +271,7 @@ async function main() {
   }
 
   // ---------- autoplay ----------
-  let auto: { left: number; loss: number | null; win: number | null; stopBonus: boolean; start: number } | null = null;
+  let auto: { left: number } | null = null;
   const stopAuto = (msg?: string) => {
     if (!auto) return;
     auto = null;
@@ -278,11 +286,6 @@ async function main() {
         stopAuto('insufficient');
         return;
       }
-      // never start a spin that could push the loss past the chosen limit
-      if (auto.loss !== null && auto.start - balance + cost > auto.loss + 1e-9) {
-        stopAuto('autoStopLoss');
-        return;
-      }
       auto.left--;
       ui.setAuto(auto.left);
       const r = await play(mode);
@@ -291,15 +294,7 @@ async function main() {
         stopAuto();
         return;
       }
-      if (auto.stopBonus && r.bonus) {
-        stopAuto('autoStopBonus');
-        return;
-      }
-      if (auto.win !== null && r.win >= auto.win - 1e-9) {
-        stopAuto('autoStopWin');
-        return;
-      }
-      await sleepReal(speed.turbo ? 150 : 400);
+      await sleepReal([400, 180, 60][speed.level] ?? 400);
     }
     stopAuto(auto ? 'autoDone' : undefined);
   }
@@ -312,10 +307,11 @@ async function main() {
     }
     if (busy) return;
     sound.menuOpen();
-    const cfg = await ui.autoMenu(bet());
+    const cfg = await ui.autoMenu(maxSpeed, speed.level);
     if (!cfg || busy || auto) return;
     sound.toggle(true);
-    auto = { left: cfg.spins, loss: cfg.loss, win: cfg.win, stopBonus: cfg.stopBonus, start: balance };
+    setSpeed(cfg.speed);
+    auto = { left: cfg.spins };
     ui.setAuto(auto.left);
     void runAuto();
   };

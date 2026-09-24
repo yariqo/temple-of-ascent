@@ -267,8 +267,8 @@ export class Board {
       const glow = new Sprite(TEX.glow);
       glow.anchor.set(0.5);
       glow.position.set(r * CELL + CELL / 2, H / 2);
-      glow.width = CELL * 1.9;
-      glow.height = H * 1.2;
+      glow.width = CELL * 1.25;
+      glow.height = H * 1.15;
       glow.tint = 0x6ff0ff;
       glow.blendMode = 'add';
       const scan = new Sprite(TEX.glow);
@@ -280,8 +280,10 @@ export class Board {
       scan.blendMode = 'add';
       const border = new Graphics();
       const scanMask = new Graphics().rect(r * CELL, 0, CELL, H).fill(0xffffff);
-      scan.mask = scanMask;
-      a.addChild(glow, scanMask, scan, border);
+      const inner = new Container();
+      inner.addChild(glow, scan);
+      inner.mask = scanMask;
+      a.addChild(scanMask, inner, border);
       a.visible = false;
       this.antic.push(a);
       this.anticBorder.push(border);
@@ -527,7 +529,6 @@ export class Board {
     void tween(250, (p) => (this.antic[r].alpha = p));
     // darken every other reel so all eyes are on the teased one – the BONUS symbols already there stay lit
     this.dimReels(0.55, r);
-    for (const col of this.cells) for (const v of col) if (v.sym.name === 'S') v.setGlow(true, 0x7ff3ff);
     sound.tease(seconds, level);
     this.mascot.watch();
   }
@@ -540,7 +541,6 @@ export class Board {
 
   private endTease() {
     this.teaseReel = -1;
-    for (const col of this.cells) for (const v of col) if (v.sym.name === 'S') v.setGlow(false);
     this.dimmers.forEach((d) => {
       const from = d.alpha;
       if (from > 0) void tween(260, (p) => (d.alpha = lerp(from, 0, p)));
@@ -566,14 +566,14 @@ export class Board {
     b.roundRect(r * CELL + 9, 3, CELL - 18, H - 6, 12).stroke({ width: 2, color: 0xffffff, alpha: 0.5 + 0.5 * pulse });
     // sparks rising along both edges
     if (Math.random() < 0.55) {
-      const side = Math.random() < 0.5 ? r * CELL + 6 : (r + 1) * CELL - 6;
+      const side = Math.random() < 0.5 ? r * CELL + 14 : (r + 1) * CELL - 14;
       this.particles.emit(TEX.spark, side, Math.random() * H, {
         n: 1,
         speed: [60, 160],
-        angle: [-Math.PI * 0.62, -Math.PI * 0.38],
+        angle: [-Math.PI * 0.53, -Math.PI * 0.47],
         life: [400, 800],
-        scale: [0.45, 0.05],
-        tint: [0x7ff3ff, 0xffffff, 0xffe27a],
+        scale: [0.4, 0.05],
+        tint: [0x7ff3ff, 0xffffff],
         blend: 'add',
       });
     }

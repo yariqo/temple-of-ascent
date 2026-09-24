@@ -419,23 +419,21 @@ export class Ui {
 
   icons: Record<string, string> = {};
 
-  /** Autoplay settings dialog. Limits are in money. */
-  autoMenu(bet: number): Promise<{ spins: number; loss: number | null; win: number | null; stopBonus: boolean } | null> {
+  /** Autoplay dialog: number of spins and speed (0 normal, 1 turbo, 2 super turbo). */
+  autoMenu(maxSpeed: number, current: number): Promise<{ spins: number; speed: number } | null> {
     const dlg = $<HTMLDialogElement>('auto-menu');
     $('am-title').textContent = t('autoTitle');
     $('am-spins-t').textContent = t('autoSpins');
-    $('am-loss-t').textContent = t('autoLoss');
-    $('am-win-t').textContent = t('autoWin');
-    $('am-bonus-t').textContent = t('autoBonus');
+    $('am-speed-t').textContent = t('autoSpeed');
     $('am-start').textContent = t('autoStart');
-    const pick = (id: string, opts: { label: string; v: number | null }[], def: number) => {
+    const pick = (id: string, opts: { label: string; v: number }[], def: number) => {
       const box = $(id);
       box.innerHTML = '';
-      let val = opts[def].v;
-      opts.forEach((o, i) => {
+      let val = opts[Math.max(0, Math.min(opts.length - 1, def))].v;
+      opts.forEach((o) => {
         const b = document.createElement('button');
-        b.textContent = o.label;
-        if (i === def) b.classList.add('sel');
+        b.innerHTML = o.label;
+        if (o.v === val) b.classList.add('sel');
         b.onclick = () => {
           sound.click();
           val = o.v;
@@ -446,18 +444,24 @@ export class Ui {
       });
       return () => val;
     };
-    const spins = pick('am-spins', [10, 25, 50, 100].map((n) => ({ label: String(n), v: n })), 1);
-    const loss = pick('am-loss', [...[20, 50, 100].map((n) => ({ label: money(bet * n), v: bet * n })), { label: t('noLimit'), v: null }], 1);
-    const win = pick('am-win', [{ label: t('off'), v: null }, ...[50, 100, 500].map((n) => ({ label: money(bet * n), v: bet * n }))], 0);
+    const spins = pick('am-spins', [10, 25, 50, 100, 250].map((n) => ({ label: String(n), v: n })), 1);
+    const bolt = '<svg viewBox="0 0 24 24" class="am-bolt"><path fill="currentColor" d="M13 2 4 14h6l-1 8 9-12h-6z"/></svg>';
+    const speeds = [
+      { label: t('speedNormal'), v: 0 },
+      { label: `${bolt} ${t('speedTurbo')}`, v: 1 },
+      { label: `${bolt}${bolt} ${t('speedSuper')}`, v: 2 },
+    ].filter((o) => o.v <= maxSpeed);
+    $('am-speed').parentElement!.hidden = maxSpeed === 0;
+    const spd = pick('am-speed', speeds, Math.min(current, maxSpeed));
     return new Promise((resolve) => {
       let settled = false;
-      const done = (v: { spins: number; loss: number | null; win: number | null; stopBonus: boolean } | null) => {
+      const done = (v: { spins: number; speed: number } | null) => {
         if (settled) return;
         settled = true;
         dlg.close();
         resolve(v);
       };
-      $('am-start').onclick = () => done({ spins: spins() ?? 25, loss: loss(), win: win(), stopBonus: ($('am-bonus') as HTMLInputElement).checked });
+      $('am-start').onclick = () => done({ spins: spins(), speed: spd() });
       $('am-close').onclick = () => done(null);
       dlg.oncancel = () => done(null);
       dlg.onclick = (e) => {
@@ -466,6 +470,14 @@ export class Ui {
       };
       dlg.showModal();
     });
+  }
+
+  /** turbo button look: 0 off, 1 = one bolt lit, 2 = both bolts lit */
+  setTurbo(level: number) {
+    const b = $('turbo-wrap');
+    b.classList.toggle('lv1', level === 1);
+    b.classList.toggle('lv2', level === 2);
+    $('turbo-label').textContent = level === 2 ? t('superTurbo') : t('turbo').toUpperCase();
   }
 
   /** null = autoplay off, otherwise the number of spins left */
