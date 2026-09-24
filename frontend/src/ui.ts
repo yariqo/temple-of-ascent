@@ -30,30 +30,35 @@ export class Ui {
     $('win-label').textContent = t('win');
     $('pyr-title').textContent = t('pyramid');
     $('spin-label').textContent = t('spin');
-    const hunt = $('mode-bonushunt');
-    hunt.querySelector('b')!.textContent = t('bonushunt');
-    const jag = $('mode-jaguar');
-    jag.querySelector('b')!.textContent = t('jaguar');
-    $('mode-buy').querySelector('b')!.textContent = t('buy');
+    $('feature-label').textContent = t('featureBtn');
+    $('turbo-label').textContent = t('turbo').toUpperCase();
     $('confirm-no').textContent = t('no');
     $('confirm-yes').textContent = t('yes');
     $('rules-close').textContent = t('close');
-    $('buy-title').textContent = t('buyTitle');
-    $('buy-close').textContent = t('close');
+    $('fm-title').textContent = t('fmTitle');
+    $('fm-spins-title').textContent = t('fmSpins');
+    $('fm-buy-title').textContent = t('fmBuys');
     $('turbo-wrap').title = t('turbo');
     this.buildPyramid();
   }
 
-  /** Mode prices depend on the bet. */
-  setModePrices(bet: number) {
-    $('mode-bonushunt').querySelector('small')!.textContent = `${t('bonushuntDesc')} · ${money(bet * MODES.bonushunt.cost)}`;
-    $('mode-jaguar').querySelector('small')!.textContent = `${t('jaguarDesc')} · ${money(bet * MODES.jaguar.cost)}`;
-    $('mode-buy').querySelector('small')!.textContent = t('buyFrom', { v: money(bet * MODES.bonus.cost) });
+  private toggle: string | null = null;
+  private bet = 1;
+
+  /** Active feature spin (bonus hunt / jaguar spin): pill above the bar + glowing BONUS button. */
+  setActiveToggle(mode: string | null) {
+    this.toggle = mode;
+    $('feature-btn').classList.toggle('active', !!mode);
+    $('feature-dot').hidden = !mode;
+    $('spin').classList.toggle('jaguar', mode === 'jaguar');
+    $('spin-label').textContent = mode === 'jaguar' ? t('spinJaguar') : t('spin');
+    this.renderPill();
   }
 
-  setActiveToggle(mode: string | null) {
-    for (const m of ['bonushunt', 'jaguar']) $(`mode-${m}`).classList.toggle('on', mode === m);
-    $('spin-label').textContent = mode === 'jaguar' ? t('spinJaguar') : t('spin');
+  private renderPill() {
+    const pill = $('feature-pill');
+    pill.hidden = !this.toggle;
+    if (this.toggle) $('feature-pill-text').textContent = t('pillOn', { name: t(this.toggle), v: money(this.bet * MODES[this.toggle].cost) });
   }
 
   setBalance(v: number) {
@@ -61,7 +66,8 @@ export class Ui {
   }
   setBet(v: number) {
     $('bet').textContent = money(v);
-    this.setModePrices(v);
+    this.bet = v;
+    this.renderPill();
   }
   setWin(v: number | null, big = false) {
     this.winEl.textContent = v === null ? '–' : money(v);
@@ -76,13 +82,14 @@ export class Ui {
   setBusy(busy: boolean, canSkip: boolean) {
     this.spinBtn.classList.toggle('busy', busy);
     if (busy) $('spin-label').textContent = canSkip ? t('skip') : '…';
-    else $('spin-label').textContent = $('mode-jaguar').classList.contains('on') ? t('spinJaguar') : t('spin');
+    else $('spin-label').textContent = this.toggle === 'jaguar' ? t('spinJaguar') : t('spin');
     this.spinBtn.disabled = busy && !canSkip;
-    for (const id of ['mode-bonushunt', 'mode-jaguar', 'mode-buy', 'bet-up', 'bet-down']) ($(id) as HTMLButtonElement).disabled = busy;
+    for (const id of ['feature-btn', 'bet-up', 'bet-down', 'feature-pill-off']) ($(id) as HTMLButtonElement).disabled = busy;
   }
 
+  private buyDisabled = false;
   hideBuy(hide: boolean) {
-    $('mode-buy').hidden = hide;
+    this.buyDisabled = hide;
   }
   setDemo(text: string | null) {
     const b = $('demo-badge');
@@ -314,44 +321,78 @@ export class Ui {
     });
   }
 
-  /** Bonus-buy menu: returns the chosen mode or null. Two taps: choose, then confirm. */
-  buyMenu(bet: number, balance: number): Promise<string | null> {
-    const dlg = $<HTMLDialogElement>('buy-menu');
-    const cards = $('buy-cards');
-    cards.innerHTML = '';
+  /**
+   * Bonus & feature menu (opened with the BONUS button).
+   * Feature spins toggle on/off with one tap; bonus buys need a second tap to confirm.
+   */
+  featureMenu(bet: number, balance: number, current: string | null): Promise<{ toggle?: string | null; buy?: string } | null> {
+    const dlg = $<HTMLDialogElement>('feature-menu');
+    const spins = $('fm-spins');
+    const buys = $('fm-buys');
+    spins.innerHTML = '';
+    buys.innerHTML = '';
+    $('fm-buy-section').hidden = this.buyDisabled;
     return new Promise((resolve) => {
-      let armed: string | null = null;
-      const done = (v: string | null) => {
+      let settled = false;
+      const done = (v: { toggle?: string | null; buy?: string } | null) => {
+        if (settled) return;
+        settled = true;
         dlg.close();
         resolve(v);
       };
+      // ---- feature spins
+      for (const m of ['bonushunt', 'jaguar']) {
+        const on = current === m;
+        const price = bet * MODES[m].cost;
+        const card = document.createElement('div');
+        card.className = `fm-card${on ? ' on' : ''}`;
+        card.dataset.on = t('active');
+        card.innerHTML = `<div class="fm-art"><img alt="" src="${m === 'jaguar' ? this.icons.TG : this.icons.S}"></div><b>${t(m)}</b><p>${t(m + 'Long')}</p><div class="fm-price">${t('perSpin', { v: money(price) })}</div><button class="fm-action${on ? ' off' : ''}"></button>`;
+        const btn = card.querySelector('button')!;
+        btn.textContent = on ? t('deactivate') : t('activate');
+        btn.disabled = !on && price > balance + 1e-9;
+        btn.onclick = () => {
+          sound.click();
+          done({ toggle: on ? null : m });
+        };
+        spins.appendChild(card);
+      }
+      // ---- bonus buys
+      let armed: string | null = null;
       for (const b of BUYS) {
         const def = MODES[b.mode];
         const price = bet * def.cost;
         const vals = STAGE_TOTEMS[b.stage];
         const card = document.createElement('div');
-        card.className = 'buy-card';
-        const pyr = Array.from({ length: MAX_STAGE }, (_, i) => `<i class="${i < b.stage ? 'lit' : ''}" style="width:${64 - i * 12}px"></i>`).join('');
-        card.innerHTML = `<div class="bc-pyr">${pyr}</div><b>${t('buyName_' + b.mode)}</b><p>${t('buyDesc', { n: b.stage, v: `${vals[0]}–${vals[vals.length - 1]}×` })}</p><div class="price">${money(price)}</div><button></button>`;
+        card.className = 'fm-card';
+        const pyr = Array.from({ length: MAX_STAGE }, (_, i) => `<i class="${i < b.stage ? 'lit' : ''}" style="width:${56 - i * 11}px"></i>`).join('');
+        card.innerHTML = `<div class="fm-art"><div class="fm-pyr">${pyr}</div></div><b>${t('buyName_' + b.mode)}</b><p>${t('buyDesc', { n: b.stage, v: `${vals[0]}–${vals[vals.length - 1]}×` })}</p><div class="fm-price">${money(price)}</div><button class="fm-action"></button>`;
         const btn = card.querySelector('button')!;
-        btn.textContent = t('choose');
+        btn.textContent = t('buyBtn');
         btn.disabled = price > balance + 1e-9;
         btn.onclick = () => {
           sound.click();
-          if (armed === b.mode) return done(b.mode);
+          if (armed === b.mode) return done({ buy: b.mode });
           armed = b.mode;
-          cards.querySelectorAll('.buy-card').forEach((c) => c.classList.remove('confirm'));
-          cards.querySelectorAll('.buy-card button').forEach((x) => ((x as HTMLButtonElement).textContent = t('choose')));
-          card.classList.add('confirm');
+          buys.querySelectorAll('.fm-card').forEach((c) => c.classList.remove('armed'));
+          buys.querySelectorAll('.fm-action').forEach((x) => ((x as HTMLButtonElement).textContent = t('buyBtn')));
+          card.classList.add('armed');
           btn.textContent = t('buyNow', { v: money(price) });
         };
-        cards.appendChild(card);
+        buys.appendChild(card);
       }
-      $('buy-close').onclick = () => done(null);
-      dlg.oncancel = () => resolve(null);
+      $('fm-close').onclick = () => done(null);
+      dlg.oncancel = () => done(null);
+      dlg.onclick = (e) => {
+        // tap on the backdrop (outside the dialog box) closes it
+        const r = dlg.getBoundingClientRect();
+        if (e.clientX < r.left || e.clientX > r.right || e.clientY < r.top || e.clientY > r.bottom) done(null);
+      };
       dlg.showModal();
     });
   }
+
+  icons: Record<string, string> = {};
 
   showRules(html: string) {
     const dlg = $<HTMLDialogElement>('rules');

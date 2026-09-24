@@ -13,6 +13,18 @@ const en: Dict = {
   jaguar: 'Jaguar Spin',
   jaguarDesc: 'golden steles every spin',
   buy: 'Buy Bonus',
+  featureBtn: 'BONUS',
+  fmTitle: 'Bonus & Features',
+  fmSpins: 'Feature spins',
+  fmBuys: 'Buy bonus',
+  bonushuntLong: 'Twice the chance to trigger free spins on every spin.',
+  jaguarLong: 'The jaguar throws 2–4 golden steles (5×–50×) every spin. Every spin pays, often less than its cost. No free spins.',
+  perSpin: '{v} per spin',
+  activate: 'Activate',
+  deactivate: 'Turn off',
+  active: 'ACTIVE',
+  pillOn: '{name} active · {v} / spin',
+  buyBtn: 'Buy',
   buyFrom: 'from {v}',
   buyTitle: 'Buy Bonus',
   buyName_bonus: 'Temple Bonus',
@@ -76,6 +88,18 @@ const de: Dict = {
   jaguar: 'Jaguar-Spin',
   jaguarDesc: 'goldene Stelen bei jedem Spin',
   buy: 'Bonus kaufen',
+  featureBtn: 'BONUS',
+  fmTitle: 'Bonus & Features',
+  fmSpins: 'Feature-Spins',
+  fmBuys: 'Bonus kaufen',
+  bonushuntLong: 'Doppelte Chance auf Freispiele bei jedem Spin.',
+  jaguarLong: 'Der Jaguar wirft bei jedem Spin 2–4 goldene Stelen (5×–50×). Jeder Spin zahlt, oft weniger als der Einsatz. Keine Freispiele.',
+  perSpin: '{v} pro Spin',
+  activate: 'Aktivieren',
+  deactivate: 'Ausschalten',
+  active: 'AKTIV',
+  pillOn: '{name} aktiv · {v} / Spin',
+  buyBtn: 'Kaufen',
   buyFrom: 'ab {v}',
   buyTitle: 'Bonus kaufen',
   buyName_bonus: 'Tempel-Bonus',
@@ -128,8 +152,8 @@ const de: Dict = {
 
 // Stake US (social casino) must not use gambling wording.
 const socialOverrides: Record<string, Dict> = {
-  en: { bet: 'Play amount', buy: 'Get Bonus', buyTitle: 'Get Bonus', buyNow: 'Get for {v}', buyConfirm: 'Get the free spins for {cost}?', yes: 'Get' },
-  de: { bet: 'Spielbetrag', buy: 'Bonus holen', buyTitle: 'Bonus holen', buyNow: 'Holen für {v}', buyConfirm: 'Freispiele für {cost} holen?', yes: 'Holen' },
+  en: { bet: 'Play amount', buy: 'Get Bonus', buyTitle: 'Get Bonus', fmBuys: 'Get bonus', buyBtn: 'Get', buyNow: 'Get for {v}', buyConfirm: 'Get the free spins for {cost}?', yes: 'Get' },
+  de: { bet: 'Spielbetrag', buy: 'Bonus holen', buyTitle: 'Bonus holen', fmBuys: 'Bonus holen', buyBtn: 'Holen', buyNow: 'Holen für {v}', buyConfirm: 'Freispiele für {cost} holen?', yes: 'Holen' },
 };
 
 let dict: Dict = en;

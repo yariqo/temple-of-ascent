@@ -53,6 +53,7 @@ async function main() {
   ui.setLoading(0.35);
   buildTextures();
   ui.runeIcon = iconUrl('S', 88);
+  ui.icons = { S: iconUrl('S', 116), TG: iconUrl('TG', 116) };
   ui.setLoading(0.55);
   const scenes = await Promise.all([0, 1, 2, 3, 4].map(sceneUrl));
   ui.setSceneUrls(scenes);
@@ -234,19 +235,22 @@ async function main() {
     betIdx = Math.max(0, betIdx - 1);
     refresh();
   };
-  for (const m of ['bonushunt', 'jaguar'] as const) {
-    document.getElementById(`mode-${m}`)!.onclick = () => {
-      if (busy) return;
-      sound.click();
-      toggle = toggle === m ? null : m;
-      refresh();
-    };
-  }
-  document.getElementById('mode-buy')!.onclick = async () => {
+  const setToggle = (m: string | null) => {
+    toggle = m as typeof toggle;
+    refresh();
+  };
+  document.getElementById('feature-btn')!.onclick = async () => {
     if (busy) return;
     sound.click();
-    const choice = await ui.buyMenu(bet(), balance);
-    if (choice) play(choice);
+    const choice = await ui.featureMenu(bet(), balance, toggle);
+    if (!choice) return;
+    if (choice.buy) play(choice.buy);
+    else if (choice.toggle !== undefined) setToggle(choice.toggle);
+  };
+  document.getElementById('feature-pill-off')!.onclick = () => {
+    if (busy) return;
+    sound.click();
+    setToggle(null);
   };
   window.addEventListener('keydown', (e) => {
     if (e.code !== 'Space' || jur.disabledSpacebar) return;
