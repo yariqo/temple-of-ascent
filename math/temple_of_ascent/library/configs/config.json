@@ -1,0 +1,118 @@
+{
+    "workingName": "Temple of Ascent",
+    "frontendConfig": {
+        "file": "fe_config.json",
+        "sha256": "fde6a28681cb89cb90e7f65824463e2c1ac21d34af950fd84cce30bd9a486c5c"
+    },
+    "gameID": "temple_of_ascent",
+    "rtp": 96.0,
+    "betDenomination": 1000,
+    "minDenomination": 10,
+    "providerNumber": 0,
+    "standardForceFile": {
+        "file": "force.json",
+        "sha256": "d82a326a14f277199c4283d78df8f1d8d6c69e62091cdfbc708df22dc196d972"
+    },
+    "bookShelfConfig": [
+        {
+            "name": "base",
+            "tables": [
+                {
+                    "file": "lookUpTable_base_0.csv",
+                    "sha256": "cfd9cd53d55c5c8e2325ff2d0f0d3e2a5719bebc6a8f84d4fb17a9726ba1c2d1"
+                }
+            ],
+            "cost": 1.0,
+            "rtp": 0.96,
+            "std": 14.1,
+            "bookLength": 100000,
+            "feature": true,
+            "autoEndRoundDisabled": false,
+            "buyBonus": false,
+            "maxWin": 10000,
+            "booksFile": {
+                "file": "books_base.jsonl.zst",
+                "sha256": "890d8f30e75158de6cec6590dd8cca45577042bee319461a85c4eccfe4029455"
+            },
+            "forceFile": {
+                "file": "force_record_base.json",
+                "sha256": "8bf61d63b871124edfa5693b10041bc0b5c667cf365ad1f79da7d9ceaeb96e2b"
+            }
+        },
+        {
+            "name": "bonushunt",
+            "tables": [
+                {
+                    "file": "lookUpTable_bonushunt_0.csv",
+                    "sha256": "43882a9309adc5cbb389a4de7f119691df226253b6934a2434dc75cfd5f72acf"
+                }
+            ],
+            "cost": 1.5,
+            "rtp": 0.96,
+            "std": 15.17,
+            "bookLength": 100000,
+            "feature": true,
+            "autoEndRoundDisabled": false,
+            "buyBonus": false,
+            "maxWin": 10000,
+            "booksFile": {
+                "file": "books_bonushunt.jsonl.zst",
+                "sha256": "a24343a062bcaaadeaa2423a92767628fdd6fe38826a1516d8ee3004dafa7624"
+            },
+            "forceFile": {
+                "file": "force_record_bonushunt.json",
+                "sha256": "daf28f936d15ac6f892f9809086987914fc609ecf67cccf582a6097e6bfa1f93"
+            }
+        },
+        {
+            "name": "jaguar",
+            "tables": [
+                {
+                    "file": "lookUpTable_jaguar_0.csv",
+                    "sha256": "e29405b15d6bdf425f6079cad483279735ca021ee330cdbd64ce28605046db4a"
+                }
+            ],
+            "cost": 25.0,
+            "rtp": 0.96,
+            "std": 1.4,
+            "bookLength": 100000,
+            "feature": true,
+            "autoEndRoundDisabled": false,
+            "buyBonus": false,
+            "maxWin": 10000,
+            "booksFile": {
+                "file": "books_jaguar.jsonl.zst",
+                "sha256": "c5736015e699134c6a57b24ec5245de124f1ea317c8ec3100cb506aa60339feb"
+            },
+            "forceFile": {
+                "file": "force_record_jaguar.json",
+                "sha256": "cb2c01461db054727a8a77368b04f5417f45f02879ab26ef63ad4b8a455ae5a2"
+            }
+        },
+        {
+            "name": "bonus",
+            "tables": [
+                {
+                    "file": "lookUpTable_bonus_0.csv",
+                    "sha256": "42a8da64e3798df3d474ac431066f4e5d67005ca7bdefd0f8b4bee860f03e1c7"
+                }
+            ],
+            "cost": 100.0,
+            "rtp": 0.96,
+            "std": 2.11,
+            "bookLength": 100000,
+            "feature": false,
+            "autoEndRoundDisabled": false,
+            "buyBonus": true,
+            "maxWin": 10000,
+            "booksFile": {
+                "file": "books_bonus.jsonl.zst",
+                "sha256": "4a45beaff0dc96f55b6f292bd3b4125a2d46214883297f2e1c6c79f7d4ccc790"
+            },
+            "forceFile": {
+                "file": "force_record_bonus.json",
+                "sha256": "20c0ec3376f1a55c7be70b8cb890d40bc702831ea222b1aff2ceb6b436cf5f70"
+            }
+        }
+    ]
+}
