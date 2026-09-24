@@ -1,19 +1,26 @@
-/** Tiny promise-based tween helpers. All durations respect the global speed (turbo / skip). */
+/** Promise-based tween helpers. Time advances frame by frame × speed factor (turbo / skip),
+ *  so switching speed in the middle of an animation never makes it jump. */
 
 export const speed = {
   turbo: false,
   skip: false,
   factor(): number {
-    return this.skip ? 8 : this.turbo ? 2.2 : 1;
+    return this.skip ? 7 : this.turbo ? 2 : 1;
   },
 };
 
 export const ease = {
   linear: (t: number) => t,
   outCubic: (t: number) => 1 - Math.pow(1 - t, 3),
+  inCubic: (t: number) => t * t * t,
   inOutCubic: (t: number) => (t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2),
   outBack: (t: number) => {
-    const c1 = 1.70158;
+    const c1 = 1.4;
+    const c3 = c1 + 1;
+    return 1 + c3 * Math.pow(t - 1, 3) + c1 * Math.pow(t - 1, 2);
+  },
+  outBackSoft: (t: number) => {
+    const c1 = 0.9;
     const c3 = c1 + 1;
     return 1 + c3 * Math.pow(t - 1, 3) + c1 * Math.pow(t - 1, 2);
   },
@@ -25,14 +32,20 @@ export const ease = {
     if (t < 2.5 / d1) return n1 * (t -= 2.25 / d1) * t + 0.9375;
     return n1 * (t -= 2.625 / d1) * t + 0.984375;
   },
+  outElastic: (t: number) => {
+    if (t === 0 || t === 1) return t;
+    return Math.pow(2, -10 * t) * Math.sin((t * 10 - 0.75) * ((2 * Math.PI) / 3)) + 1;
+  },
 };
 
 export function tween(ms: number, update: (t: number) => void, easing: (t: number) => number = ease.outCubic): Promise<void> {
   return new Promise((resolve) => {
-    const start = performance.now();
+    let last = performance.now();
+    let elapsed = 0;
     const step = (now: number) => {
-      const dur = Math.max(1, ms / speed.factor());
-      const p = Math.min(1, (now - start) / dur);
+      elapsed += Math.min(100, now - last) * speed.factor();
+      last = now;
+      const p = Math.min(1, elapsed / Math.max(1, ms));
       update(easing(p));
       if (p < 1) requestAnimationFrame(step);
       else resolve();
@@ -41,8 +54,9 @@ export function tween(ms: number, update: (t: number) => void, easing: (t: numbe
   });
 }
 
+/** Wait – shortened by turbo / skip. */
 export function wait(ms: number): Promise<void> {
-  return new Promise((r) => setTimeout(r, ms / speed.factor()));
+  return tween(ms, () => {}, ease.linear);
 }
 
 /** Wait a real amount of time (not affected by turbo). */
@@ -51,3 +65,4 @@ export function sleepReal(ms: number): Promise<void> {
 }
 
 export const lerp = (a: number, b: number, t: number) => a + (b - a) * t;
+export const clamp = (v: number, a: number, b: number) => Math.max(a, Math.min(b, v));

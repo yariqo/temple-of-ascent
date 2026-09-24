@@ -1,9 +1,10 @@
 import { Board } from './board';
 import { Ui } from './ui';
-import { STAGE_TOTEMS, WIN_TIERS } from './config';
+import { GOLDEN_TOTEMS, ROAR_TOTEMS, STAGE_TOTEMS, WIN_TIERS } from './config';
 import { t } from './i18n';
 import { money } from './format';
 import { wait } from './anim';
+import { sound } from './sound';
 import type { GameEvent, Round } from './types';
 
 /**
@@ -15,8 +16,17 @@ export class RoundPlayer {
   private cost = 1;
   private totalWin = 0;
   private inFreeSpins = false;
+  private stage = 0;
+  private scatterCount = 0;
+  private capShown = false;
 
-  constructor(private board: Board, private ui: Ui, private onEvent?: (index: number) => void) {}
+  constructor(private board: Board, private ui: Ui) {
+    // chime for every scatter / rune that lands, rising in pitch
+    board.onReelStop = (_r, syms) => {
+      const n = syms.filter((s) => s.name === 'S').length;
+      for (let i = 0; i < n; i++) sound.scatterLand(this.scatterCount++);
+    };
+  }
 
   private money(amount: number) {
     return (amount / 100) * this.bet;
@@ -27,100 +37,111 @@ export class RoundPlayer {
     this.cost = cost;
     this.totalWin = 0;
     this.inFreeSpins = false;
+    this.stage = 0;
+    this.capShown = false;
     this.ui.setWin(null);
-    for (const ev of round.events) {
-      await this.handle(ev);
-      this.onEvent?.(ev.index);
-    }
-    // back to base look
+    for (const ev of round.events) await this.handle(ev);
     if (this.inFreeSpins) this.leaveFreeSpins();
   }
 
   private leaveFreeSpins() {
     this.inFreeSpins = false;
+    this.stage = 0;
     this.ui.setFsCounter(null);
     this.ui.setStage(0, 0);
     this.board.setTheme(0);
+    sound.setLoop(0);
+  }
+
+  private setStage(stage: number, runes?: number, bump = false) {
+    this.stage = stage;
+    this.ui.setStage(stage, runes, bump);
+    this.board.setTheme(stage);
+    sound.setLoop(stage);
   }
 
   private async handle(ev: GameEvent) {
     switch (ev.type) {
       case 'reveal': {
-        const free = ev.gameType === 'freegame';
-        if (free && !this.inFreeSpins) this.inFreeSpins = true;
+        this.scatterCount = 0;
         await this.board.spin(Board.visibleFromReveal(ev.board), ev.anticipation);
+        await this.board.revealSteles(STAGE_TOTEMS[this.inFreeSpins ? this.stage : 0]);
         break;
       }
       case 'jaguarRoar': {
         const golden = !!ev.golden;
-        const banner = this.ui.banner(golden ? t('goldenJaguar') : t('jaguarRoar'), '', 900);
-        await this.board.dropTotems(ev.totems, golden);
-        await banner;
+        void this.ui.banner(golden ? t('goldenJaguar') : t('jaguarRoar'), '', 1100, golden ? 'gold' : '');
+        await this.board.dropTotems(ev.totems, golden, golden ? GOLDEN_TOTEMS : ROAR_TOTEMS);
         break;
       }
       case 'winInfo': {
-        await this.board.showWins(ev.wins);
+        await this.board.showWins(ev.wins, money(this.money(ev.totalWin)));
         break;
       }
       case 'totemMultiplier': {
-        // make clear that the steles multiply the LINE win, not the bet
+        // the steles multiply the LINE win, not the bet – say so
         const explain = `${t('lineWin')} ${money(this.money(ev.baseWin))} × ${ev.totalMult} = ${money(this.money(ev.totalWin))}`;
-        await this.board.totemPower(ev.totems, ev.totalMult, explain);
+        await this.board.totemPower(ev.totems, ev.totalMult, explain, money(this.money(ev.totalWin)));
         break;
       }
       case 'setWin':
-        // per-spin win; the running total is shown via setTotalWin
         break;
       case 'setTotalWin': {
         const v = this.money(ev.amount);
         if (v !== this.totalWin) {
-          await this.ui.countWin(this.totalWin, v, 500);
+          await this.ui.countWin(this.totalWin, v, 450);
           this.totalWin = v;
         }
         break;
       }
       case 'freeSpinTrigger': {
-        await this.board.highlight(ev.positions, 1000);
+        await this.board.highlight(ev.positions, 1100, 0x7ff3ff);
         this.inFreeSpins = true;
-        await this.ui.banner(`${ev.totalFs} ${t('freeSpins')}`, t('stage', { n: 1 }), 1800);
+        sound.gong();
+        await this.ui.freeSpinsIntro(ev.totalFs);
         this.ui.setFsCounter(0, ev.totalFs);
         break;
       }
       case 'stageInfo': {
-        this.ui.setStage(ev.stage, ev.runes, true);
-        this.board.setTheme(ev.stage);
+        this.inFreeSpins = true;
+        this.setStage(ev.stage, ev.runes, true);
+        if (ev.stage > 1) await this.ui.banner(t('stage', { n: ev.stage }), t('startsHigher'), 1500, 'gold');
         break;
       }
       case 'updateFreeSpin': {
         this.ui.setFsCounter(ev.amount + 1, ev.total);
         this.board.clearWins();
-        await wait(150);
+        await wait(120);
         break;
       }
       case 'runeCollect': {
-        await this.board.highlight(ev.positions, 700);
+        sound.rune();
+        const pts = ev.positions.map((p: any) => this.board.pagePoint(p));
+        const hl = this.board.highlight(ev.positions, 650, 0x7ff3ff);
+        await this.ui.flyRunes(pts, this.stage);
+        await hl;
         this.ui.setRunes(ev.runes);
         break;
       }
       case 'stageUp': {
-        this.ui.setStage(ev.stage, undefined, true);
-        this.board.setTheme(ev.stage);
+        sound.gong(0.45);
         const vals = STAGE_TOTEMS[ev.stage];
-        await this.ui.banner(
-          t('stageUp', { n: ev.stage }),
-          `${t('extraSpins', { n: ev.extraSpins })} · ${t('newTotems', { v: `${vals[0]}–${vals[vals.length - 1]}×` })}`,
-          2000,
-        );
+        this.setStage(ev.stage, undefined, true);
+        this.board.celebrate(24);
+        await this.ui.stageUp(ev.stage, ev.extraSpins, `${vals[0]}–${vals[vals.length - 1]}×`);
         break;
       }
       case 'freeSpinEnd': {
         const v = this.money(ev.amount);
-        await this.ui.banner(t('totalFs'), money(v), 2200);
+        await this.ui.summary(t('totalFs'), money(v), v >= this.bet * this.cost);
         this.leaveFreeSpins();
         break;
       }
       case 'wincap': {
-        await this.ui.banner(t('maxWin'), money(this.money(ev.amount)), 2600, 'god');
+        this.capShown = true;
+        sound.fanfare();
+        this.board.celebrate(80);
+        await this.ui.bigWin(t('maxWin'), this.money(ev.amount), 'god');
         break;
       }
       case 'finalWin': {
@@ -134,12 +155,14 @@ export class RoundPlayer {
     }
   }
 
-  /** Big-win banner – never for wins below the round cost. */
+  /** Big-win overlay – never for wins below the round cost. */
   private async celebrate(win: number) {
+    if (this.capShown || win < this.bet * this.cost) return;
     const x = win / this.bet;
-    if (win < this.bet * this.cost) return;
     const tier = WIN_TIERS.find((w) => x >= w.min);
     if (!tier) return;
-    await this.ui.banner(t(tier.key), money(win), tier.min >= 1000 ? 3200 : 2200, tier.min >= 500 ? 'god' : '');
+    sound.fanfare();
+    this.board.celebrate(tier.min >= 500 ? 90 : tier.min >= 100 ? 60 : 36);
+    await this.ui.bigWin(t(tier.key), win, tier.min >= 500 ? 'god' : tier.min >= 100 ? 'gold' : '');
   }
 }

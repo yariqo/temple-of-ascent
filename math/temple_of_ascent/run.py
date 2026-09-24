@@ -24,6 +24,8 @@ if __name__ == "__main__":
         "bonushunt": int(N),
         "jaguar": int(N),
         "bonus": int(N),
+        "superbonus": int(N),
+        "godbonus": int(N),
     }
 
     run_conditions = {

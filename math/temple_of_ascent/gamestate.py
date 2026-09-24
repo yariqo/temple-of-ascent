@@ -25,8 +25,9 @@ class GameState(GameStateOverride):
 
     def run_freespin(self):
         self.reset_fs_spin()
-        self.stage = 1
-        self.runes = 0
+        # bonus buys can start higher up the pyramid (Super-Bonus: stage 2, Goetter-Bonus: stage 3)
+        self.stage = self.get_current_distribution_conditions().get("start_stage", 1)
+        self.runes = (self.stage - 1) * self.config.runes_per_stage
         stage_info_event(self)
         while self.fs < self.tot_fs and not self.wincap_triggered:
             self.update_freespin()

@@ -2,7 +2,7 @@
     "workingName": "Temple of Ascent",
     "frontendConfig": {
         "file": "fe_config.json",
-        "sha256": "fde6a28681cb89cb90e7f65824463e2c1ac21d34af950fd84cce30bd9a486c5c"
+        "sha256": "4473370217c662b3837855d4bc1435ab29551732e825be54f480d33f691a7810"
     },
     "gameID": "temple_of_ascent",
     "rtp": 96.0,
@@ -11,7 +11,7 @@
     "providerNumber": 0,
     "standardForceFile": {
         "file": "force.json",
-        "sha256": "d82a326a14f277199c4283d78df8f1d8d6c69e62091cdfbc708df22dc196d972"
+        "sha256": "6c218d5e3106ecd4d9d341d3d68c89c2947cdd6b26bbf5b942fdd68a8ee88d0b"
     },
     "bookShelfConfig": [
         {
@@ -112,6 +112,56 @@
             "forceFile": {
                 "file": "force_record_bonus.json",
                 "sha256": "20c0ec3376f1a55c7be70b8cb890d40bc702831ea222b1aff2ceb6b436cf5f70"
+            }
+        },
+        {
+            "name": "superbonus",
+            "tables": [
+                {
+                    "file": "lookUpTable_superbonus_0.csv",
+                    "sha256": "0d98fdb46503176261817400790a3597327ed68c2c27538dddccf7f8adf272ac"
+                }
+            ],
+            "cost": 200.0,
+            "rtp": 0.96,
+            "std": 1.77,
+            "bookLength": 100000,
+            "feature": false,
+            "autoEndRoundDisabled": false,
+            "buyBonus": true,
+            "maxWin": 10000,
+            "booksFile": {
+                "file": "books_superbonus.jsonl.zst",
+                "sha256": "b52e2fbde7ffe48ffe833e6b9da7f98033dda376d9fa44c2abcd01f118a54223"
+            },
+            "forceFile": {
+                "file": "force_record_superbonus.json",
+                "sha256": "479623d7964a7120cc37cab9c560bf4972efaac69726d2e46dc3ee718aba2b5c"
+            }
+        },
+        {
+            "name": "godbonus",
+            "tables": [
+                {
+                    "file": "lookUpTable_godbonus_0.csv",
+                    "sha256": "65931948d823fa938397dbeff2543ed21ae7112b6c042dfa4b1afe8d88968d3f"
+                }
+            ],
+            "cost": 300.0,
+            "rtp": 0.96,
+            "std": 1.53,
+            "bookLength": 100000,
+            "feature": false,
+            "autoEndRoundDisabled": false,
+            "buyBonus": true,
+            "maxWin": 10000,
+            "booksFile": {
+                "file": "books_godbonus.jsonl.zst",
+                "sha256": "fbfb24d63da04684f6a8a6b47e6ef67cdecdca383bb721587b6c8125dede68c5"
+            },
+            "forceFile": {
+                "file": "force_record_godbonus.json",
+                "sha256": "edc5311d82233e5af9969e6b52ae5a10953f2756721006fdc01a5d94a213fdb5"
             }
         }
     ]

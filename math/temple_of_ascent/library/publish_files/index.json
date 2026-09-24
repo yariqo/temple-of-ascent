@@ -23,6 +23,18 @@
             "cost": 100.0,
             "events": "books_bonus.jsonl.zst",
             "weights": "lookUpTable_bonus_0.csv"
+        },
+        {
+            "name": "superbonus",
+            "cost": 200.0,
+            "events": "books_superbonus.jsonl.zst",
+            "weights": "lookUpTable_superbonus_0.csv"
+        },
+        {
+            "name": "godbonus",
+            "cost": 300.0,
+            "events": "books_godbonus.jsonl.zst",
+            "weights": "lookUpTable_godbonus_0.csv"
         }
     ]
 }

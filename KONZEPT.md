@@ -1,4 +1,4 @@
-# TEMPLE OF ASCENT – Spielkonzept (v0.5)
+# TEMPLE OF ASCENT – Spielkonzept (v0.6)
 
 *Name: Temple of Ascent. Thema: Azteken-Dschungel (siehe THEMA.md).*
 
@@ -10,7 +10,7 @@ In den Freispielen sammelt man **Runen**. Alle 3 Runen steigt man eine **Stufe**
 | | |
 |---|---|
 | Raster | 5 Walzen × 4 Reihen, 20 Linien |
-| RTP | **96,00 %** in allen 4 Spielmodi |
+| RTP | **96,00 %** in allen 6 Spielmodi |
 | Max. Gewinn | **10.000×** Einsatz |
 | Trefferquote Basis | ca. 1 von 3,5 Spins |
 | Freispiele im Basisspiel | 1 von 200 Spins (Bonus-Jagd: 1 von 100) |
@@ -22,7 +22,9 @@ In den Freispielen sammelt man **Runen**. Alle 3 Runen steigt man eine **Stufe**
 | **Normaler Spin** | 1× | Basisspiel. Jeder 25. Spin im Schnitt mit Jaguar-Ruf, Freispiele ca. 1 von 200 |
 | **Bonus-Jagd** | 1,5× | **Doppelte Chance** auf Freispiele (1 von 100), sonst wie ein normaler Spin |
 | **Jaguar-Spin** (Feature-Spin) | 25× | Der Jaguar brüllt **bei jedem Spin** und wirft **2–4 goldene Stelen** mit 5×–50× aufs Feld. **Jeder Jaguar-Spin bringt einen Gewinn**, oft aber weniger als die 25× Einsatz. Keine Freispiele in diesem Modus |
-| **Bonus-Kauf** | 100× | Freispiele sofort |
+| **Tempel-Bonus** (Kauf) | 100× | Freispiele sofort, Start auf Stufe 1 |
+| **Super-Bonus** (Kauf) | 200× | Freispiele starten auf **Stufe 2** (Stelen 5×–50×) |
+| **Götter-Bonus** (Kauf) | 300× | Freispiele starten auf **Stufe 3** (Stelen 10×–250×) |
 
 Bonus-Jagd und Jaguar-Spin sind Schalter wie bei Hacksaw: einmal an, gelten sie für jeden Spin, bis man sie ausschaltet.
 
@@ -30,17 +32,17 @@ Bonus-Jagd und Jaguar-Spin sind Schalter wie bei Hacksaw: einmal an, gelten sie 
 Nach dem Walzenstopp brüllt mit ca. 4 % Chance der Jaguar aus dem Dschungel und wirft **1–3 Stelen** auf zufällige normale Felder (keine Wilds oder Runen). Die Stelen tragen Werte von 2×–25× und zählen sofort mit. Im Jaguar-Spin passiert das immer, mit 2–4 **goldenen** Stelen (5×–50×) und garantiertem Gewinn.
 
 ## Statistik je Modus (100.000 Runden pro Modus, finale Gewichte)
-| | Normal (1×) | Bonus-Jagd (1,5×) | Jaguar-Spin (25×) | Bonus-Kauf (100×) |
-|---|---|---|---|---|
-| RTP | 96,00 % | 96,00 % | 96,00 % | 96,00 % |
-| Gewinn ≥ Einsatz | 13,4 % | 9,7 % | 27,8 % | 22,9 % |
-| Median-Gewinn | 0 | 0 | 14× | 34× |
-| Gewinn ≥ 1.000× | 1 von 33.000 | 1 von 14.000 | 1 von 16.800 | 1 von 116 |
-| Max-Gewinn 10.000× | 1 von 10 Mio. | 1 von 2,2 Mio. | – | 1 von 65.000 |
+| | Normal (1×) | Bonus-Jagd (1,5×) | Jaguar-Spin (25×) | Tempel-Bonus (100×) | Super-Bonus (200×) | Götter-Bonus (300×) |
+|---|---|---|---|---|---|---|
+| RTP | 96,00 % | 96,00 % | 96,00 % | 96,00 % | 96,00 % | 96,00 % |
+| Gewinn ≥ Einsatz | 13,4 % | 9,7 % | 27,8 % | 22,9 % | 26,0 % | 28,6 % |
+| Median-Gewinn | 0 | 0 | 14× | 34× | 85× | 149× |
+| Gewinn ≥ 1.000× | 1 von 33.000 | 1 von 14.000 | 1 von 16.800 | 1 von 116 | 1 von 40 | 1 von 21 |
+| Max-Gewinn 10.000× | 1 von 10 Mio. | 1 von 2,2 Mio. | – | 1 von 65.000 | 1 von 20.000 | 1 von 15.500 |
 
 **Gewichtung:** Die Books werden mit ihrer natürlichen Wahrscheinlichkeit gewichtet (`natural_weights.py`). Die sehr großen Gewinne werden leicht abgeschwächt, und die 96 % werden mit einer minimalen Korrektur exakt getroffen. Den Gauß-Optimierer des SDK nutzen wir nicht mehr, weil er die Gewinnverteilung stark verzerrt hat: Kleine Gewinne von 1–2× kamen dort praktisch nie vor.
 
-**Stake-Prüfung:** Alle 4 Modi bestehen die Prüfungen des SDK ohne Warnung: Format, RTP höchstens 96,7 % und die Volatilitätsgrenzen (prob5k, prob10k, etl40b, etl10k, cvar). Die Bonus-Jagd wurde dafür von „5× Chance für 3×“ auf „2× Chance für 1,5×“ umgestellt. Mit 5× für 3× lässt sich die Grenze etl40b ≤ 0,9 nur einhalten, wenn die Boni in der Jagd deutlich schwächer wären als normale Boni.
+**Stake-Prüfung:** Alle 6 Modi bestehen die Prüfungen des SDK ohne Warnung: Format, RTP höchstens 96,7 % und die Volatilitätsgrenzen (prob5k, prob10k, etl40b, etl10k, cvar). Die Bonus-Jagd wurde dafür von „5× Chance für 3×“ auf „2× Chance für 1,5×“ umgestellt. Mit 5× für 3× lässt sich die Grenze etl40b ≤ 0,9 nur einhalten, wenn die Boni in der Jagd deutlich schwächer wären als normale Boni.
 
 ## Symbole
 | Code | Symbol (Vorschlag) | 3 / 4 / 5 gleiche |
@@ -93,8 +95,9 @@ Im `reveal`-Board trägt jedes Totem seinen Wert als `multiplier`.
 - [x] Alle 4 Modi bestehen die Stake-Prüfungen des SDK (Format, RTP ≤ 96,7 %, Volatilitätsgrenzen)
 - [x] Thema: Azteken-Dschungel (siehe THEMA.md)
 - [x] Name: Temple of Ascent
-- [x] Frontend v0.1 (Vite + PixiJS, eigener RGS-Client, Platzhalter-Grafik), Ordner `frontend/`
-- [ ] Echte Grafik, Animationen, Sound
+- [x] Frontend v0.1 (Vite + PixiJS, eigener RGS-Client), Ordner `frontend/`
+- [x] Frontend v0.2: Azteken-Grafik (alles per Code gezeichnet), Stelen-Dreh-Animation, Jaguar-Augen, Partikel, Sound, Big-Win-Screens, Bonus-Kauf-Menü
+- [x] Super-Bonus (200×, Start Stufe 2) und Götter-Bonus (300×, Start Stufe 3)
+- [ ] Optional: professionelle Illustrationen statt Code-Grafik, echte Sound-Aufnahmen
 - [x] Jaguar-Ruf, Bonus-Jagd (1,5×) und Jaguar-Spin (25×) eingebaut
-- [ ] Optional: „Super Bonus“-Kauf, der auf Stufe 2 startet
 - [ ] Upload und Test auf Stake Engine

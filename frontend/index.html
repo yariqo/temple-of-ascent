@@ -2,17 +2,26 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover" />
     <title>Temple of Ascent</title>
   </head>
   <body>
+    <div id="scene-a" class="scene"></div>
+    <div id="scene-b" class="scene"></div>
+
+    <div id="loading">
+      <div class="load-logo">Temple<small>of</small>Ascent</div>
+      <div class="load-bar"><i id="load-fill"></i></div>
+    </div>
+
     <div id="app">
       <header>
-        <div class="brand"><span class="sun">☀</span> <span id="title">TEMPLE OF ASCENT</span></div>
+        <div class="head-left"><span id="demo-badge" hidden></span></div>
+        <div class="logo" id="title">Temple<small>of</small>Ascent</div>
         <div class="head-right">
-          <span id="demo-badge" hidden></span>
-          <label class="chip" id="turbo-wrap"><input type="checkbox" id="turbo" /> <span id="turbo-label">Turbo</span></label>
-          <button class="chip" id="rules-btn">?</button>
+          <button class="icon-btn" id="sound-btn" aria-label="Sound"><svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><path fill="currentColor" d="M4 9h4l5-4v14l-5-4H4z"/><path id="snd-waves" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" d="M16 9c1.3 1.6 1.3 4.4 0 6M18.5 6.5c2.8 3 2.8 8 0 11"/><path id="snd-x" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" d="M16 9l5 6M21 9l-5 6" style="display:none"/></svg></button>
+          <label class="icon-btn" id="turbo-wrap" title="Turbo"><input type="checkbox" id="turbo" /><span class="bolt"><svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><path fill="currentColor" d="M13 2 4 14h6l-1 8 9-12h-6z"/></svg></span></label>
+          <button class="icon-btn" id="rules-btn" aria-label="Rules">?</button>
         </div>
       </header>
 
@@ -36,20 +45,35 @@
       </div>
 
       <footer>
-        <div class="stat"><span id="balance-label">Balance</span><b id="balance">–</b></div>
+        <div class="stat" id="stat-balance"><span id="balance-label">Balance</span><b id="balance">–</b></div>
         <div class="bet">
           <button id="bet-down" aria-label="lower bet">−</button>
           <div class="stat"><span id="bet-label">Bet</span><b id="bet">–</b></div>
           <button id="bet-up" aria-label="raise bet">+</button>
         </div>
-        <button id="spin">SPIN</button>
-        <div class="stat"><span id="win-label">Win</span><b id="win">–</b></div>
+        <button id="spin" aria-label="Spin"><span class="spin-ring"></span><span id="spin-label">SPIN</span></button>
+        <div class="stat" id="stat-win"><span id="win-label">Win</span><b id="win">–</b></div>
       </footer>
-
-      <div id="toast" hidden></div>
-      <dialog id="confirm"><p id="confirm-text"></p><div class="row"><button id="confirm-no"></button><button id="confirm-yes" class="gold"></button></div></dialog>
-      <dialog id="rules"><div id="rules-body"></div><button id="rules-close" class="gold"></button></dialog>
     </div>
+
+    <div id="overlay" hidden>
+      <div class="ov-card">
+        <div class="ov-kicker"></div>
+        <div class="ov-title"></div>
+        <div class="ov-amount"></div>
+        <div class="ov-sub"></div>
+        <div class="ov-hint"></div>
+      </div>
+    </div>
+
+    <div id="toast" hidden></div>
+    <dialog id="confirm"><p id="confirm-text"></p><div class="row"><button id="confirm-no"></button><button id="confirm-yes" class="gold"></button></div></dialog>
+    <dialog id="buy-menu">
+      <h3 id="buy-title"></h3>
+      <div class="buy-cards" id="buy-cards"></div>
+      <div class="row"><button id="buy-close"></button></div>
+    </dialog>
+    <dialog id="rules"><div id="rules-body"></div><button id="rules-close" class="gold"></button></dialog>
     <script type="module" src="/src/main.ts"></script>
   </body>
 </html>

@@ -1,7 +1,8 @@
-import { MAX_STAGE, MODES, RUNES_PER_STAGE, STAGE_BG, STAGE_TOTEMS } from './config';
+import { BUYS, MAX_STAGE, MODES, RUNES_PER_STAGE, STAGE_TOTEMS } from './config';
 import { money } from './format';
 import { t } from './i18n';
-import { sleepReal, wait } from './anim';
+import { ease, sleepReal, tween, wait, speed } from './anim';
+import { sound } from './sound';
 
 const $ = <T extends HTMLElement = HTMLElement>(id: string) => document.getElementById(id) as T;
 
@@ -13,6 +14,10 @@ export class Ui {
   private toastTimer = 0;
   private stage = 0;
   private runes = 0;
+  private sceneUrls: string[] = [];
+  private sceneFront: 'a' | 'b' = 'a';
+  private sceneShown = -1;
+  runeIcon = '';
 
   constructor() {
     this.applyTexts();
@@ -20,34 +25,35 @@ export class Ui {
   }
 
   applyTexts() {
-    $('title').textContent = t('title');
     $('balance-label').textContent = t('balance');
     $('bet-label').textContent = t('bet');
     $('win-label').textContent = t('win');
-    $('turbo-label').textContent = t('turbo');
-    $('pyr-title').textContent = t('pyramid').toUpperCase();
-    this.spinBtn.textContent = t('spin');
+    $('pyr-title').textContent = t('pyramid');
+    $('spin-label').textContent = t('spin');
     const hunt = $('mode-bonushunt');
-    hunt.querySelector('b')!.textContent = `${t('bonushunt')}`;
-    hunt.querySelector('small')!.textContent = t('bonushuntDesc');
+    hunt.querySelector('b')!.textContent = t('bonushunt');
     const jag = $('mode-jaguar');
-    jag.querySelector('b')!.textContent = `${t('jaguar')}`;
-    jag.querySelector('small')!.textContent = t('jaguarDesc');
+    jag.querySelector('b')!.textContent = t('jaguar');
     $('mode-buy').querySelector('b')!.textContent = t('buy');
     $('confirm-no').textContent = t('no');
     $('confirm-yes').textContent = t('yes');
     $('rules-close').textContent = t('close');
+    $('buy-title').textContent = t('buyTitle');
+    $('buy-close').textContent = t('close');
+    $('turbo-wrap').title = t('turbo');
+    this.buildPyramid();
   }
 
-  /** mode prices depend on the bet */
+  /** Mode prices depend on the bet. */
   setModePrices(bet: number) {
     $('mode-bonushunt').querySelector('small')!.textContent = `${t('bonushuntDesc')} · ${money(bet * MODES.bonushunt.cost)}`;
     $('mode-jaguar').querySelector('small')!.textContent = `${t('jaguarDesc')} · ${money(bet * MODES.jaguar.cost)}`;
-    $('mode-buy').querySelector('small')!.textContent = money(bet * MODES.bonus.cost);
+    $('mode-buy').querySelector('small')!.textContent = t('buyFrom', { v: money(bet * MODES.bonus.cost) });
   }
 
   setActiveToggle(mode: string | null) {
     for (const m of ['bonushunt', 'jaguar']) $(`mode-${m}`).classList.toggle('on', mode === m);
+    $('spin-label').textContent = mode === 'jaguar' ? t('spinJaguar') : t('spin');
   }
 
   setBalance(v: number) {
@@ -62,19 +68,15 @@ export class Ui {
     this.winEl.classList.toggle('big', big);
   }
 
-  /** Count the win display up from `from` to `to`. */
-  async countWin(from: number, to: number, ms = 700) {
-    const steps = 20;
-    for (let i = 1; i <= steps; i++) {
-      this.setWin(from + ((to - from) * i) / steps, to > 0);
-      await wait(ms / steps);
-    }
+  async countWin(from: number, to: number, ms = 600) {
+    await tween(ms, (k) => this.setWin(from + (to - from) * k, to > 0), ease.outCubic);
     this.setWin(to, to > 0);
   }
 
   setBusy(busy: boolean, canSkip: boolean) {
     this.spinBtn.classList.toggle('busy', busy);
-    this.spinBtn.textContent = busy ? (canSkip ? t('skip') : '…') : t('spin');
+    if (busy) $('spin-label').textContent = canSkip ? t('skip') : '…';
+    else $('spin-label').textContent = $('mode-jaguar').classList.contains('on') ? t('spinJaguar') : t('spin');
     this.spinBtn.disabled = busy && !canSkip;
     for (const id of ['mode-bonushunt', 'mode-jaguar', 'mode-buy', 'bet-up', 'bet-down']) ($(id) as HTMLButtonElement).disabled = busy;
   }
@@ -82,15 +84,26 @@ export class Ui {
   hideBuy(hide: boolean) {
     $('mode-buy').hidden = hide;
   }
-
   setDemo(text: string | null) {
     const b = $('demo-badge');
     b.hidden = !text;
     if (text) b.textContent = text;
   }
-
   hideTurbo(hide: boolean) {
     $('turbo-wrap').hidden = hide;
+  }
+  setSoundIcon(muted: boolean) {
+    const w = document.getElementById('snd-waves');
+    const x = document.getElementById('snd-x');
+    if (w) w.style.display = muted ? 'none' : '';
+    if (x) x.style.display = muted ? '' : 'none';
+  }
+  setLoading(p: number) {
+    $('load-fill').style.width = `${Math.round(p * 100)}%`;
+  }
+  doneLoading() {
+    $('loading').classList.add('done');
+    setTimeout(() => ($('loading').hidden = true), 700);
   }
 
   toast(msg: string, ms = 3500) {
@@ -107,7 +120,6 @@ export class Ui {
     el.querySelector('.b-title')!.textContent = title;
     el.querySelector('.b-sub')!.textContent = sub;
     el.hidden = false;
-    // re-trigger css animation
     const tt = el.querySelector('.b-title') as HTMLElement;
     tt.style.animation = 'none';
     void tt.offsetWidth;
@@ -119,16 +131,31 @@ export class Ui {
   setFsCounter(n: number | null, total = 0) {
     const el = $('fs-counter');
     el.hidden = n === null;
-    if (n !== null) el.textContent = t('freeSpin', { n, t: total });
+    if (n !== null) el.textContent = t('freeSpin', { n: Math.max(1, n), t: total });
+  }
+
+  // ---------------------------------------------------------------- scenes
+  setSceneUrls(urls: string[]) {
+    this.sceneUrls = urls;
+    this.showScene(0);
+  }
+  private showScene(stage: number) {
+    if (stage === this.sceneShown || !this.sceneUrls[stage]) return;
+    this.sceneShown = stage;
+    const next = this.sceneFront === 'a' ? 'b' : 'a';
+    const nextEl = $(`scene-${next}`);
+    const curEl = $(`scene-${this.sceneFront}`);
+    nextEl.style.backgroundImage = `url(${this.sceneUrls[stage]})`;
+    nextEl.classList.add('on');
+    curEl.classList.remove('on');
+    this.sceneFront = next;
   }
 
   /** Background + pyramid state for a stage (0 = base game). */
   setStage(stage: number, runes = this.runes, bump = false) {
     this.stage = stage;
     this.runes = runes;
-    const [a, b] = STAGE_BG[stage] ?? STAGE_BG[0];
-    document.documentElement.style.setProperty('--bg1', a);
-    document.documentElement.style.setProperty('--bg2', b);
+    this.showScene(stage);
     $('pyramid').classList.toggle('active', stage > 0);
     this.renderPyramid(bump);
   }
@@ -142,9 +169,9 @@ export class Ui {
     this.tiersEl.innerHTML = '';
     for (let s = MAX_STAGE; s >= 1; s--) {
       const d = document.createElement('div');
-      d.className = 'tier';
+      d.className = `tier s${s}`;
       d.dataset.stage = String(s);
-      d.style.width = `${50 + (MAX_STAGE - s) * 16}%`;
+      d.style.width = `${46 + (MAX_STAGE - s) * 18}%`;
       const vals = STAGE_TOTEMS[s];
       d.innerHTML = `<div class="t-name">${t('stage', { n: s })}</div><div class="t-vals">${vals[0]}–${vals[vals.length - 1]}×</div><div class="t-runes"></div>`;
       const rr = d.querySelector('.t-runes')!;
@@ -152,6 +179,10 @@ export class Ui {
       this.tiersEl.appendChild(d);
     }
     this.renderPyramid(false);
+  }
+
+  private tierEl(stage: number): HTMLElement | null {
+    return this.tiersEl.querySelector(`.tier[data-stage="${stage}"]`);
   }
 
   private renderPyramid(bump: boolean) {
@@ -164,19 +195,109 @@ export class Ui {
         void el.offsetWidth;
         el.classList.add('bump');
       }
-      // runes of stage s fill the progress towards stage s+1
-      const runes = Array.from(el.querySelectorAll('.rune'));
-      runes.forEach((r, i) => {
-        const filled = this.runes - (s - 1) * RUNES_PER_STAGE;
-        r.classList.toggle('on', this.stage > 0 && i < filled);
-      });
+      const filled = this.runes - (s - 1) * RUNES_PER_STAGE;
+      el.querySelectorAll('.rune').forEach((r, i) => r.classList.toggle('on', this.stage > 0 && i < filled));
     }
     const info = $('pyr-info');
-    if (this.stage === 0) info.textContent = '';
+    if (this.stage === 0) info.textContent = t('pyrIdle');
     else if (this.stage >= MAX_STAGE) info.textContent = t('maxStage');
     else info.textContent = t('runesToNext', { n: this.stage * RUNES_PER_STAGE - this.runes });
   }
 
+  /** Runes fly from the board into the pyramid meter. */
+  async flyRunes(points: { x: number; y: number }[], stage: number) {
+    const target = this.tierEl(Math.max(1, Math.min(stage, MAX_STAGE))) ?? $('pyramid');
+    const r = target.getBoundingClientRect();
+    const tx = r.left + r.width / 2;
+    const ty = r.top + r.height / 2;
+    const els = points.map((p) => {
+      const img = document.createElement('img');
+      img.src = this.runeIcon;
+      img.className = 'fly-rune';
+      img.style.left = `${p.x}px`;
+      img.style.top = `${p.y}px`;
+      img.style.transitionDuration = `${0.7 / speed.factor()}s`;
+      document.body.appendChild(img);
+      return { img, p };
+    });
+    await sleepReal(30);
+    els.forEach(({ img, p }) => {
+      img.style.transform = `translate(${tx - p.x}px, ${ty - p.y}px) scale(0.45)`;
+      img.style.opacity = '0.3';
+    });
+    await sleepReal(720 / speed.factor());
+    els.forEach(({ img }) => img.remove());
+  }
+
+  // ---------------------------------------------------------------- overlays
+  private overlayBusy = false;
+  private async showOverlay(o: { kicker?: string; title: string; amount?: string; sub?: string; cls?: string; ms: number; count?: number }) {
+    const el = $('overlay');
+    const card = el.querySelector('.ov-card')!;
+    el.className = o.cls ?? '';
+    card.querySelector('.ov-kicker')!.textContent = o.kicker ?? '';
+    card.querySelector('.ov-title')!.textContent = o.title;
+    const amountEl = card.querySelector('.ov-amount') as HTMLElement;
+    amountEl.textContent = o.amount ?? '';
+    card.querySelector('.ov-sub')!.textContent = o.sub ?? '';
+    card.querySelector('.ov-hint')!.textContent = t('tapContinue');
+    const title = card.querySelector('.ov-title') as HTMLElement;
+    title.style.animation = 'none';
+    void title.offsetWidth;
+    title.style.animation = '';
+    el.hidden = false;
+    this.overlayBusy = true;
+    let skipped = false;
+    const onClick = () => (skipped = true);
+    el.addEventListener('click', onClick);
+    // count-up of the amount
+    if (o.count !== undefined) {
+      const target = o.count;
+      let lastCoin = 0;
+      await tween(
+        Math.min(4200, 1200 + target * 4),
+        (k) => {
+          if (skipped) k = 1;
+          amountEl.textContent = money(target * k);
+          if (k - lastCoin > 0.06) {
+            lastCoin = k;
+            sound.coin();
+          }
+        },
+        ease.outCubic,
+      );
+      amountEl.textContent = money(target);
+    }
+    const end = performance.now() + o.ms / speed.factor();
+    while (!skipped && performance.now() < end) await sleepReal(40);
+    el.removeEventListener('click', onClick);
+    el.hidden = true;
+    this.overlayBusy = false;
+  }
+  get busyOverlay() {
+    return this.overlayBusy;
+  }
+
+  async freeSpinsIntro(n: number) {
+    await this.showOverlay({ kicker: t('templeAwakes'), title: `${n} ${t('freeSpins')}`, sub: t('fsIntroSub'), ms: 2600 });
+  }
+  async stageUp(stage: number, extra: number, vals: string) {
+    await this.showOverlay({
+      kicker: t('stageNames' + stage),
+      title: t('stageUp', { n: stage }),
+      sub: `${t('extraSpins', { n: extra })} · ${t('newTotems', { v: vals })}`,
+      cls: stage >= 4 ? 'god' : '',
+      ms: 2600,
+    });
+  }
+  async summary(title: string, amount: string, good: boolean) {
+    await this.showOverlay({ kicker: t('fsOver'), title, amount, cls: good ? 'gold' : '', ms: 2600 });
+  }
+  async bigWin(title: string, amount: number, cls: string) {
+    await this.showOverlay({ title, count: amount, cls, ms: 1800 });
+  }
+
+  // ---------------------------------------------------------------- dialogs
   confirm(text: string): Promise<boolean> {
     const dlg = $<HTMLDialogElement>('confirm');
     $('confirm-text').textContent = text;
@@ -193,14 +314,49 @@ export class Ui {
     });
   }
 
+  /** Bonus-buy menu: returns the chosen mode or null. Two taps: choose, then confirm. */
+  buyMenu(bet: number, balance: number): Promise<string | null> {
+    const dlg = $<HTMLDialogElement>('buy-menu');
+    const cards = $('buy-cards');
+    cards.innerHTML = '';
+    return new Promise((resolve) => {
+      let armed: string | null = null;
+      const done = (v: string | null) => {
+        dlg.close();
+        resolve(v);
+      };
+      for (const b of BUYS) {
+        const def = MODES[b.mode];
+        const price = bet * def.cost;
+        const vals = STAGE_TOTEMS[b.stage];
+        const card = document.createElement('div');
+        card.className = 'buy-card';
+        const pyr = Array.from({ length: MAX_STAGE }, (_, i) => `<i class="${i < b.stage ? 'lit' : ''}" style="width:${64 - i * 12}px"></i>`).join('');
+        card.innerHTML = `<div class="bc-pyr">${pyr}</div><b>${t('buyName_' + b.mode)}</b><p>${t('buyDesc', { n: b.stage, v: `${vals[0]}–${vals[vals.length - 1]}×` })}</p><div class="price">${money(price)}</div><button></button>`;
+        const btn = card.querySelector('button')!;
+        btn.textContent = t('choose');
+        btn.disabled = price > balance + 1e-9;
+        btn.onclick = () => {
+          sound.click();
+          if (armed === b.mode) return done(b.mode);
+          armed = b.mode;
+          cards.querySelectorAll('.buy-card').forEach((c) => c.classList.remove('confirm'));
+          cards.querySelectorAll('.buy-card button').forEach((x) => ((x as HTMLButtonElement).textContent = t('choose')));
+          card.classList.add('confirm');
+          btn.textContent = t('buyNow', { v: money(price) });
+        };
+        cards.appendChild(card);
+      }
+      $('buy-close').onclick = () => done(null);
+      dlg.oncancel = () => resolve(null);
+      dlg.showModal();
+    });
+  }
+
   showRules(html: string) {
     const dlg = $<HTMLDialogElement>('rules');
     $('rules-body').innerHTML = html;
     dlg.showModal();
     $('rules-close').onclick = () => dlg.close();
-  }
-
-  async idle(ms: number) {
-    await sleepReal(ms);
   }
 }

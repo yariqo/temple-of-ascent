@@ -3,28 +3,60 @@ import { Application } from 'pixi.js';
 import { Board } from './board';
 import { Ui } from './ui';
 import { RoundPlayer } from './player';
-import { MODES, PAYTABLE, SYMBOL_STYLE } from './config';
+import { MODES, PAYTABLE } from './config';
 import { rulesHtml, setLanguage, t } from './i18n';
-import { money, setCurrency } from './format';
+import { setCurrency } from './format';
 import { fetchReplay, StakeRgs, urlParam } from './rgs';
 import { sleepReal, speed } from './anim';
+import { loadFonts } from './fonts';
+import { buildTextures, SYM_CANVAS } from './art/textures';
+import { drawScene } from './art/scene';
+import { makeCanvas } from './art/draw';
+import { sound } from './sound';
 import type { AuthInfo, Rgs, Round } from './types';
 
 const LANG = (urlParam('lang') ?? navigator.language ?? 'en').slice(0, 2).toLowerCase() === 'de' ? 'de' : 'en';
 
+function iconUrl(name: string, size = 64): string {
+  const [c, ctx] = makeCanvas(size);
+  ctx.drawImage(SYM_CANVAS[name], 0, 0, size, size);
+  return c.toDataURL();
+}
+
 function paytableHtml(): string {
   const rows = Object.entries(PAYTABLE)
-    .map(([s, p]) => `<tr><td>${SYMBOL_STYLE[s].icon} ${SYMBOL_STYLE[s].label}</td><td>3× ${p[0]}</td><td>4× ${p[1]}</td><td>5× ${p[2]}</td></tr>`)
+    .map(([s, p]) => `<tr><td><img src="${iconUrl(s)}" alt="${s}"></td><td>3× ${p[0]}</td><td>4× ${p[1]}</td><td>5× ${p[2]}</td></tr>`)
     .join('');
   const head = LANG === 'de' ? 'Gewinntabelle (× Einsatz)' : 'Paytable (× bet)';
-  const wild = LANG === 'de' ? '☀️ WILD (Walze 2–5) ersetzt alle normalen Symbole.' : '☀️ WILD (reels 2–5) substitutes for all regular symbols.';
-  return `<h4>${head}</h4><table>${rows}</table><p>${wild}</p>`;
+  const wild =
+    LANG === 'de'
+      ? 'WILD (Walze 2–5) ersetzt alle normalen Symbole. Die Sonnen-Glyphe startet Freispiele und zählt in den Freispielen als Rune.'
+      : 'WILD (reels 2–5) substitutes for all regular symbols. The sun glyph triggers free spins and counts as a rune during free spins.';
+  return `<h4>${head}</h4><table>${rows}</table><p><img src="${iconUrl('W')}" alt="Wild"> <img src="${iconUrl('S')}" alt="Glyph"> <img src="${iconUrl('T')}" alt="Stele"><br>${wild}</p>`;
+}
+
+async function sceneUrl(stage: number): Promise<string> {
+  const c = drawScene(stage);
+  return new Promise((res) => c.toBlob((b) => res(b ? URL.createObjectURL(b) : c.toDataURL('image/jpeg', 0.85)), 'image/jpeg', 0.86));
 }
 
 async function main() {
   const socialParam = urlParam('social') === 'true';
   setLanguage(LANG, socialParam);
+  document.documentElement.lang = LANG;
   const ui = new Ui();
+
+  // ---------- loading: fonts → textures → scenes → renderer ----------
+  ui.setLoading(0.1);
+  await loadFonts();
+  ui.applyTexts();
+  ui.setLoading(0.35);
+  buildTextures();
+  ui.runeIcon = iconUrl('S', 88);
+  ui.setLoading(0.55);
+  const scenes = await Promise.all([0, 1, 2, 3, 4].map(sceneUrl));
+  ui.setSceneUrls(scenes);
+  ui.setLoading(0.8);
 
   const host = document.getElementById('canvas-host')!;
   const app = new Application();
@@ -37,18 +69,38 @@ async function main() {
   });
   host.appendChild(app.canvas);
   const board = new Board(app);
-  // keep the canvas fitted to its box (grid layout changes on rotate / resize)
   new ResizeObserver(() => {
     app.resize();
     board.layout();
   }).observe(host);
   const player = new RoundPlayer(board, ui);
+  ui.setLoading(1);
 
+  // ambient fireflies / embers
+  let ambientStage = 0;
+  window.setInterval(() => board.ambient(ambientStage), 420);
+  const stageObserver = new MutationObserver(() => {
+    const cur = document.querySelector('.tier.current') as HTMLElement | null;
+    ambientStage = cur ? Number(cur.dataset.stage) : 0;
+  });
+  stageObserver.observe(document.getElementById('tiers')!, { subtree: true, attributes: true, attributeFilter: ['class'] });
+
+  // ---------- sound ----------
+  ui.setSoundIcon(sound.muted);
+  const unlock = () => sound.unlock();
+  window.addEventListener('pointerdown', unlock);
+  window.addEventListener('keydown', unlock);
+  document.getElementById('sound-btn')!.onclick = () => {
+    sound.unlock();
+    sound.setMuted(!sound.muted);
+    ui.setSoundIcon(sound.muted);
+  };
   document.getElementById('rules-btn')!.onclick = () => ui.showRules(rulesHtml(LANG) + paytableHtml());
 
   // ---------- replay of a finished round ----------
   if (urlParam('replay') === 'true') {
     ui.setDemo(t('replay'));
+    ui.doneLoading();
     const r = await fetchReplay().catch(() => null);
     if (!r) return ui.toast(t('error', { code: 'REPLAY' }), 1e9);
     ui.setBet(r.amount);
@@ -69,6 +121,7 @@ async function main() {
     rgs = new DemoRgs();
     ui.setDemo(t('demo'));
   } else {
+    ui.doneLoading();
     ui.toast(t('noSession'), 1e9);
     return;
   }
@@ -77,9 +130,11 @@ async function main() {
   try {
     auth = await rgs.authenticate();
   } catch (e: any) {
+    ui.doneLoading();
     ui.toast(t('error', { code: e?.code ?? 'AUTH' }), 1e9);
     return;
   }
+  ui.doneLoading();
 
   const jur = auth.jurisdiction ?? {};
   setCurrency(auth.currency);
@@ -126,11 +181,14 @@ async function main() {
     ui.setBalance(balance);
   }
 
+  let roundStarted = 0;
   async function play(mode: string) {
     if (busy) {
-      if (!jur.disabledSlamstop) speed.skip = true;
+      // skip / slam-stop – ignore the second half of an accidental double click
+      if (!jur.disabledSlamstop && performance.now() - roundStarted > 350) speed.skip = true;
       return;
     }
+    roundStarted = performance.now();
     const def = MODES[mode];
     const cost = bet() * def.cost;
     if (cost > balance + 1e-9) {
@@ -139,6 +197,7 @@ async function main() {
     }
     busy = true;
     speed.skip = false;
+    sound.click();
     ui.setBusy(true, !jur.disabledSlamstop);
     const started = performance.now();
     try {
@@ -165,30 +224,35 @@ async function main() {
   document.getElementById('spin')!.onclick = () => play(toggle ?? 'base');
   document.getElementById('bet-up')!.onclick = () => {
     if (busy) return;
+    sound.click();
     betIdx = Math.min(levels.length - 1, betIdx + 1);
     refresh();
   };
   document.getElementById('bet-down')!.onclick = () => {
     if (busy) return;
+    sound.click();
     betIdx = Math.max(0, betIdx - 1);
     refresh();
   };
   for (const m of ['bonushunt', 'jaguar'] as const) {
     document.getElementById(`mode-${m}`)!.onclick = () => {
       if (busy) return;
+      sound.click();
       toggle = toggle === m ? null : m;
       refresh();
     };
   }
   document.getElementById('mode-buy')!.onclick = async () => {
     if (busy) return;
-    const ok = await ui.confirm(t('buyConfirm', { cost: money(bet() * MODES.bonus.cost) }));
-    if (ok) play('bonus');
+    sound.click();
+    const choice = await ui.buyMenu(bet(), balance);
+    if (choice) play(choice);
   };
   window.addEventListener('keydown', (e) => {
     if (e.code !== 'Space' || jur.disabledSpacebar) return;
     if (document.querySelector('dialog[open]')) return;
     e.preventDefault();
+    if (e.repeat) return;
     play(toggle ?? 'base');
   });
 
@@ -202,6 +266,11 @@ async function main() {
     busy = false;
     ui.setBusy(false, false);
   }
+
+  // demo helper for automated tests
+  (window as any).__toa = { get busy() {
+    return busy;
+  } };
 }
 
 main();

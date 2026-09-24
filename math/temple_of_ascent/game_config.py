@@ -94,6 +94,8 @@ class GameConfig(Config):
         self.runes_per_stage = 3  # every 3 runes collected -> next stage
         self.stage_up_spins = 4  # extra spins awarded on every stage-up
         self.jaguar_spin_cost = 25.0  # cost of one Jaguar-Spin (feature spin) in bets
+        self.superbonus_cost = 200.0  # bonus buy starting on stage 2
+        self.godbonus_cost = 300.0  # bonus buy starting on stage 3
 
         # ---------------- Reels ----------------
         reels = {"BR0": "BR0.csv", "FR0": "FR0.csv", "WCAP": "FRWCAP.csv"}
@@ -165,7 +167,14 @@ class GameConfig(Config):
             "force_freegame": False,
         }
 
-        mode_maxwins = {"base": 10000, "bonushunt": 10000, "jaguar": 10000, "bonus": 10000}
+        # Super-Bonus / Goetter-Bonus: same free spins, but they start on stage 2 / stage 3 of the pyramid
+        def with_start(cond: dict, stage: int) -> dict:
+            c = dict(cond)
+            c["start_stage"] = stage
+            return c
+
+        mode_maxwins = {"base": 10000, "bonushunt": 10000, "jaguar": 10000, "bonus": 10000,
+                        "superbonus": 10000, "godbonus": 10000}
         self.bet_modes = [
             # Normal spin
             BetMode(
@@ -239,6 +248,44 @@ class GameConfig(Config):
                         conditions=wincap_condition,
                     ),
                     Distribution(criteria="freegame", quota=0.999, conditions=freegame_condition),
+                ],
+            ),
+            # Super-Bonus buy: free spins start on stage 2 (steles 5x-50x)
+            BetMode(
+                name="superbonus",
+                cost=self.superbonus_cost,
+                rtp=self.rtp,
+                max_win=mode_maxwins["superbonus"],
+                auto_close_disabled=False,
+                is_feature=False,
+                is_buybonus=True,
+                distributions=[
+                    Distribution(
+                        criteria="wincap",
+                        quota=0.001,
+                        win_criteria=mode_maxwins["superbonus"],
+                        conditions=with_start(wincap_condition, 2),
+                    ),
+                    Distribution(criteria="freegame", quota=0.999, conditions=with_start(freegame_condition, 2)),
+                ],
+            ),
+            # Goetter-Bonus buy: free spins start on stage 3 (steles 10x-250x)
+            BetMode(
+                name="godbonus",
+                cost=self.godbonus_cost,
+                rtp=self.rtp,
+                max_win=mode_maxwins["godbonus"],
+                auto_close_disabled=False,
+                is_feature=False,
+                is_buybonus=True,
+                distributions=[
+                    Distribution(
+                        criteria="wincap",
+                        quota=0.001,
+                        win_criteria=mode_maxwins["godbonus"],
+                        conditions=with_start(wincap_condition, 3),
+                    ),
+                    Distribution(criteria="freegame", quota=0.999, conditions=with_start(freegame_condition, 3)),
                 ],
             ),
         ]
