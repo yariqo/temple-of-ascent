@@ -19,6 +19,7 @@ export class RoundPlayer {
   private stage = 0;
   private scatterCount = 0;
   private capShown = false;
+  private finalAmount = 0;
 
   constructor(private board: Board, private ui: Ui) {
     // chime for every scatter / rune that lands, rising in pitch
@@ -39,6 +40,7 @@ export class RoundPlayer {
     this.inFreeSpins = false;
     this.stage = 0;
     this.capShown = false;
+    this.finalAmount = this.money(round.events.find((e) => e.type === 'finalWin')?.amount ?? 0);
     this.ui.setWin(null);
     for (const ev of round.events) await this.handle(ev);
     if (this.inFreeSpins) this.leaveFreeSpins();
@@ -48,6 +50,7 @@ export class RoundPlayer {
     this.inFreeSpins = false;
     this.stage = 0;
     this.ui.setFsCounter(null);
+    this.board.mascot.setFreeSpins(false);
     this.ui.setStage(0, 0);
     this.board.setTheme(0);
     sound.setLoop(0);
@@ -64,7 +67,9 @@ export class RoundPlayer {
     switch (ev.type) {
       case 'reveal': {
         this.scatterCount = 0;
+        this.board.mascot.watch();
         await this.board.spin(Board.visibleFromReveal(ev.board), ev.anticipation);
+        this.board.mascot.relax();
         await this.board.revealSteles(STAGE_TOTEMS[this.inFreeSpins ? this.stage : 0]);
         break;
       }
@@ -75,6 +80,8 @@ export class RoundPlayer {
         break;
       }
       case 'winInfo': {
+        // the jaguar only cheers for real wins (≥ round cost) – or any win inside free spins
+        if (this.inFreeSpins || this.money(ev.totalWin) >= this.bet * this.cost) void this.board.mascot.happy();
         await this.board.showWins(ev.wins, money(this.money(ev.totalWin)));
         break;
       }
@@ -97,6 +104,8 @@ export class RoundPlayer {
       case 'freeSpinTrigger': {
         await this.board.highlight(ev.positions, 1100, 0x7ff3ff);
         this.inFreeSpins = true;
+        this.board.mascot.setFreeSpins(true);
+        void this.board.mascot.roar();
         sound.gong();
         await this.ui.freeSpinsIntro(ev.totalFs);
         this.ui.setFsCounter(0, ev.totalFs);
@@ -104,6 +113,7 @@ export class RoundPlayer {
       }
       case 'stageInfo': {
         this.inFreeSpins = true;
+        this.board.mascot.setFreeSpins(true);
         this.setStage(ev.stage, ev.runes, true);
         if (ev.stage > 1) await this.ui.banner(t('stage', { n: ev.stage }), t('startsHigher'), 1500, 'gold');
         break;
@@ -128,12 +138,23 @@ export class RoundPlayer {
         const vals = STAGE_TOTEMS[ev.stage];
         this.setStage(ev.stage, undefined, true);
         this.board.celebrate(24);
+        void this.board.mascot.jump(1);
         await this.ui.stageUp(ev.stage, ev.extraSpins, `${vals[0]}–${vals[vals.length - 1]}×`);
         break;
       }
       case 'freeSpinEnd': {
-        const v = this.money(ev.amount);
-        await this.ui.summary(t('totalFs'), money(v), v >= this.bet * this.cost);
+        // one closing screen: the big-win screen if the round qualifies, otherwise the summary
+        const tier = this.tierFor(this.finalAmount);
+        if (tier && !this.capShown) {
+          this.capShown = true;
+          sound.fanfare();
+          this.board.celebrate(tier.min >= 500 ? 90 : tier.min >= 100 ? 60 : 36);
+          void this.board.mascot.jump(3);
+          await this.ui.bigWin(t(tier.key), this.finalAmount, tier.min >= 500 ? 'god' : tier.min >= 100 ? 'gold' : '', t('fsOver'));
+        } else if (!this.capShown) {
+          const v = this.money(ev.amount);
+          await this.ui.summary(t('totalFs'), money(v), v >= this.bet * this.cost);
+        }
         this.leaveFreeSpins();
         break;
       }
@@ -141,6 +162,7 @@ export class RoundPlayer {
         this.capShown = true;
         sound.fanfare();
         this.board.celebrate(80);
+        void this.board.mascot.jump(4);
         await this.ui.bigWin(t('maxWin'), this.money(ev.amount), 'god');
         break;
       }
@@ -156,13 +178,18 @@ export class RoundPlayer {
   }
 
   /** Big-win overlay – never for wins below the round cost. */
+  private tierFor(win: number) {
+    if (win < this.bet * this.cost) return undefined;
+    return WIN_TIERS.find((w) => win / this.bet >= w.min);
+  }
+
   private async celebrate(win: number) {
-    if (this.capShown || win < this.bet * this.cost) return;
-    const x = win / this.bet;
-    const tier = WIN_TIERS.find((w) => x >= w.min);
+    if (this.capShown) return;
+    const tier = this.tierFor(win);
     if (!tier) return;
     sound.fanfare();
     this.board.celebrate(tier.min >= 500 ? 90 : tier.min >= 100 ? 60 : 36);
+    void this.board.mascot.jump(tier.min >= 100 ? 3 : 2);
     await this.ui.bigWin(t(tier.key), win, tier.min >= 500 ? 'god' : tier.min >= 100 ? 'gold' : '');
   }
 }

@@ -6,11 +6,16 @@ import { TEX } from './art/textures';
 import { drawFrame } from './art/frame';
 import { Particles } from './fx/particles';
 import { sound, type Tier } from './sound';
+import { Mascot } from './mascot';
 
 export const CELL = 150;
 const W = REELS * CELL;
 const H = ROWS * CELL;
 const MARGIN = 40;
+/** room above the frame for the jaguar mascot, and to the right for its tail */
+const TOP = 112;
+const SIDE = 22;
+const MASCOT_SCALE = 0.62;
 const SYM_SIZE = CELL * 0.94;
 /** plate centre of the stele texture (y = 184 of 256) relative to the symbol centre */
 const PLATE_Y = ((184 - 128) / 256) * SYM_SIZE;
@@ -51,13 +56,48 @@ export function tierName(m: number): Tier {
   return totemTier(m).name as Tier;
 }
 
+let raysTex: Texture | null = null;
+/** soft rotating light wheel shown behind every bonus (scatter) symbol */
+function scatterRays(): Texture {
+  if (raysTex) return raysTex;
+  const c = document.createElement('canvas');
+  c.width = c.height = 256;
+  const ctx = c.getContext('2d')!;
+  ctx.translate(128, 128);
+  for (let i = 0; i < 12; i++) {
+    ctx.rotate(Math.PI / 6);
+    const g = ctx.createLinearGradient(0, 0, 0, -128);
+    g.addColorStop(0, 'rgba(160,250,255,0.9)');
+    g.addColorStop(1, 'rgba(160,250,255,0)');
+    ctx.beginPath();
+    ctx.moveTo(0, 0);
+    ctx.lineTo(-16, -128);
+    ctx.lineTo(16, -128);
+    ctx.closePath();
+    ctx.fillStyle = g;
+    ctx.fill();
+  }
+  return (raysTex = Texture.from(c));
+}
+
 /** One symbol on the board. */
 class SymbolView extends Container {
   sym: BoardSymbol = { name: 'L1' };
   golden = false;
   private glow = new Sprite(TEX.glow);
   private sprite = new Sprite(Texture.EMPTY);
-  private plate = new Text({ text: '', style: plateStyle.clone() });
+  private _rays: Sprite | null = null;
+  private _plate: Text | null = null;
+  /** created on demand – only steles need a value plate */
+  private get plate(): Text {
+    if (!this._plate) {
+      this._plate = new Text({ text: '', style: plateStyle.clone() });
+      this._plate.anchor.set(0.5);
+      this._plate.y = PLATE_Y;
+      this.addChild(this._plate);
+    }
+    return this._plate;
+  }
 
   constructor(sym: BoardSymbol, golden = false, blurred = false) {
     super();
@@ -66,9 +106,7 @@ class SymbolView extends Container {
     this.glow.visible = false;
     this.glow.blendMode = 'add';
     this.sprite.anchor.set(0.5);
-    this.plate.anchor.set(0.5);
-    this.plate.y = PLATE_Y;
-    this.addChild(this.glow, this.sprite, this.plate);
+    this.addChild(this.glow, this.sprite);
     this.set(sym, golden, blurred);
   }
 
@@ -78,9 +116,29 @@ class SymbolView extends Container {
     const key = sym.name === 'T' && golden ? 'TG' : sym.name;
     this.sprite.texture = (blurred ? TEX.blur[key] : TEX.sym[key]) ?? TEX.sym.L1;
     this.sprite.width = this.sprite.height = SYM_SIZE;
+    const isS = sym.name === 'S' && !blurred;
+    if (isS && !this._rays) {
+      this._rays = new Sprite(scatterRays());
+      this._rays.anchor.set(0.5);
+      this._rays.width = this._rays.height = CELL * 1.25;
+      this._rays.blendMode = 'add';
+      this._rays.alpha = 0.55;
+      this.addChildAt(this._rays, 0);
+    }
+    if (this._rays) this._rays.visible = isS;
     const isT = sym.name === 'T';
-    this.plate.visible = isT && !blurred;
-    if (isT) this.setPlate(sym.multiplier ?? 2);
+    if (isT) {
+      this.plate.visible = !blurred;
+      this.setPlate(sym.multiplier ?? 2);
+    } else if (this._plate) this._plate.visible = false;
+  }
+
+  /** called every frame – bonus symbols glow and breathe */
+  animate(time: number) {
+    if (!this._rays?.visible) return;
+    this._rays.rotation = time * 0.6;
+    this._rays.alpha = 0.45 + 0.25 * Math.sin(time * 3);
+    this.sprite.width = this.sprite.height = SYM_SIZE * (1 + 0.045 * Math.sin(time * 3));
   }
 
   setBlur(b: boolean) {
@@ -152,6 +210,7 @@ export class Board {
   private subText = new Text({ text: '', style: subStyle });
   private winText = new Text({ text: '', style: winStyle });
   readonly particles: Particles;
+  readonly mascot: Mascot;
   cells: SymbolView[][] = [];
   private baseX = 0;
   private baseY = 0;
@@ -175,7 +234,10 @@ export class Board {
     this.overlay.rect(-MARGIN, -MARGIN, W + 2 * MARGIN, H + 2 * MARGIN).fill({ color: 0x000000 });
     this.overlay.alpha = 0;
 
-    this.root.addChild(this.frame, cellBg, this.reelsLayer, this.overlay, this.lines, this.fx, this.particles.layer, this.eyes, this.winText, this.bigText, this.subText);
+    this.mascot = new Mascot(app.ticker);
+    this.mascot.root.scale.set(MASCOT_SCALE);
+    this.mascot.root.position.set(W + MARGIN - 10 - 404 * MASCOT_SCALE, -MARGIN + 12);
+    this.root.addChild(this.frame, this.mascot.root, cellBg, this.reelsLayer, this.overlay, this.lines, this.fx, this.particles.layer, this.eyes, this.winText, this.bigText, this.subText);
     for (const t of [this.bigText, this.subText, this.winText]) {
       t.anchor.set(0.5);
       t.visible = false;
@@ -206,12 +268,18 @@ export class Board {
     }
     this.buildEyes();
     this.layout();
+    let time = 0;
+    app.ticker.add((tk) => {
+      time += tk.deltaMS / 1000;
+      for (const col of this.cells) for (const v of col) if (!v.destroyed) v.animate(time);
+    });
   }
 
   layout() {
     const sw = this.app.screen.width;
     const sh = this.app.screen.height;
-    const s = Math.min((sw - 8) / (W + 2 * MARGIN), (sh - 8) / (H + 2 * MARGIN));
+    // the same room is reserved above and below, so the reels sit exactly in the centre
+    const s = Math.min((sw - 8) / (W + 2 * MARGIN + 2 * SIDE), (sh - 8) / (H + 2 * MARGIN + 2 * TOP));
     this.root.scale.set(s);
     this.root.position.set((sw - W * s) / 2, (sh - H * s) / 2);
     this.baseX = this.root.x;
@@ -235,11 +303,11 @@ export class Board {
     let anticSound = false;
     for (let r = 0; r < REELS; r++) {
       const ant = (anticipation[r] ?? 0) > 0;
-      if (ant) extra += 900;
-      const dur = 450 + r * 140 + extra;
+      if (ant) extra += 1200;
+      const dur = 650 + r * 180 + extra;
       if (ant && !anticSound) {
         anticSound = true;
-        void wait(dur - 900).then(() => sound.anticipation());
+        void wait(dur - 1200).then(() => sound.anticipation());
       }
       jobs.push(this.spinReel(r, target[r], dur, ant));
     }
@@ -261,14 +329,14 @@ export class Board {
     const startY = -(fresh.length + fillers.length) * CELL;
     reel.y = startY;
     // wind-up: nudge up a little, then blur and spin (the reel keeps moving the whole time)
-    await tween(110, (t) => (reel.y = startY - 26 * t), ease.outCubic);
+    await tween(150, (t) => (reel.y = startY - 30 * t), ease.outCubic);
     old.forEach((s) => s.setBlur(true));
     if (anticipate) this.antic[r].visible = true;
     let crisp = false;
     await tween(
       duration,
       (t) => {
-        reel.y = lerp(startY - 26, 0, t);
+        reel.y = lerp(startY - 30, 0, t);
         if (!crisp && t > 0.93) {
           crisp = true;
           fresh.forEach((s) => {
@@ -376,6 +444,7 @@ export class Board {
 
   private async jaguarRoar(golden: boolean) {
     sound.roar(golden);
+    void this.mascot.roar();
     const eyes = this.eyes;
     const dim = this.dim(0.55, 300);
     await tween(

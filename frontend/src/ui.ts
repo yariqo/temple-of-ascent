@@ -29,8 +29,9 @@ export class Ui {
     $('bet-label').textContent = t('bet');
     $('win-label').textContent = t('win');
     $('pyr-title').textContent = t('pyramid');
+    $('door-text').textContent = t('pyrIdle');
     $('spin-label').textContent = t('spin');
-    $('feature-label').textContent = t('featureBtn');
+    this.renderPill();
     $('turbo-label').textContent = t('turbo').toUpperCase();
     $('confirm-no').textContent = t('no');
     $('confirm-yes').textContent = t('yes');
@@ -49,16 +50,22 @@ export class Ui {
   setActiveToggle(mode: string | null) {
     this.toggle = mode;
     $('feature-btn').classList.toggle('active', !!mode);
-    $('feature-dot').hidden = !mode;
     $('spin').classList.toggle('jaguar', mode === 'jaguar');
     $('spin-label').textContent = mode === 'jaguar' ? t('spinJaguar') : t('spin');
     this.renderPill();
   }
 
+  /** BONUS tile text: invitation, or the active feature spin with its price. */
   private renderPill() {
-    const pill = $('feature-pill');
-    pill.hidden = !this.toggle;
-    if (this.toggle) $('feature-pill-text').textContent = t('pillOn', { name: t(this.toggle), v: money(this.bet * MODES[this.toggle].cost) });
+    const off = $('feature-pill-off');
+    off.hidden = !this.toggle;
+    if (this.toggle) {
+      $('feature-label').textContent = t(this.toggle);
+      $('feature-sub').textContent = t('tileActive', { v: money(this.bet * MODES[this.toggle].cost) });
+    } else {
+      $('feature-label').textContent = t('featureBtn');
+      $('feature-sub').textContent = t('tileSub');
+    }
   }
 
   setBalance(v: number) {
@@ -276,7 +283,7 @@ export class Ui {
       amountEl.textContent = money(target);
     }
     const end = performance.now() + o.ms / speed.factor();
-    while (!skipped && performance.now() < end) await sleepReal(40);
+    while (!skipped && !speed.skip && performance.now() < end) await sleepReal(40);
     el.removeEventListener('click', onClick);
     el.hidden = true;
     this.overlayBusy = false;
@@ -300,8 +307,8 @@ export class Ui {
   async summary(title: string, amount: string, good: boolean) {
     await this.showOverlay({ kicker: t('fsOver'), title, amount, cls: good ? 'gold' : '', ms: 2600 });
   }
-  async bigWin(title: string, amount: number, cls: string) {
-    await this.showOverlay({ title, count: amount, cls, ms: 1800 });
+  async bigWin(title: string, amount: number, cls: string, kicker = '') {
+    await this.showOverlay({ kicker, title, count: amount, cls, ms: 1800 });
   }
 
   // ---------------------------------------------------------------- dialogs

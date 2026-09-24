@@ -67,6 +67,12 @@ export class DemoRgs implements Rgs {
     return { balance: this.balance, round };
   }
 
+  /** Demo only: top up the play money. */
+  async refill(): Promise<number> {
+    this.balance = 1000;
+    return this.balance;
+  }
+
   async endRound(): Promise<number> {
     this.balance = round2(this.balance + this.pending);
     this.pending = 0;

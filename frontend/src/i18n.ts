@@ -14,6 +14,8 @@ const en: Dict = {
   jaguarDesc: 'golden steles every spin',
   buy: 'Buy Bonus',
   featureBtn: 'BONUS',
+  tileSub: 'Buy bonus · feature spins',
+  tileActive: 'active · {v} per spin',
   fmTitle: 'Bonus & Features',
   fmSpins: 'Feature spins',
   fmBuys: 'Buy bonus',
@@ -65,10 +67,12 @@ const en: Dict = {
   winGod: 'GODS WIN',
   tapContinue: 'tap to continue',
   demo: 'Demo · play money',
+  demoRefill: 'Play money topped up to 1,000. Tap spin again.',
   replay: 'Replay',
   insufficient: 'Your balance is too low for this bet. Lower the bet or choose a cheaper mode.',
   error: 'Connection problem ({code}). Please reload the game.',
   noSession: 'No game session. Please start the game via Stake.',
+  noGraphics: 'Your browser could not start the graphics. Please update the browser or enable hardware acceleration.',
   resume: 'Resuming your unfinished round…',
   rules: 'Rules',
   close: 'Close',
@@ -89,6 +93,8 @@ const de: Dict = {
   jaguarDesc: 'goldene Stelen bei jedem Spin',
   buy: 'Bonus kaufen',
   featureBtn: 'BONUS',
+  tileSub: 'Bonus kaufen · Feature-Spins',
+  tileActive: 'aktiv · {v} pro Spin',
   fmTitle: 'Bonus & Features',
   fmSpins: 'Feature-Spins',
   fmBuys: 'Bonus kaufen',
@@ -140,10 +146,12 @@ const de: Dict = {
   winGod: 'GÖTTER-GEWINN',
   tapContinue: 'tippen zum Fortfahren',
   demo: 'Demo · Spielgeld',
+  demoRefill: 'Spielgeld wieder auf 1.000 aufgefüllt. Tippe nochmal auf Drehen.',
   replay: 'Wiederholung',
   insufficient: 'Dein Guthaben reicht für diesen Einsatz nicht. Senke den Einsatz oder wähle einen günstigeren Modus.',
   error: 'Verbindungsproblem ({code}). Bitte lade das Spiel neu.',
   noSession: 'Keine Spielsitzung. Bitte starte das Spiel über Stake.',
+  noGraphics: 'Dein Browser konnte die Grafik nicht starten. Bitte aktualisiere den Browser oder schalte die Hardwarebeschleunigung ein.',
   resume: 'Deine unterbrochene Runde wird fortgesetzt…',
   rules: 'Regeln',
   close: 'Schließen',
@@ -152,8 +160,8 @@ const de: Dict = {
 
 // Stake US (social casino) must not use gambling wording.
 const socialOverrides: Record<string, Dict> = {
-  en: { bet: 'Play amount', buy: 'Get Bonus', buyTitle: 'Get Bonus', fmBuys: 'Get bonus', buyBtn: 'Get', buyNow: 'Get for {v}', buyConfirm: 'Get the free spins for {cost}?', yes: 'Get' },
-  de: { bet: 'Spielbetrag', buy: 'Bonus holen', buyTitle: 'Bonus holen', fmBuys: 'Bonus holen', buyBtn: 'Holen', buyNow: 'Holen für {v}', buyConfirm: 'Freispiele für {cost} holen?', yes: 'Holen' },
+  en: { tileSub: 'Get bonus · feature spins', bet: 'Play amount', buy: 'Get Bonus', buyTitle: 'Get Bonus', fmBuys: 'Get bonus', buyBtn: 'Get', buyNow: 'Get for {v}', buyConfirm: 'Get the free spins for {cost}?', yes: 'Get' },
+  de: { tileSub: 'Bonus holen · Feature-Spins', bet: 'Spielbetrag', buy: 'Bonus holen', buyTitle: 'Bonus holen', fmBuys: 'Bonus holen', buyBtn: 'Holen', buyNow: 'Holen für {v}', buyConfirm: 'Freispiele für {cost} holen?', yes: 'Holen' },
 };
 
 let dict: Dict = en;

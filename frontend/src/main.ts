@@ -61,13 +61,19 @@ async function main() {
 
   const host = document.getElementById('canvas-host')!;
   const app = new Application();
-  await app.init({
-    resizeTo: host,
-    backgroundAlpha: 0,
-    antialias: true,
-    resolution: Math.min(window.devicePixelRatio || 1, 2),
-    autoDensity: true,
-  });
+  try {
+    await app.init({
+      resizeTo: host,
+      backgroundAlpha: 0,
+      antialias: true,
+      resolution: Math.min(window.devicePixelRatio || 1, 2),
+      autoDensity: true,
+    });
+  } catch {
+    ui.doneLoading();
+    ui.toast(t('noGraphics'), 1e9);
+    return;
+  }
   host.appendChild(app.canvas);
   const board = new Board(app);
   new ResizeObserver(() => {
@@ -79,7 +85,8 @@ async function main() {
 
   // ambient fireflies / embers
   let ambientStage = 0;
-  window.setInterval(() => board.ambient(ambientStage), 420);
+  // (skipped while the tab is hidden – the renderer pauses and particles would pile up)
+  window.setInterval(() => !document.hidden && board.ambient(ambientStage), 420);
   const stageObserver = new MutationObserver(() => {
     const cur = document.querySelector('.tier.current') as HTMLElement | null;
     ambientStage = cur ? Number(cur.dataset.stage) : 0;
@@ -158,6 +165,7 @@ async function main() {
     ui.setBalance(balance);
     ui.setBet(bet());
     ui.setActiveToggle(toggle);
+    board.mascot.setGold(toggle === 'jaguar');
   };
   refresh();
 
@@ -173,11 +181,19 @@ async function main() {
   async function runRound(round: Round, betAmount: number, closeEarly: Promise<number> | null) {
     await player.play(round, betAmount, MODES[round.mode]?.cost ?? 1);
     if (round.active) {
-      try {
-        balance = closeEarly ? await closeEarly : await rgs.endRound();
-      } catch (e) {
-        ui.toast(errorText(e), 8000);
+      // close the round; retry a few times on network trouble so the win is never left open
+      let lastErr: unknown = null;
+      for (let attempt = 0; attempt < 3; attempt++) {
+        try {
+          balance = attempt === 0 && closeEarly ? await closeEarly : await rgs.endRound();
+          lastErr = null;
+          break;
+        } catch (e) {
+          lastErr = e;
+          await sleepReal(800 * (attempt + 1));
+        }
       }
+      if (lastErr) ui.toast(errorText(lastErr), 8000);
     }
     ui.setBalance(balance);
   }
@@ -252,6 +268,11 @@ async function main() {
     sound.click();
     setToggle(null);
   };
+  // buttons must not keep keyboard focus after a click, otherwise Space would also "click" them
+  document.addEventListener('click', (e) => {
+    const el = (e.target as HTMLElement).closest('button, label');
+    if (el && !el.closest('dialog')) (el as HTMLElement).blur();
+  });
   window.addEventListener('keydown', (e) => {
     if (e.code !== 'Space' || jur.disabledSpacebar) return;
     if (document.querySelector('dialog[open]')) return;
@@ -263,6 +284,11 @@ async function main() {
   // ---------- resume an unfinished round ----------
   if (auth.resumeRound) {
     const r = auth.resumeRound;
+    if (r.amount) {
+      const i = levels.findIndex((v) => Math.abs(v - r.amount!) < 1e-9);
+      if (i >= 0) betIdx = i;
+      refresh();
+    }
     busy = true;
     ui.setBusy(true, !jur.disabledSlamstop);
     ui.toast(t('resume'));

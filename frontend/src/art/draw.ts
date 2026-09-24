@@ -764,81 +764,106 @@ function drawWild(ctx: Ctx) {
 
 function drawScatter(ctx: Ctx) {
   const c = 128;
-  // light rays
+  // bright light rays all around
   ctx.save();
-  ctx.translate(c, c);
-  for (let i = 0; i < 12; i++) {
-    ctx.rotate(Math.PI / 6);
+  ctx.translate(c, c - 8);
+  for (let i = 0; i < 16; i++) {
+    ctx.rotate(Math.PI / 8);
     ctx.beginPath();
     ctx.moveTo(0, 0);
-    ctx.lineTo(-10, -124);
-    ctx.lineTo(10, -124);
+    ctx.lineTo(-13, -126);
+    ctx.lineTo(13, -126);
     ctx.closePath();
-    ctx.fillStyle = 'rgba(120,240,255,0.18)';
+    ctx.fillStyle = i % 2 ? 'rgba(255,236,150,0.32)' : 'rgba(120,245,255,0.38)';
     ctx.fill();
   }
   ctx.restore();
-  // glow
+  // strong glow
   ctx.beginPath();
-  ctx.arc(c, c, 100, 0, Math.PI * 2);
-  ctx.fillStyle = rad(ctx, c, c, 10, 100, [
-    [0, 'rgba(120,255,255,0.55)'],
-    [1, 'rgba(120,255,255,0)'],
+  ctx.arc(c, c - 8, 118, 0, Math.PI * 2);
+  ctx.fillStyle = rad(ctx, c, c - 8, 10, 118, [
+    [0, 'rgba(170,255,255,0.9)'],
+    [0.5, 'rgba(90,230,255,0.45)'],
+    [1, 'rgba(90,230,255,0)'],
   ]);
   ctx.fill();
-  // tablet (diamond stone)
-  shadow(ctx, 16, 8, 0.6);
+  ctx.save();
+  ctx.translate(0, -12);
+  // tablet (diamond stone) – larger, double gold border
+  shadow(ctx, 18, 8, 0.7);
   poly(ctx, [
-    [c, c - 96],
-    [c + 86, c],
-    [c, c + 96],
-    [c - 86, c],
+    [c, c - 104],
+    [c + 100, c],
+    [c, c + 104],
+    [c - 100, c],
   ]);
-  ctx.fillStyle = lin(ctx, 0, c - 96, 0, c + 96, [
-    [0, '#8ff7ff'],
-    [0.45, '#18a9c4'],
-    [1, '#063a52'],
-  ]);
+  ctx.fillStyle = lin(ctx, 0, c - 104, 0, c + 104, GOLD);
   ctx.fill();
   noShadow(ctx);
-  ctx.strokeStyle = lin(ctx, 0, c - 96, 0, c + 96, GOLD);
-  ctx.lineWidth = 8;
+  ctx.strokeStyle = INK;
+  ctx.lineWidth = 4;
   ctx.stroke();
   poly(ctx, [
-    [c, c - 70],
-    [c + 62, c],
-    [c, c + 70],
-    [c - 62, c],
+    [c, c - 90],
+    [c + 86, c],
+    [c, c + 90],
+    [c - 86, c],
   ]);
-  ctx.strokeStyle = 'rgba(255,255,255,0.35)';
-  ctx.lineWidth = 2;
+  ctx.fillStyle = lin(ctx, 0, c - 90, 0, c + 90, [
+    [0, '#c8fdff'],
+    [0.4, '#22c3de'],
+    [1, '#064a66'],
+  ]);
+  ctx.fill();
+  ctx.strokeStyle = INK;
+  ctx.lineWidth = 3;
   ctx.stroke();
+  // glossy highlight
+  poly(ctx, [
+    [c, c - 84],
+    [c + 42, c - 42],
+    [c, c - 20],
+    [c - 42, c - 42],
+  ]);
+  ctx.fillStyle = 'rgba(255,255,255,0.28)';
+  ctx.fill();
   // carved sun glyph
   ctx.beginPath();
-  ctx.arc(c, c, 22, 0, Math.PI * 2);
-  ctx.fillStyle = '#fff4c0';
+  ctx.arc(c, c, 26, 0, Math.PI * 2);
+  ctx.fillStyle = rad(ctx, c, c, 2, 26, [
+    [0, '#ffffff'],
+    [1, '#ffe27a'],
+  ]);
   ctx.fill();
   ctx.strokeStyle = '#6b3f06';
   ctx.lineWidth = 4;
   ctx.stroke();
   ctx.fillStyle = '#fff4c0';
+  ctx.strokeStyle = '#6b3f06';
+  ctx.lineWidth = 2;
   for (let i = 0; i < 8; i++) {
     const a = (i / 8) * Math.PI * 2;
     ctx.save();
-    ctx.translate(c + Math.cos(a) * 36, c + Math.sin(a) * 36);
+    ctx.translate(c + Math.cos(a) * 42, c + Math.sin(a) * 42);
     ctx.rotate(a + Math.PI / 2);
     poly(ctx, [
-      [-6, 6],
-      [6, 6],
-      [0, -9],
+      [-7, 7],
+      [7, 7],
+      [0, -11],
     ]);
     ctx.fill();
+    ctx.stroke();
     ctx.restore();
   }
   ctx.beginPath();
-  ctx.arc(c, c, 9, 0, Math.PI * 2);
+  ctx.arc(c, c, 11, 0, Math.PI * 2);
   ctx.fillStyle = '#e8a21a';
   ctx.fill();
+  ctx.restore();
+  ribbon(ctx, 'BONUS', 220, lin(ctx, 0, 200, 0, 240, [
+    [0, '#23c8d8'],
+    [1, '#075a70'],
+  ]));
 }
 
 /** Stele: carved stone pillar. The value plate (bottom) is left empty – the game writes the multiplier there. */

@@ -4,12 +4,13 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover" />
     <title>Temple of Ascent</title>
-    <script type="module" crossorigin src="./assets/index-D8LMXCRX.js"></script>
-    <link rel="stylesheet" crossorigin href="./assets/index-DU3BHVQ1.css">
+    <script type="module" crossorigin src="./assets/index-B8hmze3m.js"></script>
+    <link rel="stylesheet" crossorigin href="./assets/index-DL2sWBWk.css">
   </head>
   <body>
     <div id="scene-a" class="scene"></div>
     <div id="scene-b" class="scene"></div>
+    <div id="mist"></div>
 
     <div id="loading">
       <div class="load-logo">Temple<small>of</small>Ascent</div>
@@ -27,10 +28,34 @@
       </header>
 
       <main>
-        <aside id="pyramid" aria-label="Temple">
-          <div class="pyr-title" id="pyr-title">Temple</div>
-          <div class="tiers" id="tiers"></div>
-          <div class="pyr-info" id="pyr-info"></div>
+        <aside id="side">
+          <div id="pyramid" aria-label="Temple">
+            <div class="pyr-title" id="pyr-title">Temple</div>
+            <div class="tiers" id="tiers"></div>
+            <div class="pyr-info" id="pyr-info"></div>
+            <div class="pyr-door" aria-hidden="true">
+              <div class="door-half door-l"></div>
+              <div class="door-half door-r"></div>
+              <div class="door-seal">
+                <svg viewBox="0 0 48 48"><circle cx="24" cy="24" r="8" fill="currentColor"/><g stroke="currentColor" stroke-width="3" stroke-linecap="round"><path d="M24 6v6M24 36v6M6 24h6M36 24h6M11.3 11.3l4.2 4.2M32.5 32.5l4.2 4.2M11.3 36.7l4.2-4.2M32.5 15.5l4.2-4.2"/></g></svg>
+              </div>
+              <div class="door-text" id="door-text"></div>
+            </div>
+          </div>
+          <div class="bonus-wrap" id="bonus-wrap">
+            <button class="bonus-tile" id="feature-btn" aria-label="Bonus &amp; Features">
+              <span class="bt-shine" aria-hidden="true"></span>
+              <svg class="bt-icon" viewBox="0 0 48 48" aria-hidden="true">
+                <circle cx="24" cy="17" r="7" fill="currentColor"/>
+                <g stroke="currentColor" stroke-width="2.4" stroke-linecap="round">
+                  <path d="M24 4v3M13 8l2 2.2M35 8l-2 2.2M9 17h3M36 17h3"/>
+                </g>
+                <path fill="currentColor" d="M8 44h32l-3-6H11zM12 37h24l-3-6H15zM16 30h16l-2.5-5h-11z"/>
+              </svg>
+              <span class="bt-text"><b id="feature-label">BONUS</b><small id="feature-sub"></small></span>
+            </button>
+            <button class="bt-off" id="feature-pill-off" hidden aria-label="off">✕</button>
+          </div>
         </aside>
         <section id="stage-wrap">
           <div id="canvas-host"></div>
@@ -46,23 +71,11 @@
           <div class="stat" id="stat-win"><span id="win-label">Win</span><b id="win">–</b></div>
         </div>
         <div class="controls">
-          <button class="ctl-btn feature-btn" id="feature-btn" aria-label="Bonus &amp; Features">
-            <svg viewBox="0 0 48 48" aria-hidden="true">
-              <circle cx="24" cy="17" r="7" fill="currentColor" opacity="0.9"/>
-              <g stroke="currentColor" stroke-width="2.4" stroke-linecap="round" opacity="0.9">
-                <path d="M24 4v3M13 8l2 2.2M35 8l-2 2.2M9 17h3M36 17h3"/>
-              </g>
-              <path fill="currentColor" d="M8 44h32l-3-6H11zM12 37h24l-3-6H15zM16 30h16l-2.5-5h-11z"/>
-            </svg>
-            <span id="feature-label">BONUS</span>
-            <i class="feature-dot" id="feature-dot" hidden></i>
-          </button>
           <button class="ctl-btn round" id="bet-down" aria-label="lower bet">−</button>
           <button id="spin" aria-label="Spin"><span class="spin-ring"></span><span class="spin-arrows" aria-hidden="true"><svg viewBox="0 0 48 48"><path fill="none" stroke="currentColor" stroke-width="4" stroke-linecap="round" d="M38 20a15 15 0 0 0-27-5M10 28a15 15 0 0 0 27 5"/><path fill="currentColor" d="M8 8v10h10zM40 40V30H30z"/></svg></span><span id="spin-label">SPIN</span></button>
           <button class="ctl-btn round" id="bet-up" aria-label="raise bet">+</button>
           <label class="ctl-btn turbo-btn" id="turbo-wrap" title="Turbo"><input type="checkbox" id="turbo" /><svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M13 2 4 14h6l-1 8 9-12h-6z"/></svg><span id="turbo-label">TURBO</span></label>
         </div>
-        <div class="feature-pill" id="feature-pill" hidden><span id="feature-pill-text"></span><button id="feature-pill-off" aria-label="off">✕</button></div>
       </footer>
     </div>
 
