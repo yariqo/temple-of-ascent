@@ -106,7 +106,8 @@ export class RoundPlayer {
         this.inFreeSpins = true;
         this.board.mascot.setFreeSpins(true);
         void this.board.mascot.roar();
-        sound.gong();
+        sound.bonusChime();
+        window.setTimeout(() => sound.gong(), 350);
         await this.ui.freeSpinsIntro(ev.totalFs);
         this.ui.setFsCounter(0, ev.totalFs);
         break;
@@ -135,6 +136,7 @@ export class RoundPlayer {
       }
       case 'stageUp': {
         sound.gong(0.45);
+        sound.bonusChime();
         const vals = STAGE_TOTEMS[ev.stage];
         this.setStage(ev.stage, undefined, true);
         this.board.celebrate(24);

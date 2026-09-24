@@ -112,6 +112,11 @@ export class Ui {
     if (w) w.style.display = muted ? 'none' : '';
     if (x) x.style.display = muted ? '' : 'none';
   }
+  setMusicIcon(on: boolean) {
+    const x = document.getElementById('mus-x');
+    if (x) x.style.display = on ? 'none' : '';
+    $('music-btn').classList.toggle('off', !on);
+  }
   setLoading(p: number) {
     $('load-fill').style.width = `${Math.round(p * 100)}%`;
   }
@@ -167,6 +172,7 @@ export class Ui {
 
   /** Background + pyramid state for a stage (0 = base game). */
   setStage(stage: number, runes = this.runes, bump = false) {
+    if (this.stage === 0 && stage > 0) sound.doorOpen();
     this.stage = stage;
     this.runes = runes;
     this.showScene(stage);

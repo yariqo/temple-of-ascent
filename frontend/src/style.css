@@ -173,7 +173,7 @@ header {
   padding: 8px 4px 2px;
 }
 .logo {
-  font-size: clamp(18px, 3.2vw, 34px);
+  font-size: clamp(24px, 4.3vw, 50px);
   display: flex;
   align-items: center;
   gap: 0.35em;
@@ -189,6 +189,9 @@ header {
   justify-self: end;
   display: flex;
   gap: 8px;
+}
+.icon-btn.off {
+  opacity: 0.55;
 }
 .icon-btn {
   width: 40px;
@@ -1154,7 +1157,7 @@ dialog button.gold,
   }
   .logo {
     grid-area: logo;
-    font-size: 20px;
+    font-size: 27px;
     justify-content: center;
   }
   .icon-btn {
@@ -1369,7 +1372,7 @@ dialog button.gold,
     padding: 4px 0 2px;
   }
   .logo {
-    font-size: 18px;
+    font-size: 23px;
   }
   .icon-btn {
     width: 32px;

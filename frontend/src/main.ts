@@ -103,6 +103,12 @@ async function main() {
     sound.setMuted(!sound.muted);
     ui.setSoundIcon(sound.muted);
   };
+  ui.setMusicIcon(sound.musicOn);
+  document.getElementById('music-btn')!.onclick = () => {
+    sound.unlock();
+    sound.setMusic(!sound.musicOn);
+    ui.setMusicIcon(sound.musicOn);
+  };
   document.getElementById('rules-btn')!.onclick = () => ui.showRules(rulesHtml(LANG) + paytableHtml());
 
   // ---------- replay of a finished round ----------
@@ -257,15 +263,20 @@ async function main() {
   };
   document.getElementById('feature-btn')!.onclick = async () => {
     if (busy) return;
-    sound.click();
+    sound.menuOpen();
     const choice = await ui.featureMenu(bet(), balance, toggle);
     if (!choice) return;
-    if (choice.buy) play(choice.buy);
-    else if (choice.toggle !== undefined) setToggle(choice.toggle);
+    if (choice.buy) {
+      sound.purchase();
+      play(choice.buy);
+    } else if (choice.toggle !== undefined) {
+      sound.toggle(choice.toggle !== null);
+      setToggle(choice.toggle);
+    }
   };
   document.getElementById('feature-pill-off')!.onclick = () => {
     if (busy) return;
-    sound.click();
+    sound.toggle(false);
     setToggle(null);
   };
   // buttons must not keep keyboard focus after a click, otherwise Space would also "click" them

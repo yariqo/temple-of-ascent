@@ -2,6 +2,7 @@ import { Container, Sprite, Texture, type Ticker } from 'pixi.js';
 import { drawMascotBody, drawMascotHead, drawMascotTail, type Face } from './art/mascot';
 import { TEX } from './art/textures';
 import { ease, lerp, tween, wait } from './anim';
+import { sound } from './sound';
 
 const faces = new Map<string, Texture>();
 function faceTex(face: Face, glow: boolean): Texture {
@@ -137,6 +138,7 @@ export class Mascot {
   async jump(times = 2) {
     this.face = 'happy';
     for (let i = 0; i < times; i++) {
+      sound.whoosh();
       await tween(220, (t) => {
         this.rig.y = -46 * t;
         this.rig.scale.set(lerp(1, 1.04, t), lerp(1, 0.97, t));
