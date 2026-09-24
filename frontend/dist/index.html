@@ -1,0 +1,56 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
+    <title>Temple of Ascent</title>
+    <script type="module" crossorigin src="./assets/index-DRPmjP_H.js"></script>
+    <link rel="stylesheet" crossorigin href="./assets/index-BrroEoC0.css">
+  </head>
+  <body>
+    <div id="app">
+      <header>
+        <div class="brand"><span class="sun">☀</span> <span id="title">TEMPLE OF ASCENT</span></div>
+        <div class="head-right">
+          <span id="demo-badge" hidden></span>
+          <label class="chip" id="turbo-wrap"><input type="checkbox" id="turbo" /> <span id="turbo-label">Turbo</span></label>
+          <button class="chip" id="rules-btn">?</button>
+        </div>
+      </header>
+
+      <main>
+        <aside id="pyramid" aria-label="Temple">
+          <div class="pyr-title" id="pyr-title">Temple</div>
+          <div class="tiers" id="tiers"></div>
+          <div class="pyr-info" id="pyr-info"></div>
+        </aside>
+        <section id="stage-wrap">
+          <div id="canvas-host"></div>
+          <div id="fs-counter" hidden></div>
+          <div id="banner" hidden><div class="b-title"></div><div class="b-sub"></div></div>
+        </section>
+      </main>
+
+      <div id="modes">
+        <button class="mode" id="mode-bonushunt" data-mode="bonushunt"><b></b><small></small></button>
+        <button class="mode" id="mode-jaguar" data-mode="jaguar"><b></b><small></small></button>
+        <button class="mode buy" id="mode-buy"><b></b><small></small></button>
+      </div>
+
+      <footer>
+        <div class="stat"><span id="balance-label">Balance</span><b id="balance">–</b></div>
+        <div class="bet">
+          <button id="bet-down" aria-label="lower bet">−</button>
+          <div class="stat"><span id="bet-label">Bet</span><b id="bet">–</b></div>
+          <button id="bet-up" aria-label="raise bet">+</button>
+        </div>
+        <button id="spin">SPIN</button>
+        <div class="stat"><span id="win-label">Win</span><b id="win">–</b></div>
+      </footer>
+
+      <div id="toast" hidden></div>
+      <dialog id="confirm"><p id="confirm-text"></p><div class="row"><button id="confirm-no"></button><button id="confirm-yes" class="gold"></button></div></dialog>
+      <dialog id="rules"><div id="rules-body"></div><button id="rules-close" class="gold"></button></dialog>
+    </div>
+  </body>
+</html>
