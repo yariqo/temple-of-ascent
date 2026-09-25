@@ -5,6 +5,10 @@
  * Coordinates are in a 256×256 box ("u" = 1/256 of the size).
  */
 
+import { drawGem2, GEMS2 } from './gems2';
+import { drawStele2 } from './steles2';
+import { drawFrog2, drawJaguar2, drawQuetzal2, drawSerpent2, drawWild2 } from './highs';
+
 export const SYM = 256;
 
 type Ctx = CanvasRenderingContext2D;
@@ -56,10 +60,6 @@ function poly(ctx: Ctx, pts: [number, number][]) {
   ctx.closePath();
 }
 
-function ellipse(ctx: Ctx, x: number, y: number, rx: number, ry: number, rot = 0) {
-  ctx.beginPath();
-  ctx.ellipse(x, y, rx, ry, rot, 0, Math.PI * 2);
-}
 
 /** Aztec step-fret ring of little blocks around a circle. */
 function stepRing(ctx: Ctx, cx: number, cy: number, r: number, n: number, size: number, color: string) {
@@ -72,34 +72,6 @@ function stepRing(ctx: Ctx, cx: number, cy: number, r: number, n: number, size: 
     ctx.fillRect(-size / 2, -size / 2, size, size);
     ctx.restore();
   }
-}
-
-/** Round medallion behind premium symbols: coloured stone disc with a gold rim. */
-function medallion(ctx: Ctx, inner: string, outer: string) {
-  const c = 128;
-  shadow(ctx, 16, 8, 0.6);
-  ctx.beginPath();
-  ctx.arc(c, c, 112, 0, Math.PI * 2);
-  ctx.fillStyle = lin(ctx, 0, 16, 0, 240, GOLD);
-  ctx.fill();
-  noShadow(ctx);
-  ctx.beginPath();
-  ctx.arc(c, c, 98, 0, Math.PI * 2);
-  ctx.fillStyle = rad(ctx, c, c - 20, 10, 110, [
-    [0, inner],
-    [1, outer],
-  ]);
-  ctx.fill();
-  ctx.lineWidth = 4;
-  ctx.strokeStyle = 'rgba(40,20,0,0.8)';
-  ctx.stroke();
-  stepRing(ctx, c, c, 105, 24, 7, 'rgba(90,50,5,0.75)');
-  // subtle carved ring
-  ctx.beginPath();
-  ctx.arc(c, c, 88, 0, Math.PI * 2);
-  ctx.strokeStyle = 'rgba(255,255,255,0.08)';
-  ctx.lineWidth = 3;
-  ctx.stroke();
 }
 
 // ---------------------------------------------------------------- gems (L1–L5)
@@ -245,417 +217,6 @@ function star(ctx: Ctx, x: number, y: number, r: number, w: number) {
 
 // ---------------------------------------------------------------- premium symbols
 
-function drawJaguar(ctx: Ctx) {
-  medallion(ctx, '#1f6b55', '#07261c');
-  const c = 128;
-  // feather crest
-  const feathers = ['#e8423c', '#1fc1c9', '#f4c542', '#1fc1c9', '#e8423c'];
-  feathers.forEach((col, i) => {
-    const a = -Math.PI / 2 + (i - 2) * 0.32;
-    ctx.save();
-    ctx.translate(c, c + 10);
-    ctx.rotate(a + Math.PI / 2);
-    ellipse(ctx, 0, -92, 13, 34);
-    ctx.fillStyle = col;
-    ctx.fill();
-    ctx.strokeStyle = INK;
-    ctx.lineWidth = 3;
-    ctx.stroke();
-    ctx.restore();
-  });
-  // ears
-  for (const sx of [-1, 1]) {
-    ellipse(ctx, c + sx * 52, c - 44, 22, 24, sx * 0.4);
-    ctx.fillStyle = '#d98a18';
-    ctx.fill();
-    ctx.strokeStyle = INK;
-    ctx.lineWidth = 4;
-    ctx.stroke();
-    ellipse(ctx, c + sx * 52, c - 42, 11, 13, sx * 0.4);
-    ctx.fillStyle = '#5a2a05';
-    ctx.fill();
-  }
-  // head
-  shadow(ctx, 8, 4, 0.5);
-  ctx.beginPath();
-  ctx.moveTo(c - 66, c - 30);
-  ctx.quadraticCurveTo(c, c - 72, c + 66, c - 30);
-  ctx.quadraticCurveTo(c + 78, c + 30, c + 30, c + 62);
-  ctx.quadraticCurveTo(c, c + 76, c - 30, c + 62);
-  ctx.quadraticCurveTo(c - 78, c + 30, c - 66, c - 30);
-  ctx.closePath();
-  ctx.fillStyle = lin(ctx, 0, c - 70, 0, c + 70, [
-    [0, '#ffd36b'],
-    [0.5, '#f0a02a'],
-    [1, '#b8610c'],
-  ]);
-  ctx.fill();
-  noShadow(ctx);
-  ctx.strokeStyle = INK;
-  ctx.lineWidth = 5;
-  ctx.stroke();
-  // rosettes
-  const spots: [number, number, number][] = [
-    [-40, -34, 7],
-    [-18, -48, 6],
-    [18, -48, 6],
-    [40, -34, 7],
-    [-52, 6, 6],
-    [52, 6, 6],
-    [0, -30, 5],
-  ];
-  for (const [x, y, r] of spots) {
-    ctx.beginPath();
-    ctx.arc(c + x, c + y, r, 0, Math.PI * 2);
-    ctx.strokeStyle = '#4a2204';
-    ctx.lineWidth = 3;
-    ctx.stroke();
-    ctx.beginPath();
-    ctx.arc(c + x, c + y, r * 0.35, 0, Math.PI * 2);
-    ctx.fillStyle = '#4a2204';
-    ctx.fill();
-  }
-  // muzzle
-  ellipse(ctx, c - 15, c + 30, 20, 16);
-  ctx.fillStyle = '#fff1d0';
-  ctx.fill();
-  ellipse(ctx, c + 15, c + 30, 20, 16);
-  ctx.fill();
-  // eyes
-  for (const sx of [-1, 1]) {
-    ctx.save();
-    ctx.translate(c + sx * 28, c - 8);
-    ctx.rotate(sx * -0.25);
-    ellipse(ctx, 0, 0, 17, 10);
-    ctx.fillStyle = rad(ctx, 0, 0, 1, 17, [
-      [0, '#eafff6'],
-      [0.4, '#5ef0b0'],
-      [1, '#128a5a'],
-    ]);
-    ctx.fill();
-    ctx.strokeStyle = INK;
-    ctx.lineWidth = 4;
-    ctx.stroke();
-    ellipse(ctx, 0, 0, 3.2, 8);
-    ctx.fillStyle = '#0b0b0b';
-    ctx.fill();
-    ctx.restore();
-  }
-  // nose
-  poly(ctx, [
-    [c - 13, c + 10],
-    [c + 13, c + 10],
-    [c, c + 24],
-  ]);
-  ctx.fillStyle = '#6b2c1a';
-  ctx.fill();
-  ctx.strokeStyle = INK;
-  ctx.lineWidth = 3;
-  ctx.stroke();
-  // fangs
-  ctx.fillStyle = '#ffffff';
-  for (const sx of [-1, 1]) {
-    poly(ctx, [
-      [c + sx * 10, c + 42],
-      [c + sx * 22, c + 42],
-      [c + sx * 15, c + 62],
-    ]);
-    ctx.fill();
-    ctx.strokeStyle = INK;
-    ctx.lineWidth = 2.5;
-    ctx.stroke();
-  }
-}
-
-function drawQuetzal(ctx: Ctx) {
-  medallion(ctx, '#8a1c2b', '#2c050c');
-  const c = 128;
-  // tail feathers sweeping down-left
-  const tails: [string, number][] = [
-    ['#0f8f5c', 0.0],
-    ['#22c07a', 0.28],
-    ['#0a6b45', -0.28],
-  ];
-  for (const [col, off] of tails) {
-    ctx.save();
-    ctx.translate(c + 6, c + 20);
-    ctx.rotate(0.95 + off);
-    ctx.beginPath();
-    ctx.moveTo(0, 0);
-    ctx.quadraticCurveTo(22, 60, 0, 112);
-    ctx.quadraticCurveTo(-22, 60, 0, 0);
-    ctx.fillStyle = lin(ctx, 0, 0, 0, 112, [
-      [0, col],
-      [1, '#073d28'],
-    ]);
-    ctx.fill();
-    ctx.strokeStyle = INK;
-    ctx.lineWidth = 3;
-    ctx.stroke();
-    ctx.beginPath();
-    ctx.moveTo(0, 6);
-    ctx.lineTo(0, 104);
-    ctx.strokeStyle = 'rgba(255,255,255,0.35)';
-    ctx.lineWidth = 2;
-    ctx.stroke();
-    ctx.restore();
-  }
-  // body
-  shadow(ctx, 8, 4, 0.5);
-  ellipse(ctx, c + 10, c + 10, 46, 58, -0.35);
-  ctx.fillStyle = lin(ctx, c - 30, c - 40, c + 40, c + 60, [
-    [0, '#6ff0a8'],
-    [0.5, '#16a86a'],
-    [1, '#075236'],
-  ]);
-  ctx.fill();
-  noShadow(ctx);
-  ctx.strokeStyle = INK;
-  ctx.lineWidth = 5;
-  ctx.stroke();
-  // red breast
-  ctx.beginPath();
-  ctx.ellipse(c + 24, c + 30, 26, 36, -0.35, -0.6, Math.PI * 0.95);
-  ctx.fillStyle = lin(ctx, 0, c, 0, c + 70, [
-    [0, '#ff5a4a'],
-    [1, '#9a1020'],
-  ]);
-  ctx.fill();
-  // head
-  ctx.beginPath();
-  ctx.arc(c + 26, c - 46, 30, 0, Math.PI * 2);
-  ctx.fillStyle = lin(ctx, 0, c - 80, 0, c - 16, [
-    [0, '#8cffc0'],
-    [1, '#129a60'],
-  ]);
-  ctx.fill();
-  ctx.strokeStyle = INK;
-  ctx.lineWidth = 5;
-  ctx.stroke();
-  // crest
-  ctx.beginPath();
-  ctx.moveTo(c + 6, c - 66);
-  ctx.quadraticCurveTo(c + 20, c - 104, c + 44, c - 74);
-  ctx.quadraticCurveTo(c + 30, c - 80, c + 6, c - 66);
-  ctx.fillStyle = '#2ee08c';
-  ctx.fill();
-  ctx.stroke();
-  // beak
-  poly(ctx, [
-    [c + 50, c - 52],
-    [c + 76, c - 44],
-    [c + 50, c - 36],
-  ]);
-  ctx.fillStyle = lin(ctx, c + 50, 0, c + 76, 0, [
-    [0, '#ffe15a'],
-    [1, '#d88a10'],
-  ]);
-  ctx.fill();
-  ctx.strokeStyle = INK;
-  ctx.lineWidth = 3.5;
-  ctx.stroke();
-  // eye
-  ctx.beginPath();
-  ctx.arc(c + 34, c - 50, 8, 0, Math.PI * 2);
-  ctx.fillStyle = '#fff';
-  ctx.fill();
-  ctx.lineWidth = 3;
-  ctx.stroke();
-  ctx.beginPath();
-  ctx.arc(c + 36, c - 50, 4, 0, Math.PI * 2);
-  ctx.fillStyle = '#000';
-  ctx.fill();
-  // wing
-  ctx.beginPath();
-  ctx.moveTo(c - 18, c - 10);
-  ctx.quadraticCurveTo(c - 30, c + 40, c + 6, c + 64);
-  ctx.quadraticCurveTo(c + 4, c + 20, c - 18, c - 10);
-  ctx.fillStyle = '#0a6b45';
-  ctx.fill();
-  ctx.strokeStyle = INK;
-  ctx.lineWidth = 3;
-  ctx.stroke();
-}
-
-function drawSerpent(ctx: Ctx) {
-  medallion(ctx, '#4b2a7a', '#150828');
-  const c = 128;
-  // coiled body (S curve)
-  const path = () => {
-    ctx.beginPath();
-    ctx.moveTo(c - 70, c + 72);
-    ctx.bezierCurveTo(c - 10, c + 96, c + 70, c + 60, c + 40, c + 18);
-    ctx.bezierCurveTo(c + 10, c - 20, c - 70, c + 4, c - 50, c - 40);
-    ctx.bezierCurveTo(c - 36, c - 70, c + 4, c - 72, c + 20, c - 58);
-  };
-  shadow(ctx, 8, 5, 0.5);
-  path();
-  ctx.strokeStyle = INK;
-  ctx.lineWidth = 42;
-  ctx.stroke();
-  noShadow(ctx);
-  path();
-  ctx.strokeStyle = lin(ctx, 0, c - 70, 0, c + 90, [
-    [0, '#9dff7a'],
-    [0.5, '#2fa84a'],
-    [1, '#145c25'],
-  ]);
-  ctx.lineWidth = 34;
-  ctx.stroke();
-  // belly scales
-  path();
-  ctx.setLineDash([6, 10]);
-  ctx.strokeStyle = 'rgba(255,240,150,0.7)';
-  ctx.lineWidth = 12;
-  ctx.stroke();
-  ctx.setLineDash([]);
-  // feather collar
-  const collar = ['#e8423c', '#f4c542', '#1fc1c9', '#e8423c', '#f4c542'];
-  collar.forEach((col, i) => {
-    ctx.save();
-    ctx.translate(c + 22, c - 58);
-    ctx.rotate(-2.4 + i * 0.42);
-    ellipse(ctx, 0, -30, 9, 22);
-    ctx.fillStyle = col;
-    ctx.fill();
-    ctx.strokeStyle = INK;
-    ctx.lineWidth = 2.5;
-    ctx.stroke();
-    ctx.restore();
-  });
-  // head
-  ctx.save();
-  ctx.translate(c + 40, c - 62);
-  ctx.rotate(-0.2);
-  ellipse(ctx, 0, 0, 34, 24);
-  ctx.fillStyle = lin(ctx, 0, -24, 0, 24, [
-    [0, '#b6ff8c'],
-    [1, '#2a8a3c'],
-  ]);
-  ctx.fill();
-  ctx.strokeStyle = INK;
-  ctx.lineWidth = 5;
-  ctx.stroke();
-  // mouth + tongue
-  ctx.beginPath();
-  ctx.moveTo(10, 8);
-  ctx.lineTo(34, 6);
-  ctx.strokeStyle = INK;
-  ctx.lineWidth = 3;
-  ctx.stroke();
-  ctx.beginPath();
-  ctx.moveTo(32, 6);
-  ctx.lineTo(52, 10);
-  ctx.lineTo(58, 4);
-  ctx.moveTo(52, 10);
-  ctx.lineTo(58, 16);
-  ctx.strokeStyle = '#ff3b4f';
-  ctx.lineWidth = 3.5;
-  ctx.stroke();
-  // eye
-  ellipse(ctx, 6, -8, 8, 6);
-  ctx.fillStyle = '#ffe14a';
-  ctx.fill();
-  ctx.strokeStyle = INK;
-  ctx.lineWidth = 2.5;
-  ctx.stroke();
-  ellipse(ctx, 7, -8, 2, 5);
-  ctx.fillStyle = '#000';
-  ctx.fill();
-  ctx.restore();
-}
-
-function drawFrog(ctx: Ctx) {
-  medallion(ctx, '#155a78', '#041c28');
-  const c = 128;
-  const gold = () =>
-    lin(ctx, 0, c - 70, 0, c + 80, [
-      [0, '#fff3b0'],
-      [0.35, '#f2c040'],
-      [0.75, '#b7760f'],
-      [1, '#6e4106'],
-    ]);
-  shadow(ctx, 10, 6, 0.55);
-  // back legs
-  for (const sx of [-1, 1]) {
-    ellipse(ctx, c + sx * 50, c + 44, 30, 22, sx * 0.3);
-    ctx.fillStyle = gold();
-    ctx.fill();
-    ctx.strokeStyle = INK;
-    ctx.lineWidth = 4;
-    ctx.stroke();
-  }
-  // body
-  ellipse(ctx, c, c + 22, 56, 50);
-  ctx.fillStyle = gold();
-  ctx.fill();
-  noShadow(ctx);
-  ctx.strokeStyle = INK;
-  ctx.lineWidth = 5;
-  ctx.stroke();
-  // belly engraving (step pattern)
-  ctx.strokeStyle = 'rgba(90,50,5,0.7)';
-  ctx.lineWidth = 3;
-  for (let i = 0; i < 3; i++) {
-    const y = c + 20 + i * 12;
-    ctx.beginPath();
-    ctx.moveTo(c - 26 + i * 6, y);
-    ctx.lineTo(c - 10, y);
-    ctx.lineTo(c - 10, y - 6);
-    ctx.lineTo(c + 10, y - 6);
-    ctx.lineTo(c + 10, y);
-    ctx.lineTo(c + 26 - i * 6, y);
-    ctx.stroke();
-  }
-  // head
-  ellipse(ctx, c, c - 30, 62, 38);
-  ctx.fillStyle = gold();
-  ctx.fill();
-  ctx.strokeStyle = INK;
-  ctx.lineWidth = 5;
-  ctx.stroke();
-  // eyes
-  for (const sx of [-1, 1]) {
-    ctx.beginPath();
-    ctx.arc(c + sx * 36, c - 56, 20, 0, Math.PI * 2);
-    ctx.fillStyle = gold();
-    ctx.fill();
-    ctx.strokeStyle = INK;
-    ctx.lineWidth = 4;
-    ctx.stroke();
-    ctx.beginPath();
-    ctx.arc(c + sx * 36, c - 56, 12, 0, Math.PI * 2);
-    ctx.fillStyle = rad(ctx, c + sx * 36, c - 56, 1, 12, [
-      [0, '#bfffe6'],
-      [1, '#10a070'],
-    ]);
-    ctx.fill();
-    ellipse(ctx, c + sx * 36, c - 56, 8, 3);
-    ctx.fillStyle = '#000';
-    ctx.fill();
-  }
-  // mouth
-  ctx.beginPath();
-  ctx.moveTo(c - 44, c - 22);
-  ctx.quadraticCurveTo(c, c, c + 44, c - 22);
-  ctx.strokeStyle = INK;
-  ctx.lineWidth = 4;
-  ctx.stroke();
-  // front feet
-  for (const sx of [-1, 1]) {
-    ellipse(ctx, c + sx * 26, c + 66, 18, 10);
-    ctx.fillStyle = gold();
-    ctx.fill();
-    ctx.strokeStyle = INK;
-    ctx.lineWidth = 3.5;
-    ctx.stroke();
-  }
-  ctx.fillStyle = 'rgba(255,255,255,0.8)';
-  star(ctx, c - 30, c - 40, 9, 3);
-}
-
-// ---------------------------------------------------------------- specials
-
 function ribbon(ctx: Ctx, text: string, y: number, fill: string | CanvasGradient, color = '#fff6d0') {
   const c = 128;
   ctx.save();
@@ -683,83 +244,6 @@ function ribbon(ctx: Ctx, text: string, y: number, fill: string | CanvasGradient
   ctx.fillStyle = color;
   ctx.fillText(text, c, y + 2);
   ctx.restore();
-}
-
-function drawWild(ctx: Ctx) {
-  const c = 128;
-  // rays
-  shadow(ctx, 16, 8, 0.6);
-  ctx.beginPath();
-  for (let i = 0; i < 16; i++) {
-    const a = (i / 16) * Math.PI * 2 - Math.PI / 2;
-    const a1 = a - Math.PI / 16;
-    const a2 = a + Math.PI / 16;
-    ctx.moveTo(c + Math.cos(a1) * 82, c + Math.sin(a1) * 82);
-    ctx.lineTo(c + Math.cos(a) * 118, c + Math.sin(a) * 118);
-    ctx.lineTo(c + Math.cos(a2) * 82, c + Math.sin(a2) * 82);
-  }
-  ctx.fillStyle = lin(ctx, 0, 10, 0, 246, GOLD);
-  ctx.fill();
-  noShadow(ctx);
-  ctx.strokeStyle = INK;
-  ctx.lineWidth = 3;
-  ctx.stroke();
-  // outer disc
-  ctx.beginPath();
-  ctx.arc(c, c, 86, 0, Math.PI * 2);
-  ctx.fillStyle = lin(ctx, 0, 40, 0, 216, GOLD);
-  ctx.fill();
-  ctx.strokeStyle = INK;
-  ctx.lineWidth = 5;
-  ctx.stroke();
-  // turquoise ring with glyph dots
-  ctx.beginPath();
-  ctx.arc(c, c, 70, 0, Math.PI * 2);
-  ctx.fillStyle = rad(ctx, c, c, 30, 72, [
-    [0, '#3ee6e0'],
-    [1, '#0b6b78'],
-  ]);
-  ctx.fill();
-  ctx.stroke();
-  stepRing(ctx, c, c, 62, 20, 8, '#f6d36a');
-  // inner face disc
-  ctx.beginPath();
-  ctx.arc(c, c, 48, 0, Math.PI * 2);
-  ctx.fillStyle = lin(ctx, 0, 80, 0, 176, GOLD);
-  ctx.fill();
-  ctx.strokeStyle = INK;
-  ctx.lineWidth = 4;
-  ctx.stroke();
-  // face
-  ctx.fillStyle = INK;
-  for (const sx of [-1, 1]) {
-    ctx.fillRect(c + sx * 18 - 8, c - 14, 16, 8);
-  }
-  ctx.beginPath();
-  ctx.moveTo(c - 6, c - 4);
-  ctx.lineTo(c + 6, c - 4);
-  ctx.lineTo(c, c + 10);
-  ctx.closePath();
-  ctx.fill();
-  ctx.beginPath();
-  ctx.moveTo(c - 18, c + 18);
-  ctx.quadraticCurveTo(c, c + 30, c + 18, c + 18);
-  ctx.lineWidth = 4;
-  ctx.strokeStyle = INK;
-  ctx.stroke();
-  // tongue (the famous sun-stone tongue)
-  poly(ctx, [
-    [c - 7, c + 22],
-    [c + 7, c + 22],
-    [c + 4, c + 40],
-    [c - 4, c + 40],
-  ]);
-  ctx.fillStyle = '#e8423c';
-  ctx.fill();
-  ribbon(ctx, 'WILD', 214, lin(ctx, 0, 194, 0, 234, [
-    [0, '#d63a2e'],
-    [1, '#7a120c'],
-  ]));
 }
 
 /**
@@ -1165,41 +649,49 @@ export function drawStele(ctx: Ctx, skin: SteleSkin | boolean) {
   }
 }
 
+/** symbols are painted at 2× resolution (crisp on large / high-DPI screens) */
+export const SYM_RES = 2;
+
 export function drawSymbol(name: string): HTMLCanvasElement {
-  const [cv, ctx] = makeCanvas(SYM);
+  const [cv, ctx] = makeCanvas(SYM * SYM_RES);
+  ctx.scale(SYM_RES, SYM_RES);
+  if (GEMS2[name]) {
+    drawGem2(ctx, GEMS2[name]);
+    return cv;
+  }
   switch (name) {
     case 'H1':
-      drawJaguar(ctx);
+      drawJaguar2(ctx);
       break;
     case 'H2':
-      drawQuetzal(ctx);
+      drawQuetzal2(ctx);
       break;
     case 'H3':
-      drawSerpent(ctx);
+      drawSerpent2(ctx);
       break;
     case 'H4':
-      drawFrog(ctx);
+      drawFrog2(ctx);
       break;
     case 'W':
-      drawWild(ctx);
+      drawWild2(ctx);
       break;
     case 'S':
       drawScatter(ctx);
       break;
     case 'T':
-      drawStele(ctx, false);
+      drawStele2(ctx, 'stone');
       break;
     case 'TG':
-      drawStele(ctx, 'gold');
+      drawStele2(ctx, 'gold');
       break;
     case 'TB':
-      drawStele(ctx, 'bronze');
+      drawStele2(ctx, 'bronze');
       break;
     case 'TD':
-      drawStele(ctx, 'diamond');
+      drawStele2(ctx, 'diamond');
       break;
     case 'TO':
-      drawStele(ctx, 'obsidian');
+      drawStele2(ctx, 'obsidian');
       break;
     default:
       drawGem(ctx, GEMS[name] ?? GEMS.L1);

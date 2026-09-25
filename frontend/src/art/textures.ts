@@ -18,11 +18,12 @@ export const TEX: {
 export const SYM_CANVAS: Record<string, HTMLCanvasElement> = {};
 
 function motionBlur(src: HTMLCanvasElement): HTMLCanvasElement {
+  // the blurred copy is only seen while spinning – half resolution is plenty
   const [c, ctx] = makeCanvas(SYM);
   const n = 9;
   for (let i = 0; i < n; i++) {
     ctx.globalAlpha = 0.22;
-    ctx.drawImage(src, 0, (i - (n - 1) / 2) * 7);
+    ctx.drawImage(src, 0, (i - (n - 1) / 2) * 7, SYM, SYM);
   }
   return c;
 }

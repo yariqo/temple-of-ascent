@@ -9,10 +9,15 @@ import { drawMascotBody, drawMascotHead, drawMascotTail, MASCOT_GEO } from './ar
   const mode = new URLSearchParams(location.search).get('m') ?? 'sym';
   const ctx = c.getContext('2d')!;
   if (mode === 'sym') {
-    const cols = 5;
-    c.width = cols * SYM;
-    c.height = Math.ceil(ALL_SYMBOLS.length / cols) * SYM;
-    ALL_SYMBOLS.forEach((n, i) => ctx.drawImage(drawSymbol(n), (i % cols) * SYM, Math.floor(i / cols) * SYM));
+    const only = new URLSearchParams(location.search).get('only');
+    const list = only ? only.split(',') : ALL_SYMBOLS;
+    const cols = Math.min(5, list.length);
+    const Z = Number(new URLSearchParams(location.search).get('z') ?? 1) * SYM;
+    c.width = cols * Z;
+    c.height = Math.ceil(list.length / cols) * Z;
+    ctx.fillStyle = '#1b2a22';
+    ctx.fillRect(0, 0, c.width, c.height);
+    list.forEach((n, i) => ctx.drawImage(drawSymbol(n), (i % cols) * Z, Math.floor(i / cols) * Z, Z, Z));
   } else if (mode === 'logo') {
     const l = drawLogo();
     c.width = l.width;
