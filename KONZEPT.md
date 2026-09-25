@@ -1,4 +1,4 @@
-# BALAM – Spielkonzept (v0.15)
+# BALAM – Spielkonzept (v0.17)
 
 *Name: **BALAM** (Maya-Wort für Jaguar; Arbeitstitel vorher „Temple of Ascent“). Die internen IDs bleiben: game_id `temple_of_ascent`, Ordner `math/temple_of_ascent`. Thema: Azteken-Dschungel (siehe THEMA.md). Maskottchen: der Jaguar Balam.*
 
@@ -13,7 +13,7 @@ Die Anzahl der **BONUS-Symbole** entscheidet über den Bonus:
 | 4 | **Super-Bonus** | Stufe 2 |
 | 5 | **Göttlicher Bonus** | Stufe 3, gesammelte Multis bleiben |
 
-Jeder Bonus hat 10 Freispiele. In den Freispielen füllen BONUS-Symbole die Tempel-Pyramide. Alle 3 Symbole steigt man eine **Stufe** auf (max. Stufe 4). Das bringt **+4 Freispiele**, und die Stelen tragen **höhere Multis**.
+Tempel- und Super-Bonus haben 10 Freispiele, der Göttliche Bonus 8. In den Freispielen füllen BONUS-Symbole die Tempel-Pyramide. Alle 3 Symbole steigt man eine **Stufe** auf (max. Stufe 4). Das bringt **+4 Freispiele**, und die Stelen tragen **höhere Multis**. **Auf Stufe 4 bringt jedes BONUS-Symbol +1 Freispiel.** Die Werte der Stufe 4 (Obsidian) sind dafür etwas seltener: 25× 40 %, 50× 32 %, 100× 18 %, 250× 7 %, 500× 3 %.
 
 **Göttlicher Bonus:** Jede Stele, die an einem Gewinn beteiligt ist, wird eingesammelt, und ihr Wert **bleibt** bis zum Ende des Bonus. Jeder spätere Gewinn wird mit „gesammelt + neue Stelen“ multipliziert.
 
@@ -81,6 +81,16 @@ Fehlt in den Freispielen nur noch ein BONUS-Symbol zur nächsten Stufe, pulsiert
   - Jede Bonus-Stufe hat eine eigene Stimmung: Nacht, Morgen, Goldene Stunde, Blutrot, Finsternis.
 - **Info-Menü (?):** Reiter für Übersicht, Symbole, Stelen, Bonus, Features, Linien und Bedienung, mit Bildern, Beispielen und einer Grafik der 20 Linien.
 
+## Anzeige kleiner Gewinne
+- Goldene Gewinnlinien und kleine Betragsschilder am Ende jeder Linie.
+- Eine Plakette am unteren Rand des Spielfelds zeigt die Zusammensetzung: `$0.30 ×13 = $3.90`.
+- Die Stelen fliegen einzeln in den Multiplikator.
+
+## Bonus-Präsentation
+- Beim Stufenaufstieg erscheint eine Einblendung mit den Stelen der neuen Stufe, „Stelen jetzt 5×–50×“ und „+4 Freispiele“.
+- Auf Stufe 4 erscheint pro BONUS-Symbol das Banner „+1 FREISPIEL“.
+- Nach jedem Bonus kommt der **TOTAL WIN**-Screen mit dem Gesamtgewinn und der Zahl der gespielten Freispiele, bei großen Gewinnen nach der Big-Win-Feier.
+
 ## Big-Win-Stufen
 Ein großer Gewinn wird gefeiert, wenn er mindestens 20× Einsatz beträgt und nicht unter den Kosten der Runde liegt. Beim Hochzählen steigt der Titel Stufe für Stufe:
 
@@ -92,24 +102,24 @@ Ein großer Gewinn wird gefeiert, wenn er mindestens 20× Einsatz beträgt und n
 | 500× | LEGENDARY WIN | violette Sonnenfinsternis, Münzregen, der Jaguar brüllt |
 | 1000× | BALAM WIN | Regenbogen-Sonne, alles zusammen |
 
-Max-Win: **MAX WIN** in der höchsten Stufe. Jede Stufe hat eine eigene Hochzählzeit (3–9,4 s), mit Flash und Sound. Antippen springt zum Endbetrag.
+Max-Win: **MAX WIN** in der höchsten Stufe. Der Betrag zählt bis zur nächsten Schwelle, hält kurz an, dann springt der Titel mit neuer Animation eine Stufe höher (wie bei Hacksaw). Antippen springt zum Endbetrag.
 
-## Statistik je Modus (100.000 Runden pro Modus, finale Gewichte)
-| | Normal (1×) | Bonus-Jagd (1,5×) | Jaguar-Spin (25×) | Tempel (100×) | Super (200×) | Göttlich (500×) |
+## Statistik je Modus (100.000 Runden pro Modus, finale Gewichte, v0.17)
+| Modus | RTP | Gewinn ≥ Einsatz | Median | ≥ 1.000× | ≥ 5.000× | Max 10.000× |
 |---|---|---|---|---|---|---|
-| RTP | 96,00 % | 96,00 % | 96,00 % | 96,00 % | 96,00 % | 96,00 % |
-| Gewinn ≥ Einsatz | 13,4 % | 9,7 % | 27,8 % | 22,6 % | 25,9 % | 27,4 % |
-| Median-Gewinn | 0 | 0 | 14× | 34× | 85× | 200× |
-| Gewinn ≥ 1.000× | 1 von 30.000 | 1 von 11.600 | 1 von 16.800 | 1 von 113 | 1 von 40 | **1 von 8** |
-| Gewinn ≥ 5.000× | 1 von 760.000 | 1 von 279.000 | – | 1 von 14.700 | 1 von 1.550 | **1 von 190** |
-| Max-Gewinn 10.000× | 1 von 2 Mio. | 1 von 1 Mio. | – | 1 von 63.000 | 1 von 22.600 | 1 von 15.000 |
+| Normal (1×) | 96,00 % | 13,4 % | 0 | 1 von 28.400 | 1 von 569.000 | 1 von 1,6 Mio. |
+| Bonus-Jagd (1,5×) | 96,00 % | 9,7 % | 0 | 1 von 11.800 | 1 von 268.000 | 1 von 789.000 |
+| Jaguar-Spin (25×) | 96,00 % | 27,8 % | 14× | 1 von 16.800 | – | – |
+| Tempel-Bonus (100×) | 96,00 % | 22,1 % | 32× | 1 von 113 | 1 von 12.250 | 1 von 51.700 |
+| Super-Bonus (200×) | 96,00 % | 26,5 % | 83× | 1 von 40 | 1 von 1.900 | 1 von 30.200 |
+| Göttlicher Bonus (500×) | 96,00 % | 25,9 % | 166× | 1 von 8 | 1 von 138 | 1 von 13.800 |
 
 **Gewichtung:**
 - Die Books werden mit ihrer natürlichen Wahrscheinlichkeit gewichtet (`natural_weights.py`).
 - Nur die allergrößten Gewinne werden abgeschwächt, damit die Stake-Grenzen eingehalten werden.
 - Die 96 % werden mit einer minimalen Korrektur exakt getroffen.
 
-Alle 6 Modi bestehen die Prüfungen des SDK ohne Warnung:
+Alle 6 Modi bestehen die Prüfungen des SDK ohne Warnung. Zusätzlich prüft `bookcheck.py` alle 600.000 Runden auf innere Stimmigkeit (Gewinne, Multis, Stelenwerte, Stufen, Spins); es gab keinen Fehler.
 - Format
 - RTP ≤ 96,7 %
 - prob5k
@@ -148,6 +158,7 @@ Eigene Events:
 - `stageInfo`: `stage`, `divine`, `runes`, `runesToNext`, `totemValues`
 - `runeCollect`: `positions`, `runes`, `runesToNext`
 - `stageUp`: `stage`, `extraSpins`, `totalFs`, `totemValues`
+- `extraSpin` (nur Stufe 4): `extraSpins`, `totalFs`
 - `jaguarRoar`: `golden`, `totems[{reel,row,multiplier}]`
 
 ## Stand und nächste Schritte

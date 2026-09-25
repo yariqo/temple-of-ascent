@@ -224,38 +224,50 @@ export class BigWin {
     this.setLevel(1, false);
     sound.fanfare();
     opts.onTier?.(1);
-    let lastCoin = 0;
-    // every tier gets the same share of the count-up time, so each upgrade gets its moment
+    // Hacksaw style: count up to the next threshold, hold for a beat, then the next tier
+    // slams in with its own look – repeated until the final amount.
     const pts = [0, ...BIG_TIERS.map((tt) => tt.min).filter((m) => m < finalMult), finalMult];
-    const valueAt = (k: number) => {
-      const segs = pts.length - 1;
-      const x = Math.min(segs - 1e-9, k * segs);
-      const i = Math.floor(x);
-      const f = x - i;
-      const e = i === segs - 1 ? 1 - Math.pow(1 - f, 2) : f; // the last part slows down
-      return (pts[i] + (pts[i + 1] - pts[i]) * e) * bet;
+    const segs = pts.length - 1;
+    const segMs = DURATION[finalLv] / segs;
+    const put = (v: number) => {
+      this.amount.textContent = money(v);
+      this.mult.textContent = `×${(v / bet).toFixed(v / bet >= 100 ? 0 : 1)}`;
     };
-    // count up; the title upgrades whenever the next threshold is passed
-    await tween(
-      DURATION[finalLv],
-      (k) => {
-        if (skipped) k = 1;
-        const v = k >= 1 ? win : valueAt(k);
-        this.amount.textContent = money(v);
-        this.mult.textContent = `×${(v / bet).toFixed(v / bet >= 100 ? 0 : 1)}`;
-        const lv = k >= 1 ? finalLv : Math.min(finalLv, Math.max(1, tierLevel(v / bet)));
-        if (lv > this.level) {
-          this.setLevel(lv, opts.max === true && lv === 5);
-          sound.tierUp(lv);
-          opts.onTier?.(lv);
-        }
-        if (k - lastCoin > 0.035) {
-          lastCoin = k;
-          sound.coin();
-        }
-      },
-      ease.linear,
-    );
+    for (let i = 0; i < segs && !skipped; i++) {
+      const from = pts[i] * bet;
+      const to = pts[i + 1] * bet;
+      const last = i === segs - 1;
+      let lastCoin = 0;
+      await tween(
+        segMs,
+        (k) => {
+          if (skipped) return;
+          put(from + (to - from) * k);
+          if (k - lastCoin > 0.08) {
+            lastCoin = k;
+            sound.coin();
+          }
+        },
+        last ? ease.outCubic : (x) => x * x * (3 - 2 * x),
+      );
+      if (skipped || last) break;
+      // reached the next tier: the number sits on the threshold, then the new title slams in
+      put(to);
+      this.amount.classList.remove('hit');
+      void this.amount.offsetWidth;
+      this.amount.classList.add('hit');
+      await sleepReal(260 / speed.factor());
+      const lv = i + 2;
+      this.setLevel(lv, false);
+      sound.tierUp(lv);
+      opts.onTier?.(lv);
+      await sleepReal(420 / speed.factor());
+    }
+    if (this.level < finalLv) {
+      this.setLevel(finalLv, opts.max === true && finalLv === 5);
+      opts.onTier?.(finalLv);
+    }
+    put(win);
     if (opts.max) this.setLevel(5, true);
     this.amount.textContent = money(win);
     this.mult.textContent = `×${(win / bet).toFixed(finalMult >= 100 ? 0 : 1)}`;

@@ -52,7 +52,7 @@ async function main() {
   ui.setLoading(0.35);
   buildTextures();
   ui.runeIcon = iconUrl('S', 88);
-  ui.icons = { S: iconUrl('S', 116), TG: iconUrl('TG', 116) };
+  ui.icons = { S: iconUrl('S', 116), TG: iconUrl('TG', 116), T: iconUrl('T', 160), TB: iconUrl('TB', 160), TD: iconUrl('TD', 160), TO: iconUrl('TO', 160) };
   ui.setLoading(0.55);
   // animated jungle-temple backdrop (stage 0 now, the others are painted in idle time)
   const backdrop = new Backdrop();

@@ -275,6 +275,11 @@
             50
         ]
     },
+    "extraSpin": {
+        "type": "extraSpin",
+        "extraSpins": 1,
+        "totalFs": 23
+    },
     "jaguarRoar": {
         "type": "jaguarRoar",
         "golden": false,

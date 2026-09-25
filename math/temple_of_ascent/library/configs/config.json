@@ -2,7 +2,7 @@
     "workingName": "Temple of Ascent",
     "frontendConfig": {
         "file": "fe_config.json",
-        "sha256": "15590bf6a6250576b716441844ef45a234914956bd354b3de88775fa61d8de2e"
+        "sha256": "91650c3c639d3a947e8635c85ea33a101cb24ee214f982a0302cfe811c45bb29"
     },
     "gameID": "temple_of_ascent",
     "rtp": 96.0,
@@ -11,7 +11,7 @@
     "providerNumber": 0,
     "standardForceFile": {
         "file": "force.json",
-        "sha256": "4b9c35d2b3fc7a46c7bdb9dc9a9bd8a96bf19fff20a303109a85b02576874002"
+        "sha256": "be7d904f1cd0fddeb70deb5638e93dfc0920e16a02f9f96f3e8909e958de32f9"
     },
     "bookShelfConfig": [
         {
@@ -19,12 +19,12 @@
             "tables": [
                 {
                     "file": "lookUpTable_base_0.csv",
-                    "sha256": "88788b3d031a5fe44a9b9fc0d7df8994d2aebc94ff73140fb0336b3dc57e0af8"
+                    "sha256": "79b536c8cc02827373d1793ee1b67df69999886f33e122cbaba49c08c8224a40"
                 }
             ],
             "cost": 1.0,
             "rtp": 0.96,
-            "std": 18.35,
+            "std": 17.95,
             "bookLength": 100000,
             "feature": true,
             "autoEndRoundDisabled": false,
@@ -32,11 +32,11 @@
             "maxWin": 10000,
             "booksFile": {
                 "file": "books_base.jsonl.zst",
-                "sha256": "ea24ad3429efc90401629f767b89b965899d19857a29a9379f59014dd929f1ee"
+                "sha256": "2cb2d0752f8fc8094cbe64e9d857c8f212b253cce8a1c4997da39ce63379a2fa"
             },
             "forceFile": {
                 "file": "force_record_base.json",
-                "sha256": "6e985719703258c2aab3b161ca402511ddf6a50668e2730b0bb1850f1c7f55c4"
+                "sha256": "feb230ac9040d56588bdfa87713a25d72b5df5d1edab7e7df8d85e11e5d81a72"
             }
         },
         {
@@ -44,12 +44,12 @@
             "tables": [
                 {
                     "file": "lookUpTable_bonushunt_0.csv",
-                    "sha256": "12a53db0de9d794c3811967a6d7dfb76f84bf61eb77ff063d65d905a418a958f"
+                    "sha256": "89a275dad9da5256445f665fe689efc9ddcc6b606059d8f9ab51477f7665c7d3"
                 }
             ],
             "cost": 1.5,
             "rtp": 0.96,
-            "std": 17.83,
+            "std": 17.9,
             "bookLength": 100000,
             "feature": true,
             "autoEndRoundDisabled": false,
@@ -57,11 +57,11 @@
             "maxWin": 10000,
             "booksFile": {
                 "file": "books_bonushunt.jsonl.zst",
-                "sha256": "8fda0494ad7eaf9e1b1255af367f931b40864ee70f89c8892c728dffd68f229d"
+                "sha256": "d5f579ffbf48e0a57dbe3d9bdced85831b64adf3790f9af03d474dd3731294e3"
             },
             "forceFile": {
                 "file": "force_record_bonushunt.json",
-                "sha256": "9ecd20af32227558f098c2cfaf177065984ecfb74fa24bf9667ee4b33abca625"
+                "sha256": "e3b5e70691df64465c221b83ea7201425a6b647dd809136b1f32ac1acb79bb2f"
             }
         },
         {
@@ -94,12 +94,12 @@
             "tables": [
                 {
                     "file": "lookUpTable_bonus_0.csv",
-                    "sha256": "643e6d576486664b0303c5297ece4be08eaa70570bb0cfcc555f882760786a66"
+                    "sha256": "3303948b0044c790bc05ac5a57c2355cf56bab575a34f1bac4bd1684d9151243"
                 }
             ],
             "cost": 100.0,
             "rtp": 0.96,
-            "std": 2.14,
+            "std": 2.15,
             "bookLength": 100000,
             "feature": false,
             "autoEndRoundDisabled": false,
@@ -107,11 +107,11 @@
             "maxWin": 10000,
             "booksFile": {
                 "file": "books_bonus.jsonl.zst",
-                "sha256": "db1f234b5d62054272be52d0d855e323a96b058c60fc84929b26d425b5311733"
+                "sha256": "d8841e7903cca599185a6cbcf564bff975c3647656e8fc7c7019d5902bb0d94c"
             },
             "forceFile": {
                 "file": "force_record_bonus.json",
-                "sha256": "e55b0cb2408a67f8e296f8a2af8df0d27dafe80de6d8aa7ee7bf8653603c76d0"
+                "sha256": "739b0ef3c2cc4786a2dbb3132759bc23c8f4ac697fe5e2865405bb9467b7cf9f"
             }
         },
         {
@@ -119,12 +119,12 @@
             "tables": [
                 {
                     "file": "lookUpTable_superbonus_0.csv",
-                    "sha256": "ce934f519f85556296c7aa5556c1a48ed0229213c490b3fa6cedd749c8f63dab"
+                    "sha256": "bebcc6e9c3f4385f63f9cb14ee50f8967fc7c4194698832152c3dda59e230fa9"
                 }
             ],
             "cost": 200.0,
             "rtp": 0.96,
-            "std": 1.8,
+            "std": 1.72,
             "bookLength": 100000,
             "feature": false,
             "autoEndRoundDisabled": false,
@@ -132,11 +132,11 @@
             "maxWin": 10000,
             "booksFile": {
                 "file": "books_superbonus.jsonl.zst",
-                "sha256": "72b974ffd46d782063a1d71a8ce430f725899cb396d560400c8076abdc68cf10"
+                "sha256": "ca8186038ab6093a940c258b574f0ac7e4b07888c3e3aed9d779c4f385497407"
             },
             "forceFile": {
                 "file": "force_record_superbonus.json",
-                "sha256": "369578359ddb3446f0aa424dc90a9cf03720e4ad5f27d6e38f6bfd6db138fe15"
+                "sha256": "1797f16fcc72c54847cb42a7503fa0c3974e9c802794c0ed79d4695c2eb5ad06"
             }
         },
         {
@@ -144,12 +144,12 @@
             "tables": [
                 {
                     "file": "lookUpTable_godbonus_0.csv",
-                    "sha256": "87e4795d11eadbdb82c7a2e340bd4f662ecc99ac338a7987c030bf2d51a09e9b"
+                    "sha256": "653513778fb076f14c54e1982126e71c1aef2e5a4366606aa08bd6166352f454"
                 }
             ],
             "cost": 500.0,
             "rtp": 0.96,
-            "std": 1.6,
+            "std": 1.75,
             "bookLength": 100000,
             "feature": false,
             "autoEndRoundDisabled": false,
@@ -157,11 +157,11 @@
             "maxWin": 10000,
             "booksFile": {
                 "file": "books_godbonus.jsonl.zst",
-                "sha256": "a0d7d398a53af765bd261d0b8669ccd5a66e239a37a91f634b73dfab4a1019b0"
+                "sha256": "96bea50a8f57bb6e114ce5b30891f822ff04b2adaaa342d0956c9563abe478f0"
             },
             "forceFile": {
                 "file": "force_record_godbonus.json",
-                "sha256": "412f5f92a6ffe12461dc57df2381ac48a87366652d165636f71bde453be2304c"
+                "sha256": "aa3d04e0a7f478c6c1704d15c98a5ab87c32fe910befbbd8189fd29cf5c4534e"
             }
         }
     ]

@@ -69,14 +69,14 @@ const T = {
       <h4>Jaguar Roar</h4>
       <p>In the base game the jaguar Balam sometimes roars after the reels stop and throws <b>1–3 extra stone steles</b> (2×–25×) onto regular positions of the board.</p>`,
     bonus: (c: Ctx) => `
-      <p>The number of BONUS symbols decides which bonus you get. Every bonus starts with <b>10 free spins</b>.</p>
+      <p>The number of BONUS symbols decides which bonus you get. The Temple and Super Bonus start with <b>10 free spins</b>, the Divine Bonus with <b>8</b>.</p>
       <div class="bonus3">
         <div><div class="bx">${('<img src="' + c.icon('S') + '" alt="">').repeat(3)}</div><b>Temple Bonus</b><span>starts on stage 1 · stone steles 2×–25×</span></div>
         <div><div class="bx">${('<img src="' + c.icon('S') + '" alt="">').repeat(4)}</div><b>Super Bonus</b><span>starts on stage 2 · bronze steles 5×–50×</span></div>
         <div class="divine"><div class="bx">${('<img src="' + c.icon('S') + '" alt="">').repeat(5)}</div><b>Divine Bonus</b><span>starts on stage 3 · diamond steles 10×–250× · collected multipliers stay</span></div>
       </div>
       <h4>The temple pyramid</h4>
-      <p>During free spins every BONUS symbol is collected. Every <b>3 collected symbols</b> move you one stage up the pyramid (maximum stage 4). Each stage-up awards <b>+4 free spins</b>, and from the next spin on the steles are made of a stronger material.</p>
+      <p>During free spins every BONUS symbol is collected. Every <b>3 collected symbols</b> move you one stage up the pyramid (maximum stage 4). Each stage-up awards <b>+4 free spins</b>. On the top stage (4) <b>every BONUS symbol awards +1 free spin</b>.</p>
       <table class="stages"><tr><th>Stage</th><th>Steles</th><th>Values</th></tr>
         <tr><td>1</td><td>Stone</td><td>2×–25×</td></tr>
         <tr><td>2</td><td>Bronze</td><td>5×–50×</td></tr>
@@ -144,14 +144,14 @@ const T = {
       <h4>Jaguar-Ruf</h4>
       <p>Im Basisspiel brüllt der Jaguar Balam manchmal nach dem Walzenstopp und wirft <b>1–3 zusätzliche Stein-Stelen</b> (2×–25×) auf normale Felder.</p>`,
     bonus: (c: Ctx) => `
-      <p>Die Anzahl der BONUS-Symbole entscheidet über den Bonus. Jeder Bonus startet mit <b>10 Freispielen</b>.</p>
+      <p>Die Anzahl der BONUS-Symbole entscheidet über den Bonus. Tempel- und Super-Bonus starten mit <b>10 Freispielen</b>, der Göttliche Bonus mit <b>8</b>.</p>
       <div class="bonus3">
         <div><div class="bx">${('<img src="' + c.icon('S') + '" alt="">').repeat(3)}</div><b>Tempel-Bonus</b><span>Start auf Stufe 1 · Stein-Stelen 2×–25×</span></div>
         <div><div class="bx">${('<img src="' + c.icon('S') + '" alt="">').repeat(4)}</div><b>Super-Bonus</b><span>Start auf Stufe 2 · Bronze-Stelen 5×–50×</span></div>
         <div class="divine"><div class="bx">${('<img src="' + c.icon('S') + '" alt="">').repeat(5)}</div><b>Göttlicher Bonus</b><span>Start auf Stufe 3 · Diamant-Stelen 10×–250× · gesammelte Multis bleiben</span></div>
       </div>
       <h4>Die Tempel-Pyramide</h4>
-      <p>In den Freispielen wird jedes BONUS-Symbol gesammelt. Alle <b>3 gesammelten Symbole</b> steigst du eine Stufe auf (höchstens Stufe 4). Jeder Aufstieg bringt <b>+4 Freispiele</b>, und ab dem nächsten Spin sind die Stelen aus einem stärkeren Material.</p>
+      <p>In den Freispielen wird jedes BONUS-Symbol gesammelt. Alle <b>3 gesammelten Symbole</b> steigst du eine Stufe auf (höchstens Stufe 4). Jeder Aufstieg bringt <b>+4 Freispiele</b>. Auf der obersten Stufe (4) <b>bringt jedes BONUS-Symbol +1 Freispiel</b>.</p>
       <table class="stages"><tr><th>Stufe</th><th>Stelen</th><th>Werte</th></tr>
         <tr><td>1</td><td>Stein</td><td>2×–25×</td></tr>
         <tr><td>2</td><td>Bronze</td><td>5×–50×</td></tr>

@@ -101,3 +101,17 @@ def mult_collect_event(gamestate, totems: list, added: int, total: int):
         "total": int(total),
     }
     gamestate.book.add_event(event)
+
+
+EXTRA_SPIN = "extraSpin"
+
+
+def extra_spin_event(gamestate, spins: int):
+    """Top stage reached: every BONUS symbol that lands adds one free spin."""
+    event = {
+        "index": len(gamestate.book.events),
+        "type": EXTRA_SPIN,
+        "extraSpins": int(spins),
+        "totalFs": gamestate.tot_fs,
+    }
+    gamestate.book.add_event(event)

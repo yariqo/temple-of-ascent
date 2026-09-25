@@ -146,6 +146,12 @@ export class Ui {
     el.hidden = true;
   }
 
+  bumpFsCounter() {
+    const el = $('fs-counter');
+    el.classList.remove('bump');
+    void el.offsetWidth;
+    el.classList.add('bump');
+  }
   setFsCounter(n: number | null, total = 0) {
     const el = $('fs-counter');
     el.hidden = n === null;
@@ -300,18 +306,72 @@ export class Ui {
       ms: kind === 'godbonus' ? 3400 : 2600,
     });
   }
-  async stageUp(stage: number, extra: number, vals: string) {
-    await this.showOverlay({
-      kicker: t('stageNames' + stage),
-      title: t('stageUp', { n: stage }),
-      sub: `${t('extraSpins', { n: extra })} · ${t('newTotems', { v: vals })}`,
-      cls: stage >= 4 ? 'god' : '',
-      ms: 2600,
-    });
+  /** stage-up splash: the steles of the new stage, their value range and the extra spins */
+  async stageUp(stage: number, extra: number, values: number[]) {
+    const el = $('stagesplash');
+    el.className = `st${stage}`;
+    $('ss-kicker').textContent = t('stageNames' + stage);
+    $('ss-title').textContent = t('stageUp', { n: stage });
+    // which stele materials can show up now (material follows the value)
+    const lvl = (v: number) => (v >= 250 ? 3 : v >= 50 ? 2 : v >= 10 ? 1 : 0);
+    const keys = ['T', 'TB', 'TD', 'TO'];
+    const mats = [...new Set(values.map(lvl))].map((l) => keys[l]);
+    $('ss-steles').innerHTML = mats.map((k, i) => `<img src="${this.icons[k]}" alt="" style="animation-delay:${0.15 + i * 0.12}s">`).join('');
+    $('ss-vals').innerHTML = `${t('steleNow')} <b>${values[0]}×–${values[values.length - 1]}×</b>`;
+    $('ss-spins').textContent = t('extraSpins', { n: extra });
+    el.hidden = false;
+    this.overlayBusy = true;
+    let done = false;
+    const onClick = () => (done = true);
+    el.addEventListener('click', onClick);
+    const end = performance.now() + 2600 / speed.factor();
+    while (!done && !speed.skip && performance.now() < end) await sleepReal(40);
+    el.removeEventListener('click', onClick);
+    el.classList.add('out');
+    await sleepReal(280);
+    el.hidden = true;
+    this.overlayBusy = false;
   }
   async summary(title: string, amount: string, good: boolean) {
     await this.showOverlay({ kicker: t('fsOver'), title, amount, cls: good ? 'gold' : '', ms: 2600 });
   }
+  /** end-of-bonus screen: TOTAL WIN, counting amount, number of free spins played */
+  async totalWin(amount: number, spins: number, afterBig: boolean) {
+    const el = $('totalwin');
+    $('tw-title').textContent = t('totalWinTitle');
+    $('tw-spins').textContent = t('spinsPlayed', { n: spins });
+    $('tw-hint').textContent = t('tapAnywhere');
+    const amt = $('tw-amount');
+    el.hidden = false;
+    el.classList.remove('out');
+    this.overlayBusy = true;
+    let done = false;
+    const onClick = () => (done = true);
+    el.addEventListener('click', onClick);
+    sound.gong(0.25);
+    // count up (quick if the big-win screen already showed the amount)
+    await tween(
+      afterBig ? 700 : Math.min(2400, 900 + amount * 8),
+      (k) => {
+        if (done) k = 1;
+        amt.textContent = money(amount * k);
+      },
+      ease.outCubic,
+    );
+    amt.textContent = money(amount);
+    amt.classList.remove('pop');
+    void amt.offsetWidth;
+    amt.classList.add('pop');
+    const end = performance.now() + 6000 / speed.factor();
+    done = false;
+    while (!done && !speed.skip && performance.now() < end) await sleepReal(40);
+    el.removeEventListener('click', onClick);
+    el.classList.add('out');
+    await sleepReal(300);
+    el.hidden = true;
+    this.overlayBusy = false;
+  }
+
   private big: BigWin | null = null;
   /** escalating big-win celebration (BIG → MEGA → EPIC → LEGENDARY → BALAM) */
   async bigWin(amount: number, bet: number, opts: { kicker?: string; max?: boolean; onTier?: (lv: number) => void } = {}) {

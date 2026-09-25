@@ -72,7 +72,7 @@ class GameConfig(Config):
 
         # Free spins awarded by Runes in the base game
         self.freespin_triggers = {
-            self.basegame_type: {3: 10, 4: 10, 5: 10},  # every bonus: 10 free spins
+            self.basegame_type: {3: 10, 4: 10, 5: 8},  # Temple/Super 10 spins, Divine 8 (collected multis stay)
             self.freegame_type: {3: 0},  # runes do not retrigger, they upgrade the stage
         }
         self.anticipation_triggers = {
@@ -88,7 +88,7 @@ class GameConfig(Config):
             1: {2: 35, 3: 30, 5: 22, 10: 10, 25: 3},
             2: {5: 40, 10: 30, 15: 15, 25: 10, 50: 5},
             3: {10: 35, 20: 30, 25: 15, 50: 12, 100: 6, 250: 2},
-            4: {25: 35, 50: 30, 100: 20, 250: 10, 500: 5},
+            4: {25: 40, 50: 32, 100: 18, 250: 7, 500: 3},
         }
         self.max_stage = 4
         self.runes_per_stage = 3  # every 3 runes collected -> next stage

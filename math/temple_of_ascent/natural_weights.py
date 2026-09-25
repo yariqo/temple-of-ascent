@@ -43,7 +43,7 @@ PLAN = {
     # Divine Bonus (5 runes, 500x, collected multipliers stay): the max win (10000x) is trimmed
     # so that etl10k (<= 0.8, i.e. max win at most ~1 in 12500 bonuses) passes
     "godbonus": {"probs": {"wincap": 1e-6, "freegame": 1 - 1e-6}, "zero": None, "tilt": "freegame",
-                 "tail": [(10000, 0.06)]},
+                 "tail": [(10000, 0.045)]},
 }
 
 

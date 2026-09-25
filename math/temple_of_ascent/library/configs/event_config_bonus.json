@@ -4,23 +4,22 @@
         "board": [
             [
                 {
-                    "name": "L2"
-                },
-                {
-                    "name": "H4"
-                },
-                {
-                    "name": "S",
-                    "scatter": true
+                    "name": "L3"
                 },
                 {
                     "name": "L3"
                 },
                 {
-                    "name": "H4"
+                    "name": "L3"
                 },
                 {
-                    "name": "L4"
+                    "name": "L5"
+                },
+                {
+                    "name": "L2"
+                },
+                {
+                    "name": "H4"
                 }
             ],
             [
@@ -46,10 +45,7 @@
             ],
             [
                 {
-                    "name": "L5"
-                },
-                {
-                    "name": "L1"
+                    "name": "H4"
                 },
                 {
                     "name": "L5"
@@ -58,69 +54,72 @@
                     "name": "L3"
                 },
                 {
-                    "name": "L2"
+                    "name": "S",
+                    "scatter": true
                 },
-                {
-                    "name": "L4"
-                }
-            ],
-            [
                 {
                     "name": "L1"
                 },
                 {
-                    "name": "H4"
+                    "name": "L3"
+                }
+            ],
+            [
+                {
+                    "name": "L3"
                 },
                 {
                     "name": "S",
                     "scatter": true
                 },
                 {
-                    "name": "L5"
+                    "name": "H3"
+                },
+                {
+                    "name": "L3"
+                },
+                {
+                    "name": "L3"
+                },
+                {
+                    "name": "L2"
+                }
+            ],
+            [
+                {
+                    "name": "L2"
                 },
                 {
                     "name": "L1"
                 },
                 {
-                    "name": "W",
-                    "wild": true
-                }
-            ],
-            [
-                {
-                    "name": "H4"
+                    "name": "L2"
                 },
                 {
-                    "name": "L5"
+                    "name": "H2"
                 },
                 {
-                    "name": "L5"
+                    "name": "H2"
                 },
                 {
-                    "name": "L4"
-                },
-                {
-                    "name": "L5"
-                },
-                {
-                    "name": "H3"
+                    "name": "L2"
                 }
             ]
         ],
         "paddingPositions": [
-            66,
+            62,
             16,
-            9,
-            25,
-            53
+            -1,
+            48,
+            21
         ],
         "gameType": "basegame",
         "anticipation": [
             0,
             0,
+            0,
             1,
-            2,
-            3
+            2
         ]
     },
     "setTotalWin": {
@@ -132,16 +131,16 @@
         "totalFs": 10,
         "positions": [
             {
-                "reel": 0,
-                "row": 2
-            },
-            {
                 "reel": 1,
                 "row": 4
             },
             {
+                "reel": 2,
+                "row": 3
+            },
+            {
                 "reel": 3,
-                "row": 2
+                "row": 1
             }
         ]
     },
@@ -166,50 +165,16 @@
     },
     "winInfo": {
         "type": "winInfo",
-        "totalWin": 440,
+        "totalWin": 20,
         "wins": [
             {
-                "symbol": "L2",
-                "kind": 5,
-                "win": 400,
-                "positions": [
-                    {
-                        "reel": 0,
-                        "row": 1
-                    },
-                    {
-                        "reel": 1,
-                        "row": 1
-                    },
-                    {
-                        "reel": 2,
-                        "row": 1
-                    },
-                    {
-                        "reel": 3,
-                        "row": 1
-                    },
-                    {
-                        "reel": 4,
-                        "row": 1
-                    }
-                ],
-                "meta": {
-                    "lineIndex": 1,
-                    "multiplier": 1,
-                    "winWithoutMult": 400,
-                    "globalMult": 1,
-                    "lineMultiplier": 1
-                }
-            },
-            {
-                "symbol": "L2",
+                "symbol": "L4",
                 "kind": 3,
-                "win": 40,
+                "win": 20,
                 "positions": [
                     {
                         "reel": 0,
-                        "row": 1
+                        "row": 3
                     },
                     {
                         "reel": 1,
@@ -221,30 +186,53 @@
                     }
                 ],
                 "meta": {
-                    "lineIndex": 17,
+                    "lineIndex": 8,
                     "multiplier": 1,
-                    "winWithoutMult": 40,
+                    "winWithoutMult": 20,
                     "globalMult": 1,
                     "lineMultiplier": 1
                 }
             }
         ]
     },
+    "totemMultiplier": {
+        "type": "totemMultiplier",
+        "totems": [
+            {
+                "reel": 4,
+                "row": 4,
+                "multiplier": 2
+            }
+        ],
+        "totalMult": 2,
+        "keptMult": 0,
+        "baseWin": 20,
+        "totalWin": 40
+    },
     "setWin": {
         "type": "setWin",
-        "amount": 440,
-        "winLevel": 4
+        "amount": 40,
+        "winLevel": 2
     },
     "runeCollect": {
         "type": "runeCollect",
         "positions": [
             {
-                "reel": 4,
+                "reel": 2,
                 "row": 3
             }
         ],
         "runes": 1,
         "runesToNext": 2
+    },
+    "freeSpinEnd": {
+        "type": "freeSpinEnd",
+        "amount": 1000,
+        "winLevel": 4
+    },
+    "finalWin": {
+        "type": "finalWin",
+        "amount": 1000
     },
     "stageUp": {
         "type": "stageUp",
@@ -259,40 +247,17 @@
             50
         ]
     },
-    "totemMultiplier": {
-        "type": "totemMultiplier",
-        "totems": [
-            {
-                "reel": 2,
-                "row": 3,
-                "multiplier": 10
-            }
-        ],
-        "totalMult": 10,
-        "keptMult": 0,
-        "baseWin": 50,
-        "totalWin": 500
-    },
-    "freeSpinEnd": {
-        "type": "freeSpinEnd",
-        "amount": 3160,
-        "winLevel": 5
-    },
-    "finalWin": {
-        "type": "finalWin",
-        "amount": 3160
+    "extraSpin": {
+        "type": "extraSpin",
+        "extraSpins": 1,
+        "totalFs": 23
     },
     "jaguarRoar": {
         "type": "jaguarRoar",
         "golden": false,
         "totems": [
             {
-                "reel": 2,
-                "row": 2,
-                "multiplier": 5
-            },
-            {
-                "reel": 3,
+                "reel": 1,
                 "row": 2,
                 "multiplier": 3
             }

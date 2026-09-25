@@ -996,11 +996,14 @@ export class Board {
       .filter((x) => x.v) as { p: Pos; v: SymbolView; m?: number }[];
     const kept = this.keptBox.visible ? this.keptValue : 0;
     this.pills.children.forEach((c) => void tween(200, (k) => (c.alpha = 1 - k)));
+    // the multiplier slot stays invisible until the first stele has really been counted
     this.setPlaque(baseText, '×0', '');
+    this.pMult.alpha = 0;
     const target = () => ({ x: this.plaque.x + this.pMult.x + this.pMult.width / 2, y: this.plaque.y });
     let sum = 0;
     let i = 0;
     const show = (v: number) => {
+      this.pMult.alpha = 1;
       this.pMult.text = `×${v}`;
       this.layoutPlaque();
       this.pop(this.pMult);

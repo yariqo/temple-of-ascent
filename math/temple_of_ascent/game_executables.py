@@ -3,7 +3,7 @@
 import random
 
 from game_calculations import GameCalculations
-from game_events import totem_mult_event, rune_collect_event, stage_up_event, jaguar_roar_event, mult_collect_event
+from game_events import totem_mult_event, rune_collect_event, stage_up_event, jaguar_roar_event, mult_collect_event, extra_spin_event
 from src.calculations.statistics import get_random_outcome
 from src.calculations.lines import Lines
 from src.events.events import win_info_event, set_win_event, set_total_event
@@ -100,8 +100,13 @@ class GameExecutables(GameCalculations):
         ]
         if not positions:
             return
+        at_max = self.stage >= self.config.max_stage
         self.runes += len(positions)
         rune_collect_event(self, positions)
+        if at_max:
+            # on the top stage every BONUS symbol adds one more free spin
+            self.tot_fs += len(positions)
+            extra_spin_event(self, len(positions))
         while self.stage < self.config.max_stage and self.runes >= self.stage * self.config.runes_per_stage:
             self.stage += 1
             self.tot_fs += self.config.stage_up_spins

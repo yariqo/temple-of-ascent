@@ -296,17 +296,22 @@
             }
         ]
     },
+    "extraSpin": {
+        "type": "extraSpin",
+        "extraSpins": 1,
+        "totalFs": 23
+    },
     "multCollect": {
         "type": "multCollect",
         "totems": [
             {
                 "reel": 1,
                 "row": 1,
-                "multiplier": 25
+                "multiplier": 20
             }
         ],
-        "added": 25,
-        "total": 25
+        "added": 20,
+        "total": 20
     },
     "wincap": {
         "type": "wincap",

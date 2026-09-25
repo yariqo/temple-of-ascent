@@ -21,6 +21,7 @@ export class RoundPlayer {
   private scatterCount = 0;
   private capShown = false;
   private finalAmount = 0;
+  private spinsPlayed = 0;
   /** a single-spin round that ends in a big win: keep the amount hidden until the big-win screen */
   private quiet = false;
   /** a free spin whose own win is a big win (≥20×): same treatment inside the bonus */
@@ -50,6 +51,7 @@ export class RoundPlayer {
     this.inFreeSpins = false;
     this.stage = 0;
     this.capShown = false;
+    this.spinsPlayed = 0;
     this.finalAmount = this.money(round.events.find((e) => e.type === 'finalWin')?.amount ?? 0);
     this.ui.setWin(null);
     const hasBonus = round.events.some((e) => e.type === 'freeSpinTrigger');
@@ -151,6 +153,7 @@ export class RoundPlayer {
       case 'updateFreeSpin': {
         // a tap skips only the spin that is running – every new free spin plays at normal speed again
         speed.skip = false;
+        this.spinsPlayed = ev.amount + 1;
         this.ui.setFsCounter(ev.amount + 1, ev.total);
         this.board.clearWins();
         await wait(120);
@@ -165,6 +168,14 @@ export class RoundPlayer {
         this.ui.setRunes(ev.runes);
         break;
       }
+      case 'extraSpin': {
+        // top stage: every BONUS symbol adds a free spin
+        sound.bonusChime();
+        this.ui.setFsCounter(this.spinsPlayed, ev.totalFs);
+        this.ui.bumpFsCounter();
+        await this.ui.banner(t('extraSpin', { n: ev.extraSpins }), t('extraSpinSub'), 1300, 'gold');
+        break;
+      }
       case 'stageUp': {
         sound.gong(0.45);
         sound.bonusChime();
@@ -172,19 +183,19 @@ export class RoundPlayer {
         this.setStage(ev.stage, undefined, true);
         this.board.celebrate(8);
         void this.board.mascot.jump(1);
-        await this.ui.stageUp(ev.stage, ev.extraSpins, `${vals[0]}–${vals[vals.length - 1]}×`);
+        await this.ui.stageUp(ev.stage, ev.extraSpins, vals);
         break;
       }
       case 'freeSpinEnd': {
         // one closing screen: the big-win screen if the round qualifies, otherwise the summary
+        // big bonus: the big-win celebration first … then always the TOTAL WIN screen
         const tier = this.tierFor(this.finalAmount);
         if (tier && !this.capShown) {
           this.capShown = true;
           await this.ui.bigWin(this.finalAmount, this.bet, { kicker: t('fsOver'), onTier: (lv) => this.onTier(lv) });
-        } else if (!this.capShown) {
-          const v = this.money(ev.amount);
-          await this.ui.summary(t('totalFs'), money(v), v >= this.bet * this.cost);
         }
+        this.capShown = true;
+        await this.ui.totalWin(this.money(ev.amount), this.spinsPlayed, !!tier);
         this.leaveFreeSpins();
         break;
       }
