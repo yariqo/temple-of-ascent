@@ -126,14 +126,19 @@
       <div class="tw-hint" id="tw-hint"></div>
     </div>
     <dialog id="intro">
-      <div class="in-logo" id="in-logo"></div>
-      <div class="in-cards">
-        <div class="in-card c1"><i class="in-gem"></i><h3 id="in-t1"></h3><div class="in-art" id="in-a1"></div><p id="in-d1"></p></div>
-        <div class="in-card c2"><i class="in-gem"></i><h3 id="in-t2"></h3><div class="in-art" id="in-a2"></div><div class="in-big" id="in-v2"></div></div>
-        <div class="in-card c3"><i class="in-gem"></i><h3 id="in-t3"></h3><div class="in-art" id="in-a3"></div><p id="in-d3"></p></div>
+      <canvas id="in-bg" aria-hidden="true"></canvas>
+      <div class="in-vignette" aria-hidden="true"></div>
+      <div class="in-wrap">
+        <div class="in-logo" id="in-logo"></div>
+        <div class="in-cards">
+          <div class="in-card c1"><div class="in-shine"></div><div class="in-art" id="in-a1"></div><h3 id="in-t1"></h3><p id="in-d1"></p></div>
+          <div class="in-card c2"><div class="in-shine"></div><div class="in-art" id="in-a2"></div><h3 id="in-t2"></h3><div class="in-big" id="in-v2"></div><p id="in-d2"></p></div>
+          <div class="in-card c3"><div class="in-shine"></div><div class="in-art" id="in-a3"></div><h3 id="in-t3"></h3><p id="in-d3"></p></div>
+        </div>
+        <button class="in-go" id="in-go"><span id="in-go-t"></span></button>
       </div>
-      <button class="gold in-go" id="in-go"></button>
     </dialog>
+    <div id="gate" hidden aria-hidden="true"><div class="g-half l"></div><div class="g-half r"></div><div class="g-light"></div><div class="g-seal"></div></div>
     <dialog id="rules"><div id="rules-body"></div><button id="rules-close" class="gold"></button></dialog>
     <script type="module" src="/src/main.ts"></script>
   </body>

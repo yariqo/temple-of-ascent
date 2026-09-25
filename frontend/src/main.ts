@@ -169,7 +169,12 @@ async function main() {
   // start screen with the three feature tablets (not when an unfinished round is resumed)
   if (!auth.resumeRound) {
     const logo = (document.querySelector('#title img') as HTMLImageElement | null)?.src ?? '';
-    void ui.intro({ logo, bonus: iconUrl('S', 96), face: drawMascotHead('roar').toDataURL(), stele: iconUrl('TO', 128), stele2: iconUrl('TD', 128) });
+    void ui.intro({
+      logo,
+      bonus: iconUrl('S', 128),
+      face: drawMascotHead('roar').toDataURL(),
+      steles: { T: iconUrl('T', 128), TB: iconUrl('TB', 128), TD: iconUrl('TD', 128), TO: iconUrl('TO', 128) },
+    });
   }
   ui.hideTurbo(!!jur.disabledTurbo);
   ui.hideBuy(!!jur.disabledBuyFeature);

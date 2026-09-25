@@ -4,6 +4,7 @@ import { t } from './i18n';
 import { ease, sleepReal, tween, wait, speed } from './anim';
 import { sound } from './sound';
 import { BigWin } from './bigwin';
+import { IntroBg } from './introBg';
 
 const $ = <T extends HTMLElement = HTMLElement>(id: string) => document.getElementById(id) as T;
 
@@ -643,34 +644,92 @@ export class Ui {
   }
 
   /** start screen with three feature tablets; resolves when the player continues */
-  intro(art: { logo: string; bonus: string; face: string; stele: string; stele2: string }): Promise<void> {
+  /**
+   * Start screen: animated temple background, logo, three feature cards and PLAY.
+   * PLAY closes two stone gates over the screen, the intro vanishes behind them and the gates
+   * open onto the game.
+   */
+  intro(art: { logo: string; bonus: string; face: string; steles: Record<string, string> }): Promise<void> {
     const dlg = $<HTMLDialogElement>('intro');
+    const bg = new IntroBg($<HTMLCanvasElement>('in-bg'));
     $('in-logo').innerHTML = `<img src="${art.logo}" alt="BALAM RISING">`;
     $('in-t1').textContent = t('introT1');
     $('in-d1').textContent = t('introD1');
     $('in-t2').textContent = t('introT2');
-    $('in-v2').textContent = t('introV2');
+    $('in-d2').textContent = t('introD2');
     $('in-t3').textContent = t('introT3');
     $('in-d3').textContent = t('introD3');
-    $('in-go').textContent = t('introGo');
-    $('in-a1').innerHTML = [3, 4, 5].map((n) => `<div class="in-row">${`<img src="${art.bonus}" alt="">`.repeat(n)}</div>`).join('');
-    $('in-a2').innerHTML = `<div class="in-face"><img src="${art.face}" alt=""></div>`;
-    $('in-a3').innerHTML = `<img class="st a" src="${art.stele}" alt=""><img class="st b" src="${art.stele2}" alt="">`;
+    $('in-go-t').textContent = t('introGo');
+    // card 1: five BONUS symbols in an arc
+    $('in-a1').innerHTML =
+      '<div class="in-burst"></div>' +
+      [-2, -1, 0, 1, 2].map((k, i) => `<img class="in-sc" style="--k:${k};--i:${i}" src="${art.bonus}" alt="">`).join('') +
+      '<div class="in-five">5×</div>';
+    // card 2: roaring jaguar + max win count-up
+    $('in-a2').innerHTML = `<div class="in-rays"></div><img class="in-face" src="${art.face}" alt="">`;
+    const v2 = $('in-v2');
+    v2.textContent = '0×';
+    // card 3: stele staircase stone → obsidian
+    const st: [string, string][] = [
+      ['T', '2×'],
+      ['TB', '25×'],
+      ['TD', '250×'],
+      ['TO', '500×'],
+    ];
+    $('in-a3').innerHTML = st.map(([k, v], i) => `<div class="in-st" style="--i:${i}"><img src="${art.steles[k]}" alt=""><b>${v}</b></div>`).join('');
+    dlg.classList.remove('leaving');
     dlg.showModal();
+    bg.start();
+    // count the max win up once the card is in
+    const target = 10000;
+    const t0 = performance.now() + 900;
+    const count = () => {
+      if (!dlg.open) return;
+      const k = Math.max(0, Math.min(1, (performance.now() - t0) / 1600));
+      const e = 1 - Math.pow(1 - k, 3);
+      v2.textContent = `${Math.round(target * e).toLocaleString(document.documentElement.lang === 'de' ? 'de-DE' : 'en-US')}×`;
+      if (k < 1) requestAnimationFrame(count);
+      else v2.classList.add('done');
+    };
+    requestAnimationFrame(count);
+
     return new Promise((resolve) => {
-      const done = () => {
+      let leaving = false;
+      const done = async () => {
+        if (leaving) return;
+        leaving = true;
         sound.click();
-        dlg.classList.add('out');
-        window.setTimeout(() => {
-          dlg.close();
-          dlg.classList.remove('out');
-          resolve();
-        }, 350);
+        sound.gong(0.3);
+        dlg.classList.add('leaving');
+        // light surge in the background while the gates close
+        const s0 = performance.now();
+        const surge = () => {
+          bg.surge = Math.min(1, (performance.now() - s0) / 500);
+          if (dlg.open && bg.surge < 1) requestAnimationFrame(surge);
+        };
+        requestAnimationFrame(surge);
+        const gate = $('gate');
+        gate.hidden = false;
+        gate.className = '';
+        void gate.offsetWidth;
+        gate.classList.add('closing');
+        sound.doorOpen();
+        await sleepReal(560);
+        bg.stop();
+        dlg.close();
+        dlg.classList.remove('leaving');
+        await sleepReal(260);
+        gate.classList.remove('closing');
+        gate.classList.add('opening');
+        resolve();
+        await sleepReal(1300);
+        gate.hidden = true;
+        gate.className = '';
       };
       $('in-go').onclick = done;
       dlg.oncancel = (e) => {
         e.preventDefault();
-        done();
+        void done();
       };
     });
   }
