@@ -208,6 +208,20 @@ class Sound {
     seq.forEach((s, i) => this.tone(330 * Math.pow(2, s / 12), 0.35, { type: 'sawtooth', vol: 0.07, at: i * 0.11 }));
     seq.forEach((s, i) => this.tone(330 * Math.pow(2, s / 12), 0.35, { type: 'triangle', vol: 0.12, at: i * 0.11 }));
   }
+  /** rising tension before the next big-win tier */
+  riser(sec: number) {
+    if (!this.ok()) return;
+    const d = Math.max(0.3, sec);
+    this.noise(d, { freq: 300, sweep: 6000, vol: 0.07, type: 'bandpass' });
+    this.tone(110, d, { type: 'sawtooth', vol: 0.035, slide: 4, attack: d * 0.8 });
+  }
+  /** impact when a new big-win tier slams in */
+  boom(level: number) {
+    if (!this.ok()) return;
+    this.tone(48, 1.2, { type: 'sine', vol: 0.6, slide: 0.4 });
+    this.noise(0.9, { freq: 1800, sweep: 120, vol: 0.3, type: 'lowpass' });
+    this.noise(1.4, { freq: 9000, sweep: 5000, vol: 0.06 + level * 0.02, type: 'highpass', at: 0.02 });
+  }
   /** big-win tier upgrade: brass stab + cymbal, higher and fuller each tier */
   tierUp(level: number) {
     if (!this.ok()) return;

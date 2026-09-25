@@ -47,7 +47,7 @@ const subStyle = new TextStyle({
   align: 'center',
 });
 const winStyle = new TextStyle({
-  fontSize: 64,
+  fontSize: 104,
   fontWeight: '900',
   fontFamily: 'Cinzel, Georgia, serif',
   fill: 0xffe27a,
@@ -920,6 +920,24 @@ export class Board {
     if (!show) this.plaque.visible = false;
   }
 
+  /** total win pops up in the centre of the board for a moment */
+  private async centerPop(text: string) {
+    const t = this.winText;
+    t.text = text;
+    t.visible = true;
+    t.alpha = 1;
+    this.particles.emit(TEX.spark, W / 2, H / 2, { n: 22, speed: [100, 300], life: [400, 800], scale: [0.7, 0.05], tint: [0xffe066, 0xfff3c4], blend: 'add' });
+    sound.coin();
+    await tween(300, (k) => t.scale.set(lerp(0.3, 1.1, k)), ease.outBack);
+    await tween(120, (k) => t.scale.set(lerp(1.1, 1, k)));
+    await wait(750);
+    await tween(220, (k) => {
+      t.alpha = 1 - k;
+      t.scale.set(lerp(1, 1.15, k));
+    });
+    t.visible = false;
+  }
+
   private pop(t: Text) {
     void tween(260, (k) => t.scale.set(lerp(1.35, 1, k)), ease.outBack);
   }
@@ -1052,7 +1070,9 @@ export class Board {
       this.layoutPlaque();
       this.pop(this.pTotal);
       this.particles.emit(TEX.spark, this.plaque.x + this.pTotal.x + this.pTotal.width / 2, this.plaque.y, { n: 16, speed: [80, 220], life: [300, 700], scale: [0.6, 0.05], tint: [0xffe066, 0xfff3c4], blend: 'add' });
-      await wait(900);
+      await wait(380);
+      // the result also pops up big in the middle of the board
+      await this.centerPop(resultText);
     } else {
       await wait(300);
     }

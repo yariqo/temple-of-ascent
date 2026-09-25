@@ -63,6 +63,8 @@ export class BigWin {
       <canvas class="bw-fx"></canvas>
       <div class="bw-rays"></div>
       <div class="bw-flash"></div>
+      <div class="bw-shock"></div>
+      <div class="bw-shock s2"></div>
       <div class="bw-card">
         <div class="bw-face"><img alt=""></div>
         <div class="bw-kicker"></div>
@@ -79,6 +81,34 @@ export class BigWin {
     this.face = this.el.querySelector('.bw-face img')!;
     this.canvas = this.el.querySelector('.bw-fx')!;
     this.ctx = this.canvas.getContext('2d')!;
+  }
+
+  /** epic tier change: old title blasts away, shockwave, new title slams in */
+  private transition(lv: number, max: boolean) {
+    const old = this.title.cloneNode(true) as HTMLElement;
+    old.classList.remove('pop', 'slam');
+    old.classList.add('bw-ghost');
+    old.style.top = `${this.title.offsetTop}px`;
+    old.style.left = `${this.title.offsetLeft}px`;
+    old.style.width = `${this.title.offsetWidth}px`;
+    this.title.parentElement!.appendChild(old);
+    window.setTimeout(() => old.remove(), 700);
+    for (const sh of Array.from(this.el.querySelectorAll('.bw-shock')) as HTMLElement[]) {
+      sh.classList.remove('go');
+      void sh.offsetWidth;
+      sh.classList.add('go');
+    }
+    this.setLevel(lv, max);
+    this.title.classList.remove('pop');
+    void this.title.offsetWidth;
+    this.title.classList.add('slam');
+    this.el.classList.remove('impact');
+    void this.el.offsetWidth;
+    this.el.classList.add('impact');
+    // spark explosion (sparks and gems, only a few coins)
+    const w = this.canvas.width;
+    const h = this.canvas.height;
+    for (let i = 0; i < 26 + lv * 8; i++) this.spawn(w / 2, h * 0.42, lv, true, true);
   }
 
   private setLevel(lv: number, max: boolean) {
@@ -107,19 +137,19 @@ export class BigWin {
     for (let i = 0; i < n; i++) this.spawn(w / 2, h * 0.55, lv, true);
   }
 
-  private spawn(x: number, y: number, lv: number, burst = false) {
+  private spawn(x: number, y: number, lv: number, burst = false, blast = false) {
     const dpr = Math.min(2, window.devicePixelRatio || 1);
     const gemColors = ['#3ee6c0', '#7ff3ff', '#ff5a7a', '#b58bff', '#ffe27a'];
     const r = Math.random();
-    const kind: 0 | 1 | 2 = lv >= 3 && r < 0.12 ? 1 : r < 0.3 ? 2 : 0;
+    const kind: 0 | 1 | 2 = blast ? (r < 0.2 ? 1 : r < 0.85 ? 2 : 0) : lv >= 3 && r < 0.12 ? 1 : r < 0.3 ? 2 : 0;
     const ang = burst ? Math.random() * Math.PI * 2 : -Math.PI / 2 + (Math.random() - 0.5) * 0.9;
-    const sp = (burst ? 4 + Math.random() * 6 : 9 + Math.random() * 6) * dpr;
+    const sp = (blast ? 10 + Math.random() * 16 : burst ? 4 + Math.random() * 6 : 9 + Math.random() * 6) * dpr;
     this.parts.push({
       x,
       y,
       vx: Math.cos(ang) * sp,
       vy: Math.sin(ang) * sp - (burst ? 4 * dpr : 0),
-      r: (kind === 2 ? 3 : 9 + Math.random() * 8) * dpr * (lv >= 4 ? 1.2 : 1),
+      r: (kind === 2 ? (blast ? 3 + Math.random() * 3 : 3) : 9 + Math.random() * 8) * dpr * (lv >= 4 ? 1.2 : 1),
       a: Math.random() * Math.PI * 2,
       va: 0.1 + Math.random() * 0.25,
       life: 1,
@@ -151,7 +181,11 @@ export class BigWin {
       p.x += p.vx;
       p.y += p.vy;
       p.a += p.va;
-      if (p.kind === 2) p.life -= 0.02;
+      if (p.kind === 2) {
+        p.life -= 0.018;
+        p.vx *= 0.97;
+        p.vy *= 0.97;
+      }
       c.save();
       c.translate(p.x, p.y);
       if (p.kind === 0) {
@@ -226,7 +260,8 @@ export class BigWin {
     opts.onTier?.(1);
     // Hacksaw style: count up to the next threshold, hold for a beat, then the next tier
     // slams in with its own look – repeated until the final amount.
-    const pts = [0, ...BIG_TIERS.map((tt) => tt.min).filter((m) => m < finalMult), finalMult];
+    // BIG WIN is shown from the start; every further tier threshold below the final amount is a stop
+    const pts = [0, ...BIG_TIERS.slice(1).map((tt) => tt.min).filter((m) => m < finalMult), finalMult];
     const segs = pts.length - 1;
     const segMs = DURATION[finalLv] / segs;
     const put = (v: number) => {
@@ -238,33 +273,45 @@ export class BigWin {
       const to = pts[i + 1] * bet;
       const last = i === segs - 1;
       let lastCoin = 0;
+      let charging = false;
+      if (!last) sound.riser(segMs / 1000 / speed.factor());
       await tween(
         segMs,
         (k) => {
           if (skipped) return;
           put(from + (to - from) * k);
-          if (k - lastCoin > 0.08) {
+          // the last stretch before a new tier: everything starts to tremble and glow
+          if (!last && k > 0.6 && !charging) {
+            charging = true;
+            this.el.classList.add('charge');
+          }
+          if (charging) this.el.style.setProperty('--charge', String((k - 0.6) / 0.4));
+          if (k - lastCoin > (last ? 0.08 : 0.05)) {
             lastCoin = k;
             sound.coin();
           }
         },
-        last ? ease.outCubic : (x) => x * x * (3 - 2 * x),
+        // rushes up to the threshold, the last segment slows down to the final amount
+        last ? ease.outCubic : (x) => x * x * x * 0.55 + x * 0.45,
       );
+      this.el.classList.remove('charge');
+      this.el.style.setProperty('--charge', '0');
       if (skipped || last) break;
-      // reached the next tier: the number sits on the threshold, then the new title slams in
+      // threshold reached: short freeze … then the new tier explodes in
       put(to);
       this.amount.classList.remove('hit');
       void this.amount.offsetWidth;
       this.amount.classList.add('hit');
-      await sleepReal(260 / speed.factor());
-      const lv = i + 2;
-      this.setLevel(lv, false);
+      await sleepReal(200 / speed.factor());
+      const lv = tierLevel(pts[i + 1]);
+      this.transition(lv, false);
       sound.tierUp(lv);
+      sound.boom(lv);
       opts.onTier?.(lv);
-      await sleepReal(420 / speed.factor());
+      await sleepReal(650 / speed.factor());
     }
     if (this.level < finalLv) {
-      this.setLevel(finalLv, opts.max === true && finalLv === 5);
+      this.transition(finalLv, opts.max === true && finalLv === 5);
       opts.onTier?.(finalLv);
     }
     put(win);
