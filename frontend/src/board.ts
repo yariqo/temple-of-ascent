@@ -974,25 +974,112 @@ export class Board {
 
   async showWins(wins: { positions: Pos[]; win?: number }[], amountText: string, fmt?: (w: number) => string) {
     const all = new Set<SymbolView>();
+    const byReel = new Map<number, { v: SymbolView; p: Pos }[]>();
     wins.forEach((w) =>
       w.positions.forEach((p) => {
         const v = this.cellAt(p);
-        if (v) all.add(v);
+        if (!v || all.has(v)) return;
+        all.add(v);
+        const list = byReel.get(p.reel) ?? [];
+        list.push({ v, p });
+        byReel.set(p.reel, list);
       }),
     );
-    for (const col of this.cells) for (const v of col) v.alpha = all.has(v) || v.sym.name === 'T' ? 1 : 0.35;
-    all.forEach((v) => v.setGlow(true, 0xfff2a8));
-    sound.win(Math.min(6, wins.length));
-    const lines = tween(380, (t) => this.drawLines(wins, t), ease.outCubic);
-    await this.pulse([...all], 1.08, 420);
+    for (const col of this.cells) for (const v of col) v.alpha = all.has(v) || v.sym.name === 'T' ? 1 : 0.3;
+    const longest = Math.max(...wins.map((w) => w.positions.length));
+    // lines race across as beams of light (with a bright head)
+    const lines = this.beamLines(wins);
+    // winning symbols punch in reel by reel, left to right, each with a rising note
+    const reels = [...byReel.keys()].sort((a, b) => a - b);
+    const hits = reels.map((r, i) =>
+      wait(i * 75).then(() => {
+        sound.winHit(i);
+        for (const { v, p } of byReel.get(r)!) {
+          v.setGlow(true, 0xfff2a8);
+          void this.punch(v);
+          const c = this.center(p);
+          this.ring(c.x, c.y, 0xffe08a);
+          this.particles.emit(TEX.spark, c.x, c.y, { n: 7, speed: [60, 200], life: [250, 550], scale: [0.55, 0.05], tint: [0xffe066, 0xfff3c4], blend: 'add' });
+        }
+      }),
+    );
+    await Promise.all(hits);
+    if (longest >= 5) void this.shake(7, 260);
     await lines;
     if (amountText) {
       this.linePills(wins, fmt);
       this.setPlaque(amountText);
       this.pop(this.pBase);
+      // winners keep breathing while the amount is shown
+      void tween(520, (t) => all.forEach((v) => !v.destroyed && v.scale.set(1 + 0.05 * Math.sin(t * Math.PI * 2))), ease.linear);
       await wait(520);
     }
+    all.forEach((v) => !v.destroyed && v.scale.set(1));
     all.forEach((v) => v.setGlow(false));
+  }
+
+  /** a winning symbol pops out of the reel: quick scale punch with a little wobble */
+  private async punch(v: SymbolView) {
+    await tween(
+      360,
+      (t) => {
+        if (v.destroyed) return;
+        const k = Math.sin(Math.min(1, t * 1.15) * Math.PI);
+        v.scale.set(1 + 0.22 * k);
+        v.rotation = 0.06 * Math.sin(t * Math.PI * 3) * (1 - t);
+      },
+      ease.linear,
+    );
+    if (!v.destroyed) {
+      v.scale.set(1);
+      v.rotation = 0;
+    }
+  }
+
+  /** expanding light ring on a cell */
+  private ring(x: number, y: number, color: number) {
+    const g = new Graphics();
+    g.position.set(x, y);
+    g.blendMode = 'add';
+    this.fx.addChild(g);
+    void tween(
+      420,
+      (t) => {
+        g.clear();
+        g.circle(0, 0, CELL * (0.25 + 0.3 * t)).stroke({ width: 6 * (1 - t) + 1, color, alpha: 0.9 * (1 - t) });
+      },
+      ease.outCubic,
+    ).then(() => g.destroy());
+  }
+
+  /** draw the win lines progressively with a glowing comet head running ahead */
+  private async beamLines(wins: { positions: Pos[] }[]) {
+    const heads = wins.map(() => {
+      const sp = new Sprite(TEX.glow);
+      sp.anchor.set(0.5);
+      sp.width = sp.height = 90;
+      sp.tint = 0xfff0b0;
+      sp.blendMode = 'add';
+      this.fx.addChild(sp);
+      return sp;
+    });
+    await tween(
+      460,
+      (t) => {
+        this.drawLines(wins, t);
+        wins.forEach((w, i) => {
+          const pts = w.positions.map((p) => this.center(p));
+          const total = pts.length - 1;
+          const u = t * total;
+          const k = Math.min(total - 1, Math.floor(u));
+          const f = u - k;
+          heads[i].position.set(lerp(pts[k].x, pts[k + 1]?.x ?? pts[k].x, f), lerp(pts[k].y, pts[k + 1]?.y ?? pts[k].y, f));
+          heads[i].alpha = t < 0.95 ? 1 : (1 - t) * 20;
+        });
+      },
+      ease.inOutCubic,
+    );
+    heads.forEach((h) => h.destroy());
   }
 
   clearWins() {

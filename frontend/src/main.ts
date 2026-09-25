@@ -52,6 +52,14 @@ async function main() {
   ui.setLoading(0.35);
   buildTextures();
   ui.runeIcon = iconUrl('S', 88);
+  {
+    const bi = document.getElementById('bt-img') as HTMLImageElement | null;
+    if (bi) {
+      bi.src = iconUrl('S', 144);
+      bi.hidden = false;
+      document.getElementById('feature-btn')?.classList.add('has-img');
+    }
+  }
   ui.icons = { S: iconUrl('S', 116), TG: iconUrl('TG', 116), T: iconUrl('T', 160), TB: iconUrl('TB', 160), TD: iconUrl('TD', 160), TO: iconUrl('TO', 160) };
   ui.setLoading(0.55);
   // animated jungle-temple backdrop (stage 0 now, the others are painted in idle time)

@@ -4328,3 +4328,132 @@ dialog button.gold {
     animation-iteration-count: 1 !important;
   }
 }
+
+/* ---------- BONUS tablet + temple panel v3: carved stone in a gold frame ---------- */
+.bonus-tile {
+  border-radius: 14px;
+  border: 3px solid transparent;
+  background:
+    radial-gradient(ellipse at 50% 28%, rgba(255, 200, 90, 0.35), transparent 60%) padding-box,
+    repeating-linear-gradient(0deg, transparent 0 22px, rgba(0, 0, 0, 0.18) 22px 24px) padding-box,
+    repeating-linear-gradient(90deg, transparent 0 46px, rgba(0, 0, 0, 0.12) 46px 48px) padding-box,
+    linear-gradient(180deg, #5c4a32, #3a2d1c 60%, #231a0f) padding-box,
+    linear-gradient(180deg, #fff3b0, #e6a526 35%, #8a5a08 60%, #ffd35a) border-box;
+  box-shadow: 0 8px 0 #1a1004, 0 0 30px rgba(255, 190, 60, 0.45), inset 0 0 0 2px rgba(0, 0, 0, 0.5), inset 0 0 26px rgba(0, 0, 0, 0.55);
+  padding: 12px 10px 14px;
+}
+.bonus-tile::before {
+  /* inner carved frame */
+  content: '';
+  position: absolute;
+  inset: 6px;
+  border-radius: 9px;
+  border: 1.5px solid rgba(255, 220, 140, 0.35);
+  box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.5);
+  pointer-events: none;
+}
+@keyframes tileGlow {
+  50% {
+    box-shadow: 0 8px 0 #1a1004, 0 0 46px rgba(255, 210, 80, 0.85), inset 0 0 0 2px rgba(0, 0, 0, 0.5), inset 0 0 26px rgba(0, 0, 0, 0.55);
+  }
+}
+.bonus-tile.has-img .bt-icon {
+  display: none;
+}
+.bt-img {
+  position: relative;
+  z-index: 1;
+  width: 76px;
+  height: 76px;
+  margin: -4px 0 -2px;
+  filter: drop-shadow(0 6px 6px rgba(0, 0, 0, 0.7)) drop-shadow(0 0 10px rgba(120, 255, 230, 0.55));
+  animation: btFloat 3s ease-in-out infinite;
+}
+@keyframes btFloat {
+  50% {
+    transform: translateY(-4px) scale(1.04);
+  }
+}
+.bt-rays {
+  position: absolute;
+  left: 50%;
+  top: 44px;
+  width: 190px;
+  height: 190px;
+  margin: -95px 0 0 -95px;
+  background: repeating-conic-gradient(from 0deg, rgba(255, 215, 120, 0.28) 0 8deg, transparent 8deg 22deg);
+  -webkit-mask: radial-gradient(circle, #000 0 14%, transparent 60%);
+  mask: radial-gradient(circle, #000 0 14%, transparent 60%);
+  animation: btRays 14s linear infinite;
+  pointer-events: none;
+}
+@keyframes btRays {
+  to {
+    transform: rotate(360deg);
+  }
+}
+.bt-text {
+  position: relative;
+  z-index: 1;
+}
+.bt-text b {
+  background: linear-gradient(180deg, #fffbe0, #ffe486 40%, #e4a634 62%, #ffd35a);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  text-shadow: none;
+  filter: drop-shadow(0 2px 0 #1a0d02) drop-shadow(0 0 8px rgba(255, 200, 80, 0.5));
+}
+.bt-text small {
+  color: #f0dcae;
+  text-shadow: 0 1px 2px #000;
+}
+.bonus-tile.active {
+  background:
+    radial-gradient(ellipse at 50% 28%, rgba(90, 255, 200, 0.35), transparent 60%) padding-box,
+    repeating-linear-gradient(0deg, transparent 0 22px, rgba(0, 0, 0, 0.18) 22px 24px) padding-box,
+    linear-gradient(180deg, #1f6b52, #0f3d2e 60%, #06201a) padding-box,
+    linear-gradient(180deg, #d8fff0, #3fe0b0 40%, #0f7a5c 70%, #6dffc4) border-box;
+  box-shadow: 0 8px 0 #04140d, 0 0 30px rgba(80, 255, 180, 0.5), inset 0 0 26px rgba(0, 0, 0, 0.5);
+}
+.bonus-tile.active .bt-rays {
+  background: repeating-conic-gradient(from 0deg, rgba(120, 255, 210, 0.28) 0 8deg, transparent 8deg 22deg);
+}
+/* temple panel: gold frame with carved corner blocks */
+#pyramid {
+  outline: none;
+  border: 3px solid transparent;
+  background:
+    radial-gradient(ellipse at 50% 20%, rgba(255, 180, 70, 0.16), transparent 60%) padding-box,
+    repeating-linear-gradient(0deg, transparent 0 26px, rgba(0, 0, 0, 0.18) 26px 28px) padding-box,
+    repeating-linear-gradient(90deg, transparent 0 52px, rgba(0, 0, 0, 0.1) 52px 54px) padding-box,
+    linear-gradient(180deg, rgba(52, 42, 28, 0.95), rgba(16, 12, 8, 0.96)) padding-box,
+    linear-gradient(180deg, #fff3b0, #d9a030 30%, #7a4a07 65%, #e6b43a) border-box;
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.55), inset 0 0 0 2px rgba(0, 0, 0, 0.55), inset 0 0 30px rgba(0, 0, 0, 0.5);
+}
+#pyramid::after {
+  content: '';
+  position: absolute;
+  inset: 6px;
+  border-radius: 13px;
+  border: 1.5px solid rgba(255, 220, 140, 0.25);
+  pointer-events: none;
+  z-index: 4;
+}
+#pyramid.active {
+  animation: templeGlow 2.4s ease-in-out infinite;
+}
+@media (max-width: 760px), (max-height: 520px) and (orientation: landscape) {
+  .bt-img {
+    width: 54px;
+    height: 54px;
+    margin: 0;
+  }
+  .bt-rays {
+    left: 30%;
+    top: 50%;
+    width: 150px;
+    height: 150px;
+    margin: -75px 0 0 -75px;
+  }
+}

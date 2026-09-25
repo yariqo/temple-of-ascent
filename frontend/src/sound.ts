@@ -217,6 +217,12 @@ class Sound {
     this.noise(0.8, { freq: 6000, sweep: 12000, vol: 0.05 * lvl, type: 'highpass', at: 0.05 });
     if (lvl >= 3) this.gong(0.3);
   }
+  /** one reel of a line win lights up: rising marimba note */
+  winHit(i: number) {
+    const f = 440 * Math.pow(2, PENTA[Math.min(i + 2, 10)] / 12);
+    this.marimba(f, 0, 0.12, 0.45);
+    if (i >= 3) this.bell(f * 2, 0.02, 0.05);
+  }
   win(level: number) {
     // short pentatonic run, longer for bigger wins
     const n = Math.min(3 + level, 9);

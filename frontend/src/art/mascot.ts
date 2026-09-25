@@ -334,15 +334,15 @@ export type Face = 'open' | 'closed' | 'happy' | 'roar';
 function headP(cx: number, cy: number): Path2D {
   const ctx = new Path2D();
   ctx.moveTo(cx - 60, cy - 34);
-  ctx.bezierCurveTo(cx - 52, cy - 86, cx + 52, cy - 86, cx + 60, cy - 34); // skull
-  ctx.bezierCurveTo(cx + 76, cy - 10, cx + 84, cy + 14, cx + 72, cy + 30); // right cheek
+  ctx.bezierCurveTo(cx - 46, cy - 90, cx + 46, cy - 90, cx + 60, cy - 34); // skull
+  ctx.bezierCurveTo(cx + 80, cy - 10, cx + 90, cy + 14, cx + 74, cy + 30); // right cheek
   ctx.lineTo(cx + 80, cy + 34); // fur tuft
   ctx.lineTo(cx + 64, cy + 40);
-  ctx.bezierCurveTo(cx + 50, cy + 66, cx + 22, cy + 76, cx, cy + 76); // jaw
-  ctx.bezierCurveTo(cx - 22, cy + 76, cx - 50, cy + 66, cx - 64, cy + 40);
+  ctx.bezierCurveTo(cx + 48, cy + 70, cx + 24, cy + 82, cx, cy + 82); // jaw
+  ctx.bezierCurveTo(cx - 24, cy + 82, cx - 48, cy + 70, cx - 64, cy + 40);
   ctx.lineTo(cx - 80, cy + 34);
   ctx.lineTo(cx - 72, cy + 30);
-  ctx.bezierCurveTo(cx - 84, cy + 14, cx - 76, cy - 10, cx - 60, cy - 34);
+  ctx.bezierCurveTo(cx - 90, cy + 14, cx - 80, cy - 10, cx - 60, cy - 34);
   ctx.closePath();
   return ctx;
 }
@@ -499,7 +499,7 @@ export function drawMascotHead(face: Face, glowEyes = false): HTMLCanvasElement 
   for (const sx of [-1, 1]) {
     ctx.save();
     ctx.translate(cx + sx * 25, cy - 6);
-    ctx.rotate(sx * 0.18);
+    ctx.rotate(-sx * 0.22); // outer corners up: a cat's stare, not a sleepy look
     if (face === 'closed' || face === 'happy') {
       ctx.beginPath();
       if (face === 'closed') {
@@ -514,7 +514,7 @@ export function drawMascotHead(face: Face, glowEyes = false): HTMLCanvasElement 
       ctx.lineCap = 'round';
       ctx.stroke();
     } else {
-      const h = face === 'roar' ? 6.5 : 11.5;
+      const h = face === 'roar' ? 6.5 : 9.5;
       ctx.beginPath();
       ctx.moveTo(-15, 1);
       ctx.quadraticCurveTo(-2, -h - 3, 15, -2);
@@ -567,6 +567,10 @@ export function drawMascotHead(face: Face, glowEyes = false): HTMLCanvasElement 
     if (face === 'roar') {
       ctx.moveTo(-sx * 12 - 4, -12);
       ctx.lineTo(sx * 14, -16);
+    } else if (face === 'open') {
+      // brows angled down towards the nose
+      ctx.moveTo(sx * 16, -18);
+      ctx.lineTo(-sx * 13, -10);
     } else {
       ctx.moveTo(-14, -12);
       ctx.quadraticCurveTo(0, -17, 14, -13);

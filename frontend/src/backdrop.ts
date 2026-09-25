@@ -710,6 +710,10 @@ export class Backdrop {
   private px = 0;
   private py = 0;
   private cache = new Map<number, StageArt>();
+  private embers: { x: number; y: number; v: number; ph: number; r: number }[] = [];
+  private nextBolt = 3;
+  private boltT = -10;
+  private boltX = 0.5;
   private reduced = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches ?? false;
 
   constructor() {
@@ -819,9 +823,24 @@ export class Backdrop {
     ctx.save();
     ctx.translate(P.celPos[0] * VW, P.celPos[1] * VH);
     ctx.rotate(t * 0.02);
-    ctx.globalAlpha = alpha * (0.1 + 0.05 * Math.sin(t * 0.7));
+    ctx.globalAlpha = alpha * (0.2 + 0.08 * Math.sin(t * 0.7));
     ctx.drawImage(this.rays, -900, -900, 1800, 1800);
+    ctx.rotate(-t * 0.035);
+    ctx.globalAlpha = alpha * (0.12 + 0.06 * Math.sin(t * 0.5 + 1));
+    ctx.drawImage(this.rays, -1100, -1100, 2200, 2200);
     ctx.restore();
+    // bloom around the sun / moon, breathing
+    {
+      const bx = P.celPos[0] * VW;
+      const by = P.celPos[1] * VH;
+      const br = 260 + 30 * Math.sin(t * 0.9);
+      ctx.globalAlpha = alpha * 0.55;
+      ctx.fillStyle = rad(ctx, bx, by, 0, br, [
+        [0, P.glow],
+        [1, 'rgba(0,0,0,0)'],
+      ]);
+      ctx.fillRect(bx - br, by - br, br * 2, br * 2);
+    }
     ctx.globalCompositeOperation = 'source-over';
     ctx.globalAlpha = alpha;
 
@@ -855,6 +874,28 @@ export class Backdrop {
       ctx.quadraticCurveTo(x + Math.sin(t * 9 + i) * 3, y - fh, x + 5 * sc, y + 4);
       ctx.fill();
     });
+    ctx.globalCompositeOperation = 'source-over';
+    ctx.globalAlpha = alpha;
+
+    // slanted light shafts through the canopy, slowly wandering
+    toScreen(0.55);
+    ctx.globalCompositeOperation = 'screen';
+    for (let i = 0; i < 4; i++) {
+      const x0 = VW * (0.12 + i * 0.25) + Math.sin(t * 0.07 + i * 2) * 60;
+      const a0 = (0.05 + 0.035 * Math.sin(t * 0.4 + i * 1.7)) * (a.pal.stars > 0.5 ? 1 : 0.6);
+      const g = ctx.createLinearGradient(x0, 0, x0 + 260, VH);
+      g.addColorStop(0, P.mist + (a0 * 1.6).toFixed(3) + ')');
+      g.addColorStop(1, P.mist + '0)');
+      ctx.globalAlpha = alpha;
+      ctx.fillStyle = g;
+      ctx.beginPath();
+      ctx.moveTo(x0, -20);
+      ctx.lineTo(x0 + 90 + i * 12, -20);
+      ctx.lineTo(x0 + 420, VH);
+      ctx.lineTo(x0 + 200, VH);
+      ctx.closePath();
+      ctx.fill();
+    }
     ctx.globalCompositeOperation = 'source-over';
     ctx.globalAlpha = alpha;
 
@@ -956,6 +997,68 @@ export class Backdrop {
       ctx.drawImage(a.leaves[v], -20, -150);
       ctx.restore();
     });
+    // rising embers (warmer and more of them on higher stages)
+    ctx.setTransform(1, 0, 0, 1, 0, 0);
+    ctx.globalCompositeOperation = 'lighter';
+    const nE = 10 + this.stage * 8;
+    while (this.embers.length < nE) this.embers.push({ x: Math.random(), y: 1.05 + Math.random() * 0.3, v: 0.03 + Math.random() * 0.05, ph: Math.random() * 6, r: 1 + Math.random() * 2 });
+    const emberCol = this.stage >= 2 ? P.torch : P.fly;
+    for (const e of this.embers) {
+      e.y -= e.v * 0.025;
+      if (e.y < -0.05) {
+        e.y = 1.05;
+        e.x = Math.random();
+      }
+      const ex = (e.x + Math.sin(t * 0.8 + e.ph) * 0.01) * w;
+      const ey = e.y * h;
+      const k = 0.5 + 0.5 * Math.sin(t * 3 + e.ph);
+      const rr = e.r * (w / 1000) * 3;
+      ctx.globalAlpha = alpha * k * 0.8;
+      ctx.fillStyle = rad(ctx, ex, ey, 0, rr * 2.5, [
+        [0, emberCol],
+        [1, 'rgba(0,0,0,0)'],
+      ]);
+      ctx.fillRect(ex - rr * 2.5, ey - rr * 2.5, rr * 5, rr * 5);
+    }
+    ctx.globalCompositeOperation = 'source-over';
+    // soft stage light behind the reels
+    ctx.globalAlpha = alpha * (0.35 + 0.08 * Math.sin(t * 1.1));
+    ctx.fillStyle = rad(ctx, w / 2, h * 0.48, 0, Math.min(w, h) * 0.6, [
+      [0, P.glow],
+      [1, 'rgba(0,0,0,0)'],
+    ]);
+    ctx.fillRect(0, 0, w, h);
+    ctx.globalAlpha = alpha;
+    // summit (eclipse): distant lightning now and then
+    if (this.stage >= 4) {
+      if (t > this.nextBolt) {
+        this.boltT = t;
+        this.nextBolt = t + 5 + Math.random() * 6;
+        this.boltX = 0.15 + Math.random() * 0.7;
+      }
+      const bk = t - this.boltT;
+      if (bk < 0.35) {
+        const fl = bk < 0.08 || (bk > 0.14 && bk < 0.2) ? 1 : 0.3;
+        ctx.globalAlpha = alpha * 0.22 * fl;
+        ctx.fillStyle = '#d8c4ff';
+        ctx.fillRect(0, 0, w, h);
+        ctx.globalAlpha = alpha * fl;
+        ctx.strokeStyle = '#f4ecff';
+        ctx.lineWidth = Math.max(1.5, w / 700);
+        ctx.beginPath();
+        let lx = this.boltX * w;
+        let ly = 0;
+        ctx.moveTo(lx, ly);
+        const r = rng(Math.floor(this.boltT * 100));
+        while (ly < h * 0.4) {
+          lx += (r() - 0.5) * w * 0.04;
+          ly += h * (0.03 + r() * 0.04);
+          ctx.lineTo(lx, ly);
+        }
+        ctx.stroke();
+      }
+      ctx.globalAlpha = alpha;
+    }
     // vignette
     ctx.setTransform(1, 0, 0, 1, 0, 0);
     ctx.fillStyle = rad(ctx, w / 2, h / 2, Math.min(w, h) * 0.35, Math.max(w, h) * 0.75, [
