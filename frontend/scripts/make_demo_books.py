@@ -21,7 +21,7 @@ DEFAULT_PUB = os.path.join(HERE, "..", "..", "math", "temple_of_ascent", "librar
 PUB = sys.argv[1] if len(sys.argv) > 1 else DEFAULT_PUB
 OUT = os.path.join(HERE, "..", "src", "demo", "books.json")
 
-SAMPLE = {"base": 600, "bonushunt": 600, "jaguar": 300, "bonus": 120, "superbonus": 100, "godbonus": 100}
+SAMPLE = {"base": 600, "bonushunt": 600, "jaguar": 300, "jaguarking": 300, "bonus": 120, "superbonus": 100, "godbonus": 100}
 
 
 def main():

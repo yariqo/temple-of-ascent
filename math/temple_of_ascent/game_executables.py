@@ -81,7 +81,7 @@ class GameExecutables(GameCalculations):
             self.board[r][w] = sym
             totems.append({"reel": r, "row": w, "value": value})
         self.get_special_symbols_on_board()
-        jaguar_roar_event(self, totems, cond.get("golden", False))
+        jaguar_roar_event(self, totems, cond.get("golden", False), cond.get("king", False))
         self.record({"jaguar": len(totems), "gametype": self.gametype})
 
     # ---------- runes / stages ----------

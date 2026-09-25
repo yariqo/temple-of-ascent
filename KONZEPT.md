@@ -1,6 +1,6 @@
-# BALAM – Spielkonzept (v0.17)
+# BALAM RISING – Spielkonzept (v0.18)
 
-*Name: **BALAM** (Maya-Wort für Jaguar; Arbeitstitel vorher „Temple of Ascent“). Die internen IDs bleiben: game_id `temple_of_ascent`, Ordner `math/temple_of_ascent`. Thema: Azteken-Dschungel (siehe THEMA.md). Maskottchen: der Jaguar Balam.*
+*Name: **BALAM RISING** (Balam = Maya-Wort für Jaguar, „Rising“ = der Aufstieg auf der Tempelpyramide; Arbeitstitel vorher „Temple of Ascent“). Die internen IDs bleiben: game_id `temple_of_ascent`, Ordner `math/temple_of_ascent`. Thema: Azteken-Dschungel (siehe THEMA.md). Maskottchen: der Jaguar Balam.*
 
 ## Kurzbeschreibung
 Ein 5×4-Slot mit 20 festen Gewinnlinien. Statt Glücksrädern gibt es **Stelen**: geschnitzte Säulen, die beim Landen rattern und auf einem **Multiplikator** stehen bleiben. Gibt es im Spin einen Liniengewinn, werden alle Stelen auf dem Feld **addiert** und multiplizieren diesen Gewinn.
@@ -34,6 +34,7 @@ Tempel- und Super-Bonus haben 10 Freispiele, der Göttliche Bonus 8. In den Frei
 | **Normaler Spin** | 1× | Basisspiel, im Schnitt jeder 25. Spin mit Jaguar-Ruf |
 | **Bonus-Jagd** | 1,5× | Doppelte Chance auf einen Bonus |
 | **Jaguar-Spin** (Feature-Spin) | 25× | 2–4 goldene Stelen (5×–50×) bei jedem Spin, jeder Spin zahlt (oft weniger als 25×), keine Freispiele |
+| **Jaguar-König** (Premium-Feature-Spin) | 200× | 2–4 Königsstelen bei jedem Spin, jede 50×/100×/250×/500× (Gewichte 55/30/12/3), jeder Spin zahlt (oft weniger als 200×), keine Freispiele |
 | **Tempel-Bonus** (Kauf) | 100× | wie 3 BONUS-Symbole |
 | **Super-Bonus** (Kauf) | 200× | wie 4 BONUS-Symbole |
 | **Göttlicher Bonus** (Kauf) | **500×** | wie 5 BONUS-Symbole, Multis bleiben |
@@ -110,6 +111,7 @@ Max-Win: **MAX WIN** in der höchsten Stufe. Der Betrag zählt bis zur nächsten
 | Normal (1×) | 96,00 % | 13,4 % | 0 | 1 von 28.400 | 1 von 569.000 | 1 von 1,6 Mio. |
 | Bonus-Jagd (1,5×) | 96,00 % | 9,7 % | 0 | 1 von 11.800 | 1 von 268.000 | 1 von 789.000 |
 | Jaguar-Spin (25×) | 96,00 % | 27,8 % | 14× | 1 von 16.800 | – | – |
+| Jaguar-König (200×) | 96,00 % | 28,3 % | 120× | 1 von 53 | 1 von 2.700 | 1 von 51.700 |
 | Tempel-Bonus (100×) | 96,00 % | 22,1 % | 32× | 1 von 113 | 1 von 12.250 | 1 von 51.700 |
 | Super-Bonus (200×) | 96,00 % | 26,5 % | 83× | 1 von 40 | 1 von 1.900 | 1 von 30.200 |
 | Göttlicher Bonus (500×) | 96,00 % | 25,9 % | 166× | 1 von 8 | 1 von 138 | 1 von 13.800 |
@@ -119,7 +121,7 @@ Max-Win: **MAX WIN** in der höchsten Stufe. Der Betrag zählt bis zur nächsten
 - Nur die allergrößten Gewinne werden abgeschwächt, damit die Stake-Grenzen eingehalten werden.
 - Die 96 % werden mit einer minimalen Korrektur exakt getroffen.
 
-Alle 6 Modi bestehen die Prüfungen des SDK ohne Warnung. Zusätzlich prüft `bookcheck.py` alle 600.000 Runden auf innere Stimmigkeit (Gewinne, Multis, Stelenwerte, Stufen, Spins); es gab keinen Fehler.
+Alle 7 Modi bestehen die Prüfungen des SDK ohne Warnung. Zusätzlich prüft `bookcheck.py` alle 700.000 Runden auf innere Stimmigkeit (Gewinne, Multis, Stelenwerte, Stufen, Spins); es gab keinen Fehler.
 - Format
 - RTP ≤ 96,7 %
 - prob5k
@@ -137,7 +139,7 @@ Alle 6 Modi bestehen die Prüfungen des SDK ohne Warnung. Zusätzlich prüft `bo
 | H4 | Frosch-Idol | 0,8 / 2,5 / 10 |
 | L1–L5 | Edelsteine | 0,2–0,5 / 0,5–1,2 / 2–5 |
 | W | Wild (Walze 2–5) | ersetzt alle normalen Symbole |
-| S | **BONUS** (Scatter) | 3 / 4 / 5 = Tempel / Super / Göttlicher Bonus |
+| S | **BONUS** (Scatter, goldene Stufenpyramide mit Jade-Portal) | 3 / 4 / 5 = Tempel / Super / Göttlicher Bonus |
 | T | **Stele** (Multiplikator) | trägt einen Multi, alle Stelen werden addiert |
 
 ## Stelen-Multis pro Stufe
@@ -159,7 +161,7 @@ Eigene Events:
 - `runeCollect`: `positions`, `runes`, `runesToNext`
 - `stageUp`: `stage`, `extraSpins`, `totalFs`, `totemValues`
 - `extraSpin` (nur Stufe 4): `extraSpins`, `totalFs`
-- `jaguarRoar`: `golden`, `totems[{reel,row,multiplier}]`
+- `jaguarRoar`: `golden`, `king`, `totems[{reel,row,multiplier}]`
 
 ## Stand und nächste Schritte
 - [x] Mathe-Modell, 6 Modi mit je 100.000 Runden, 96,00 %, alle Stake-Prüfungen bestanden
@@ -172,3 +174,9 @@ Eigene Events:
 - [x] 3/4/5 BONUS-Symbole für Tempel-, Super- und Göttlichen Bonus, der Göttliche Bonus kostet 500× und behält die Multis
 - [ ] Upload und Test auf Stake Engine
 - [ ] Optional: professionelle Illustrationen und echte Musikaufnahmen
+
+## Wie oft 4 und 5 BONUS-Symbole natürlich fallen (v0.18)
+| Modus | 3 BONUS (Tempel) | 4 BONUS (Super) | 5 BONUS (Göttlich) |
+|---|---|---|---|
+| Normal (1×) | 1 von 232 Spins | 1 von 1.757 Spins | 1 von 8.005 Spins |
+| Bonus-Jagd (1,5×) | 1 von 116 Spins | 1 von 872 Spins | 1 von 4.097 Spins |

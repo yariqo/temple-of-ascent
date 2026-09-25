@@ -19,6 +19,12 @@
             "weights": "lookUpTable_jaguar_0.csv"
         },
         {
+            "name": "jaguarking",
+            "cost": 200.0,
+            "events": "books_jaguarking.jsonl.zst",
+            "weights": "lookUpTable_jaguarking_0.csv"
+        },
+        {
             "name": "bonus",
             "cost": 100.0,
             "events": "books_bonus.jsonl.zst",

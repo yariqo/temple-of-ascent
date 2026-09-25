@@ -41,7 +41,7 @@ async function main() {
     const logoUrl = drawLogo().toDataURL('image/png');
     for (const id of ['title', 'load-logo']) {
       const el = document.getElementById(id)!;
-      el.innerHTML = `<img class="logo-img" src="${logoUrl}" alt="BALAM" draggable="false">`;
+      el.innerHTML = `<img class="logo-img" src="${logoUrl}" alt="BALAM RISING" draggable="false">`;
       el.classList.add('has-img');
       el.style.setProperty('--logo-mask', `url(${logoUrl})`);
     }
@@ -178,7 +178,7 @@ async function main() {
   let balance = auth.balance;
   const levels = auth.betLevels;
   let betIdx = Math.max(0, levels.findIndex((v) => Math.abs(v - auth.defaultBet) < 1e-9));
-  let toggle: 'bonushunt' | 'jaguar' | null = null;
+  let toggle: 'bonushunt' | 'jaguar' | 'jaguarking' | null = null;
   let busy = false;
 
   const bet = () => levels[betIdx];
@@ -187,8 +187,8 @@ async function main() {
     ui.setBalance(balance);
     ui.setBet(bet());
     ui.setActiveToggle(toggle);
-    board.mascot.setGold(toggle === 'jaguar');
-    sound.setJaguar(toggle === 'jaguar');
+    board.mascot.setGold(toggle === 'jaguar' || toggle === 'jaguarking');
+    sound.setJaguar(toggle === 'jaguarking' ? 2 : toggle === 'jaguar' ? 1 : 0);
   };
   refresh();
 
@@ -211,8 +211,8 @@ async function main() {
 
   async function runRound(round: Round, betAmount: number, closeEarly: Promise<number> | null) {
     // Jaguar Spin: the jaguar roars as the reels start
-    if (round.mode === 'jaguar') {
-      sound.roar(true);
+    if (round.mode === 'jaguar' || round.mode === 'jaguarking') {
+      sound.roar(true, round.mode === 'jaguarking' ? 1.15 : 1, round.mode === 'jaguarking');
       void board.mascot.roar();
     }
     await player.play(round, betAmount, MODES[round.mode]?.cost ?? 1);

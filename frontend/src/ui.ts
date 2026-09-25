@@ -49,8 +49,9 @@ export class Ui {
   setActiveToggle(mode: string | null) {
     this.toggle = mode;
     $('feature-btn').classList.toggle('active', !!mode);
-    $('spin').classList.toggle('jaguar', mode === 'jaguar');
-    $('spin-label').textContent = mode === 'jaguar' ? t('spinJaguar') : t('spin');
+    $('spin').classList.toggle('jaguar', mode === 'jaguar' || mode === 'jaguarking');
+    $('spin').classList.toggle('king', mode === 'jaguarking');
+    $('spin-label').textContent = mode === 'jaguar' || mode === 'jaguarking' ? t('spinJaguar') : t('spin');
     this.renderPill();
   }
 
@@ -88,7 +89,7 @@ export class Ui {
   setBusy(busy: boolean, canSkip: boolean) {
     this.spinBtn.classList.toggle('busy', busy);
     if (busy) $('spin-label').textContent = canSkip ? t('skip') : '…';
-    else $('spin-label').textContent = this.toggle === 'jaguar' ? t('spinJaguar') : t('spin');
+    else $('spin-label').textContent = this.toggle === 'jaguar' || this.toggle === 'jaguarking' ? t('spinJaguar') : t('spin');
     this.spinBtn.disabled = busy && !canSkip;
     for (const id of ['feature-btn', 'bet-up', 'bet-down', 'feature-pill-off']) ($(id) as HTMLButtonElement).disabled = busy;
   }
@@ -501,14 +502,14 @@ export class Ui {
         resolve(v);
       };
       // ---- feature spins
-      for (const m of ['bonushunt', 'jaguar']) {
+      for (const m of ['bonushunt', 'jaguar', 'jaguarking']) {
         const on = current === m;
         const price = bet * MODES[m].cost;
         const card = document.createElement('div');
         card.className = `fm-card feat f-${m}${on ? ' on' : ''}`;
         card.dataset.on = t('active');
         card.innerHTML =
-          `<div class="fm-art"><img alt="" src="${m === 'jaguar' ? this.icons.TG : this.icons.S}"></div>` +
+          `<div class="fm-art"><img alt="" src="${m === 'jaguarking' ? this.icons.TO : m === 'jaguar' ? this.icons.TG : this.icons.S}"></div>` +
           `<div class="fm-info"><b>${t(m)}</b><span class="fm-tag">${t(m + 'Long')}</span><div class="fm-chips"><i>${t('chip_' + m)}</i></div></div>` +
           `<button class="fm-action${on ? ' off' : ''}"><span></span><em></em></button>`;
         const btn = card.querySelector('button')!;
@@ -644,7 +645,7 @@ export class Ui {
   /** start screen with three feature tablets; resolves when the player continues */
   intro(art: { logo: string; bonus: string; face: string; stele: string; stele2: string }): Promise<void> {
     const dlg = $<HTMLDialogElement>('intro');
-    $('in-logo').innerHTML = `<img src="${art.logo}" alt="BALAM">`;
+    $('in-logo').innerHTML = `<img src="${art.logo}" alt="BALAM RISING">`;
     $('in-t1').textContent = t('introT1');
     $('in-d1').textContent = t('introD1');
     $('in-t2').textContent = t('introT2');

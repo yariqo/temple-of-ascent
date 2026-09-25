@@ -258,14 +258,19 @@ class Sound {
   }
 
   /** jaguar roar: recorded big-cat roar (slightly varied each time); golden = deeper, with a shimmer */
-  roar(golden: boolean, vol = 1) {
+  roar(golden: boolean, vol = 1, king = false) {
     if (!this.ok()) return;
     this.duck(golden ? 2.4 : 2);
-    const rate = (golden ? 0.9 : 1) * (0.96 + Math.random() * 0.08);
+    const rate = (king ? 0.8 : golden ? 0.9 : 1) * (0.96 + Math.random() * 0.08);
     const played = this.playSample('roar', { vol: 0.95 * vol, rate });
     // weight underneath: chest rumble + low taiko
     this.tone(46, 1.2, { type: 'sine', vol: (played ? 0.22 : 0.4) * vol, slide: 0.7, attack: 0.08 });
     if (!played) this.noise(0.9, { freq: 260, sweep: 90, q: 1.5, vol: 0.35 * vol, type: 'lowpass' });
+    if (king) {
+      // king: a second, deeper roar layered underneath + a big gong
+      this.playSample('roar', { vol: 0.5 * vol, rate: rate * 0.72, at: 0.06 });
+      this.gong(0.3);
+    }
     if (golden) {
       [1319, 1760, 2217, 2637].forEach((f, i) => this.bell(f, 0.5 + i * 0.08, 0.05));
       this.noise(1.2, { freq: 7000, sweep: 12000, vol: 0.035, type: 'highpass', at: 0.45 });
@@ -388,7 +393,7 @@ class Sound {
    */
   musicOn = true;
   private musicStage = 0;
-  private jaguarMode = false;
+  private jaguarMode = 0; // 0 off, 1 Jaguar Spin, 2 Jaguar King
   private hypeLevel = 0;
   private hypeFrom = 0;
   private hypeUntil = 0;
@@ -421,8 +426,8 @@ class Sound {
     if (st === 0) this.hypeLevel = Math.min(this.hypeLevel, 2); // leaving the bonus: calm down
   }
   /** jaguar spins are on: the base game music runs hotter */
-  setJaguar(on: boolean) {
-    this.jaguarMode = on;
+  setJaguar(level: number) {
+    this.jaguarMode = level;
   }
   /** a big win (tier 1..5) pushes the music up for a while, then it settles back */
   hype(level: number) {
@@ -439,7 +444,7 @@ class Sound {
     return this.hypeLevel * (k < 0.4 ? 1 : 1 - (k - 0.4) / 0.6);
   }
   private energy() {
-    const base = this.musicStage > 0 ? 1.6 + this.musicStage * 0.75 : this.jaguarMode ? 1.6 : 0;
+    const base = this.musicStage > 0 ? 1.6 + this.musicStage * 0.75 : [0, 1.6, 3][this.jaguarMode] ?? 0;
     return Math.min(6, base + this.currentHype());
   }
   /** key lift per bonus stage (semitones) */

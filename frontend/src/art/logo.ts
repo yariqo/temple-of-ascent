@@ -60,9 +60,78 @@ function medallion(ctx: Ctx, x: number, y: number, r: number, head: HTMLCanvasEl
   ctx.restore();
 }
 
-export function drawLogo(text = 'BALAM'): HTMLCanvasElement {
+/** second word: carved jade plaque with gold letters, hanging under the main word */
+function subtitle(ctx: Ctx, cx: number, cy: number, text: string) {
+  ctx.save();
+  ctx.font = '900 74px Cinzel, Georgia, serif';
+  (ctx as any).letterSpacing = '22px';
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  const tw = ctx.measureText(text).width;
+  const hw = tw / 2 + 70;
+  const h = 44;
+  // plaque with stepped (Aztec) ends
+  const plaque = () => {
+    ctx.beginPath();
+    ctx.moveTo(cx - hw, cy - h);
+    ctx.lineTo(cx + hw, cy - h);
+    ctx.lineTo(cx + hw, cy - h / 2);
+    ctx.lineTo(cx + hw + 22, cy - h / 2);
+    ctx.lineTo(cx + hw + 22, cy + h / 2);
+    ctx.lineTo(cx + hw, cy + h / 2);
+    ctx.lineTo(cx + hw, cy + h);
+    ctx.lineTo(cx - hw, cy + h);
+    ctx.lineTo(cx - hw, cy + h / 2);
+    ctx.lineTo(cx - hw - 22, cy + h / 2);
+    ctx.lineTo(cx - hw - 22, cy - h / 2);
+    ctx.lineTo(cx - hw, cy - h / 2);
+    ctx.closePath();
+  };
+  ctx.shadowColor = 'rgba(0,0,0,0.6)';
+  ctx.shadowBlur = 16;
+  ctx.shadowOffsetY = 8;
+  plaque();
+  ctx.fillStyle = lin(ctx, 0, cy - h, 0, cy + h, [
+    [0, '#3fe0b8'],
+    [0.45, '#118a70'],
+    [1, '#053d31'],
+  ]);
+  ctx.fill();
+  ctx.shadowColor = 'transparent';
+  ctx.lineWidth = 7;
+  ctx.strokeStyle = '#140a02';
+  ctx.stroke();
+  ctx.lineWidth = 3;
+  ctx.strokeStyle = lin(ctx, 0, cy - h, 0, cy + h, [
+    [0, '#fff3b8'],
+    [0.5, '#d9a030'],
+    [1, '#8a5a10'],
+  ]);
+  plaque();
+  ctx.stroke();
+  // little carved step marks on the plaque
+  ctx.fillStyle = 'rgba(0,40,30,0.45)';
+  for (const sx of [-1, 1]) {
+    for (let i = 0; i < 3; i++) ctx.fillRect(cx + sx * (hw - 28 - i * 14) - 4, cy - 8 + (i % 2) * 8, 8, 8);
+  }
+  // letters: dark edge + gold body
+  ctx.lineJoin = 'round';
+  ctx.lineWidth = 10;
+  ctx.strokeStyle = '#140a02';
+  ctx.strokeText(text, cx + 11, cy + 4);
+  ctx.fillStyle = lin(ctx, 0, cy - 36, 0, cy + 36, [
+    [0, '#fffbe0'],
+    [0.45, '#ffd35a'],
+    [0.55, '#c8861a'],
+    [1, '#ffe39a'],
+  ]);
+  ctx.fillText(text, cx + 11, cy + 4);
+  ctx.restore();
+}
+
+export function drawLogo(text = 'BALAM', sub = 'RISING'): HTMLCanvasElement {
   const W = 1500;
-  const Hh = 320;
+  const Hh = sub ? 380 : 320;
   const [c, ctx] = makeCanvas(W, Hh);
   const cx = W / 2;
   const base = 250;
@@ -144,5 +213,6 @@ export function drawLogo(text = 'BALAM'): HTMLCanvasElement {
   const head = drawMascotHead('open');
   medallion(ctx, cx - tw / 2 - 100, 164, 92, head, false);
   medallion(ctx, cx + tw / 2 + 100, 164, 92, head, true);
+  if (sub) subtitle(ctx, cx, 318, sub);
   return c;
 }

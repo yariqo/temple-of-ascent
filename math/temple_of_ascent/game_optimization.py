@@ -137,4 +137,20 @@ class OptimizationSetup:
             ).return_dict(),
         }
 
+        # Jaguar-King spin: single criteria, every spin pays
+        self.game_config.opt_params["jaguarking"] = {
+            "conditions": {
+                "kingspin": ConstructConditions(rtp=0.960, hr="x").return_dict(),
+            },
+            "scaling": ConstructScaling(
+                [
+                    {"criteria": "kingspin", "scale_factor": 1.2, "win_range": (2000, 9999), "probability": 1.0},
+                ]
+            ).return_dict(),
+            "parameters": params([10, 20, 50], [0.6, 0.2, 0.2], (1.3, 3)),
+            "distribution_bias": ConstructFenceBias(
+                applied_criteria=["kingspin"], bias_ranges=[(300.0, 800.0)], bias_weights=[0.3]
+            ).return_dict(),
+        }
+
         verify_optimization_input(self.game_config, self.game_config.opt_params)

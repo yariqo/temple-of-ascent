@@ -94,6 +94,7 @@ class GameConfig(Config):
         self.runes_per_stage = 3  # every 3 runes collected -> next stage
         self.stage_up_spins = 4  # extra spins awarded on every stage-up
         self.jaguar_spin_cost = 25.0  # cost of one Jaguar-Spin (feature spin) in bets
+        self.jaguar_king_cost = 200.0  # cost of one Jaguar-King spin (premium feature spin) in bets
         self.superbonus_cost = 200.0  # bonus buy starting on stage 2
         self.godbonus_cost = 500.0  # Divine Bonus buy (stage 3 + collected multiplier stays)
         # how many runes trigger which bonus: 3 -> Temple Bonus, 4 -> Super Bonus, 5 -> Divine Bonus
@@ -125,6 +126,16 @@ class GameConfig(Config):
             "count": {2: 45, 3: 35, 4: 20},
             "values": {5: 40, 10: 30, 15: 15, 25: 10, 50: 5},
             "golden": True,
+        }
+
+        # Jaguar-King spin (premium feature spin, 200x): the jaguar ALWAYS throws 2-4 KING totems,
+        # every one of them at least 50x (up to 500x); every spin pays, no free spins.
+        self.jaguar_king_roar = {
+            "chance": 1.0,
+            "count": {2: 45, 3: 35, 4: 20},
+            "values": {50: 55, 100: 30, 250: 12, 500: 3},
+            "golden": True,
+            "king": True,
         }
 
         # ---------------- Distributions ----------------
@@ -171,13 +182,20 @@ class GameConfig(Config):
             "force_freegame": False,
         }
 
+        jaguar_king_condition = {
+            "reel_weights": {self.basegame_type: {"BR0": 1}},
+            "jaguar": self.jaguar_king_roar,
+            "force_wincap": False,
+            "force_freegame": False,
+        }
+
         # bonus buys force exactly 3 / 4 / 5 runes (Temple / Super / Divine Bonus)
         def with_runes(cond: dict, n: int) -> dict:
             c = dict(cond)
             c["scatter_triggers"] = {n: 1}
             return c
 
-        mode_maxwins = {"base": 10000, "bonushunt": 10000, "jaguar": 10000, "bonus": 10000,
+        mode_maxwins = {"base": 10000, "bonushunt": 10000, "jaguar": 10000, "jaguarking": 10000, "bonus": 10000,
                         "superbonus": 10000, "godbonus": 10000}
         self.bet_modes = [
             # Normal spin
@@ -233,6 +251,19 @@ class GameConfig(Config):
                 is_buybonus=False,
                 distributions=[
                     Distribution(criteria="jaguarspin", quota=1.0, conditions=jaguar_spin_condition),
+                ],
+            ),
+            # Jaguar-King spin (premium feature spin): 2-4 king totems of 50x-500x, every spin pays
+            BetMode(
+                name="jaguarking",
+                cost=self.jaguar_king_cost,
+                rtp=self.rtp,
+                max_win=mode_maxwins["jaguarking"],
+                auto_close_disabled=False,
+                is_feature=True,
+                is_buybonus=False,
+                distributions=[
+                    Distribution(criteria="kingspin", quota=1.0, conditions=jaguar_king_condition),
                 ],
             ),
             # Bonus buy

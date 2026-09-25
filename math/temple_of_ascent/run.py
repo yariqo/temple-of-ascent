@@ -23,6 +23,7 @@ if __name__ == "__main__":
         "base": int(N),
         "bonushunt": int(N),
         "jaguar": int(N),
+        "jaguarking": int(N),
         "bonus": int(N),
         "superbonus": int(N),
         "godbonus": int(N),

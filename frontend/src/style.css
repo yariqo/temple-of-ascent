@@ -191,7 +191,7 @@ header {
 }
 .logo-img {
   display: block;
-  height: clamp(66px, 14vh, 132px);
+  height: clamp(74px, 16vh, 150px);
   margin: -6px 0 -8px;
   width: auto;
   max-width: 100%;
@@ -1312,7 +1312,7 @@ dialog button.gold {
     justify-content: center;
   }
   .logo-img {
-    height: 74px;
+    height: 84px;
     margin: -4px 0 -6px;
   }
   .icon-btn {
@@ -1522,7 +1522,7 @@ dialog button.gold {
     font-size: 23px;
   }
   .logo-img {
-    height: 50px;
+    height: 58px;
     margin: -4px 0 -6px;
   }
   .icon-btn {
@@ -3565,6 +3565,33 @@ dialog button.gold {
   box-shadow: inset 0 0 0 1.5px rgba(255, 220, 150, 0.35);
 }
 
+/* feature spins: horizontal cards (3 in a row on desktop) */
+@media (min-width: 761px) {
+  #fm-spins.fm-grid.three .fm-card.feat {
+    grid-template-columns: 56px 1fr;
+    padding: 12px;
+  }
+  #fm-spins.fm-grid.three .fm-card.feat .fm-art img {
+    width: 56px;
+    height: 56px;
+  }
+  #fm-spins .fm-card b {
+    font-size: 16px;
+  }
+  #fm-spins .fm-chips i {
+    font-size: 10px;
+    padding: 2px 6px;
+    letter-spacing: 0.03em;
+  }
+}
+.fm-card.f-jaguarking {
+  --acc: #c08cff;
+  --acc2: rgba(192, 140, 255, 0.34);
+}
+#spin.jaguar.king:not(.busy) {
+  background: radial-gradient(circle at 38% 30%, #f6e8ff, #c08cff 40%, #5a2aa0 78%, #1e0a3a);
+  box-shadow: 0 6px 0 #2a1050, 0 0 44px rgba(192, 140, 255, 0.85), inset 0 -6px 12px rgba(0, 0, 0, 0.3);
+}
 /* feature spins: horizontal cards */
 .fm-card.feat {
   display: grid;

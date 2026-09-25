@@ -1,6 +1,6 @@
 import { Board } from './board';
 import { Ui } from './ui';
-import { BONUS_BY_SCATTERS, GOLDEN_TOTEMS, ROAR_TOTEMS, STAGE_TOTEMS } from './config';
+import { BONUS_BY_SCATTERS, GOLDEN_TOTEMS, KING_TOTEMS, ROAR_TOTEMS, STAGE_TOTEMS } from './config';
 import { BIG_TIERS } from './bigwin';
 import { t } from './i18n';
 import { money } from './format';
@@ -95,8 +95,8 @@ export class RoundPlayer {
       case 'jaguarRoar': {
         const golden = !!ev.golden;
         if (!this.inFreeSpins) sound.hype(1);
-        void this.ui.banner(golden ? t('goldenJaguar') : t('jaguarRoar'), '', 1100, golden ? 'gold' : '');
-        await this.board.dropTotems(ev.totems, golden, golden ? GOLDEN_TOTEMS : ROAR_TOTEMS);
+        void this.ui.banner(ev.king ? t('kingJaguar') : golden ? t('goldenJaguar') : t('jaguarRoar'), '', 1100, golden ? 'gold' : '');
+        await this.board.dropTotems(ev.totems, golden, ev.king ? KING_TOTEMS : golden ? GOLDEN_TOTEMS : ROAR_TOTEMS);
         break;
       }
       case 'winInfo': {

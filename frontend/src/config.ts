@@ -13,6 +13,7 @@ export const MODES: Record<string, ModeDef> = {
   base: { key: 'base', cost: 1, kind: 'spin' },
   bonushunt: { key: 'bonushunt', cost: 1.5, kind: 'toggle' },
   jaguar: { key: 'jaguar', cost: 25, kind: 'toggle' },
+  jaguarking: { key: 'jaguarking', cost: 200, kind: 'toggle' },
   bonus: { key: 'bonus', cost: 100, kind: 'buy' },
   superbonus: { key: 'superbonus', cost: 200, kind: 'buy' },
   godbonus: { key: 'godbonus', cost: 500, kind: 'buy' },
@@ -28,6 +29,8 @@ export const BUYS: { mode: string; stage: number }[] = [
 /** Values a jaguar-thrown stele can show (normal roar / golden Jaguar-Spin). */
 export const ROAR_TOTEMS = [2, 3, 5, 10, 25];
 export const GOLDEN_TOTEMS = [5, 10, 15, 25, 50];
+/** Jaguar King (premium feature spin): only king steles 50×–500× */
+export const KING_TOTEMS = [50, 100, 250, 500];
 
 /** Totem values per stage (0 = base game), for the pyramid panel. */
 export const STAGE_TOTEMS: Record<number, number[]> = {

@@ -33,7 +33,7 @@ def totem_mult_event(gamestate, totems: list, total_mult: int, base_win: float, 
 JAGUAR_ROAR = "jaguarRoar"
 
 
-def jaguar_roar_event(gamestate, totems: list, golden: bool):
+def jaguar_roar_event(gamestate, totems: list, golden: bool, king: bool = False):
     """The jaguar roars after the reveal and throws extra totems onto the board.
     These positions are replaced by a totem (T) carrying the given multiplier."""
     pad = 1 if gamestate.config.include_padding else 0
@@ -41,6 +41,7 @@ def jaguar_roar_event(gamestate, totems: list, golden: bool):
         "index": len(gamestate.book.events),
         "type": JAGUAR_ROAR,
         "golden": golden,
+        "king": king,
         "totems": [{"reel": t["reel"], "row": t["row"] + pad, "multiplier": t["value"]} for t in totems],
     }
     gamestate.book.add_event(event)

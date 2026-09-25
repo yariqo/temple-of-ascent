@@ -75,7 +75,7 @@ def check_book(bk, mode, errs, stats):
                 if m not in allowed:
                     err(f"stele value {m} not in table of stage {stage if in_fs else 'base'}")
         elif t == "jaguarRoar":
-            table = CFG.jaguar_spin_roar if e.get("golden") else CFG.jaguar_roar
+            table = CFG.jaguar_king_roar if e.get("king") else CFG.jaguar_spin_roar if e.get("golden") else CFG.jaguar_roar
             for tt in e["totems"]:
                 board_totems[(tt["reel"], tt["row"])] = tt["multiplier"]
                 if tt["multiplier"] not in table["values"]:

@@ -2,7 +2,7 @@
     "workingName": "Temple of Ascent",
     "frontendConfig": {
         "file": "fe_config.json",
-        "sha256": "91650c3c639d3a947e8635c85ea33a101cb24ee214f982a0302cfe811c45bb29"
+        "sha256": "24bb6ad6290738d3c8743322573a476817391e7f1926ade989805dec39e14829"
     },
     "gameID": "temple_of_ascent",
     "rtp": 96.0,
@@ -11,7 +11,7 @@
     "providerNumber": 0,
     "standardForceFile": {
         "file": "force.json",
-        "sha256": "be7d904f1cd0fddeb70deb5638e93dfc0920e16a02f9f96f3e8909e958de32f9"
+        "sha256": "466e2b4265655daed2e172bee359e24d316464c4f41fddaa1d74274e44bded3c"
     },
     "bookShelfConfig": [
         {
@@ -87,6 +87,31 @@
             "forceFile": {
                 "file": "force_record_jaguar.json",
                 "sha256": "cb2c01461db054727a8a77368b04f5417f45f02879ab26ef63ad4b8a455ae5a2"
+            }
+        },
+        {
+            "name": "jaguarking",
+            "tables": [
+                {
+                    "file": "lookUpTable_jaguarking_0.csv",
+                    "sha256": "872f8ecf5e26b72af213f3514994312a6654825a1c09ef04f183537ecebb208d"
+                }
+            ],
+            "cost": 200.0,
+            "rtp": 0.96,
+            "std": 1.48,
+            "bookLength": 100000,
+            "feature": true,
+            "autoEndRoundDisabled": false,
+            "buyBonus": false,
+            "maxWin": 10000,
+            "booksFile": {
+                "file": "books_jaguarking.jsonl.zst",
+                "sha256": "9cbd46dbd780ac74035a666f74930ab089c2845237369ddd0f38af0f56e4d161"
+            },
+            "forceFile": {
+                "file": "force_record_jaguarking.json",
+                "sha256": "085bc82b26829d491ae8915f4f028eea3f43afdfc6622d80d1040b35e3500fad"
             }
         },
         {

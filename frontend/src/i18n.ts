@@ -49,6 +49,10 @@ const en: Dict = {
   jaguarLong: 'Golden steles on every spin. No free spins.',
   chip_bonushunt: '2× BONUS CHANCE',
   chip_jaguar: '5–50× EVERY SPIN',
+  jaguarking: 'Jaguar King',
+  jaguarkingLong: 'Only king steles – every one 50× or more. No free spins.',
+  chip_jaguarking: '50–500× EVERY SPIN',
+  kingJaguar: 'JAGUAR KING',
   chipSpins: '{n} SPINS',
   chipStage: 'STAGE {n}',
   buyTag_bonus: 'The classic temple climb',
@@ -181,6 +185,10 @@ const de: Dict = {
   jaguarLong: 'Goldene Stelen bei jedem Spin. Keine Freispiele.',
   chip_bonushunt: '2× BONUS-CHANCE',
   chip_jaguar: '5–50× JEDER SPIN',
+  jaguarking: 'Jaguar-König',
+  jaguarkingLong: 'Nur Königsstelen – jede 50× oder mehr. Keine Freispiele.',
+  chip_jaguarking: '50–500× JEDER SPIN',
+  kingJaguar: 'JAGUAR-KÖNIG',
   chipSpins: '{n} SPINS',
   chipStage: 'STUFE {n}',
   buyTag_bonus: 'Der klassische Tempelaufstieg',
@@ -286,7 +294,7 @@ export function t(key: string, vars: Record<string, string | number> = {}): stri
 export function rulesHtml(lang: string): string {
   if (lang === 'de') {
     return `
-<h3>BALAM</h3>
+<h3>BALAM RISING</h3>
 <p>5 Walzen × 4 Reihen, 20 feste Gewinnlinien, Gewinne von links nach rechts. Alle Gewinne in × Einsatz. RTP: <b>96,00 %</b> in allen Modi. Max. Gewinn: <b>10.000×</b> Einsatz.</p>
 <h4>Götter-Stelen</h4>
 <p>Jede Stele trägt einen Multiplikator (Basisspiel 2×–10×). Gibt es im Spin einen Liniengewinn, werden alle Stelen auf dem Feld <b>addiert</b> und multiplizieren den <b>Liniengewinn</b> dieses Spins, nicht den Einsatz. Beispiel: Liniengewinn 0,40 € und Stelen 5× + 10× = 15× ergibt 6,00 €. Ohne Liniengewinn zahlen die Stelen nichts.</p>
@@ -303,13 +311,14 @@ In den Freispielen gesammelte BONUS-Symbole füllen die Pyramide: alle 3 steigt 
 <h4>Modi</h4>
 <p><b>Bonus-Jagd (1,5× Einsatz):</b> doppelte Chance auf Freispiele.<br>
 <b>Jaguar-Spin (25× Einsatz):</b> Der Jaguar wirft bei jedem Spin 2–4 goldene Stelen (5×–50×). Jeder Jaguar-Spin zahlt einen Gewinn, der kleiner als der Einsatz sein kann. Keine Freispiele.<br>
+<b>Jaguar-König (200× Einsatz):</b> Der Jaguar wirft bei jedem Spin 2–4 Königsstelen (50×, 100×, 250× oder 500×). Jeder Spin zahlt einen Gewinn, der kleiner als der Einsatz sein kann. Keine Freispiele.<br>
 <b>Tempel-Bonus kaufen (100× Einsatz):</b> wie 3 BONUS-Symbole.<br>
 <b>Super-Bonus kaufen (200× Einsatz):</b> wie 4 BONUS-Symbole.<br>
 <b>Göttlichen Bonus kaufen (500× Einsatz):</b> wie 5 BONUS-Symbole.</p>
 <p>Fehlfunktionen machen alle Gewinne und Spiele ungültig.</p>`;
   }
   return `
-<h3>BALAM</h3>
+<h3>BALAM RISING</h3>
 <p>5 reels × 4 rows, 20 fixed paylines, wins pay left to right. All wins in × bet. RTP: <b>96.00%</b> in all modes. Max win: <b>10,000×</b> bet.</p>
 <h4>God Steles</h4>
 <p>Every stele carries a multiplier (base game 2×–10×). If the spin has a line win, all steles on the board are <b>added</b> and multiply that spin's <b>line win</b>, not the bet. Example: a line win of $0.40 with steles 5× + 10× = 15× pays $6.00. Without a line win the steles pay nothing.</p>
@@ -326,6 +335,7 @@ BONUS symbols collected during free spins fill the pyramid: every 3 move you up 
 <h4>Modes</h4>
 <p><b>Bonus Hunt (1.5× bet):</b> double chance to trigger free spins.<br>
 <b>Jaguar Spin (25× bet):</b> the jaguar throws 2–4 golden steles (5×–50×) every spin. Every Jaguar Spin pays a win, which may be less than its cost. No free spins.<br>
+<b>Jaguar King (200× bet):</b> the jaguar throws 2–4 king steles (50×, 100×, 250× or 500×) every spin. Every Jaguar King spin pays a win, which may be less than its cost. No free spins.<br>
 <b>Buy Temple Bonus (100× bet):</b> same as 3 BONUS symbols.<br>
 <b>Buy Super Bonus (200× bet):</b> same as 4 BONUS symbols.<br>
 <b>Buy Divine Bonus (500× bet):</b> same as 5 BONUS symbols.</p>

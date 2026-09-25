@@ -762,107 +762,204 @@ function drawWild(ctx: Ctx) {
   ]));
 }
 
+/**
+ * BONUS symbol: a golden step pyramid – the temple itself – with a glowing jade portal and a
+ * beam of light shooting up from its shrine, on a turquoise halo. (The wild is the sun face,
+ * so the BONUS no longer uses a sun.)
+ */
 function drawScatter(ctx: Ctx) {
   const c = 128;
-  // bright light rays all around
+  const cy = 118;
+  // halo: jade disc with alternating gold / turquoise rays
   ctx.save();
-  ctx.translate(c, c - 8);
-  for (let i = 0; i < 16; i++) {
-    ctx.rotate(Math.PI / 8);
+  ctx.translate(c, cy);
+  for (let i = 0; i < 20; i++) {
+    ctx.rotate((Math.PI * 2) / 20);
     ctx.beginPath();
-    ctx.moveTo(0, 0);
-    ctx.lineTo(-13, -126);
-    ctx.lineTo(13, -126);
+    ctx.moveTo(-5, -40);
+    ctx.lineTo(-11, -124);
+    ctx.lineTo(11, -124);
+    ctx.lineTo(5, -40);
     ctx.closePath();
-    ctx.fillStyle = i % 2 ? 'rgba(255,236,150,0.32)' : 'rgba(120,245,255,0.38)';
+    ctx.fillStyle = rad(ctx, 0, 0, 40, 124, i % 2
+      ? [[0, 'rgba(255,225,130,0.6)'], [1, 'rgba(255,225,130,0)']]
+      : [[0, 'rgba(90,245,225,0.6)'], [1, 'rgba(90,245,225,0)']]);
     ctx.fill();
   }
   ctx.restore();
-  // strong glow
   ctx.beginPath();
-  ctx.arc(c, c - 8, 118, 0, Math.PI * 2);
-  ctx.fillStyle = rad(ctx, c, c - 8, 10, 118, [
-    [0, 'rgba(170,255,255,0.9)'],
-    [0.5, 'rgba(90,230,255,0.45)'],
-    [1, 'rgba(90,230,255,0)'],
+  ctx.arc(c, cy, 112, 0, Math.PI * 2);
+  ctx.fillStyle = rad(ctx, c, cy, 8, 112, [
+    [0, 'rgba(200,255,240,0.95)'],
+    [0.45, 'rgba(40,210,190,0.55)'],
+    [1, 'rgba(20,160,150,0)'],
   ]);
   ctx.fill();
-  ctx.save();
-  ctx.translate(0, -12);
-  // tablet (diamond stone) – larger, double gold border
-  shadow(ctx, 18, 8, 0.7);
-  poly(ctx, [
-    [c, c - 104],
-    [c + 100, c],
-    [c, c + 104],
-    [c - 100, c],
+  // carved jade ring behind the pyramid
+  ctx.beginPath();
+  ctx.arc(c, cy - 6, 84, 0, Math.PI * 2);
+  ctx.lineWidth = 12;
+  ctx.strokeStyle = lin(ctx, 0, cy - 90, 0, cy + 80, [
+    [0, '#8ff5da'],
+    [0.5, '#1c9c83'],
+    [1, '#0a4a3e'],
   ]);
-  ctx.fillStyle = lin(ctx, 0, c - 104, 0, c + 104, GOLD);
+  ctx.stroke();
+  ctx.lineWidth = 3;
+  ctx.strokeStyle = INK;
+  ctx.beginPath();
+  ctx.arc(c, cy - 6, 90, 0, Math.PI * 2);
+  ctx.stroke();
+  ctx.beginPath();
+  ctx.arc(c, cy - 6, 78, 0, Math.PI * 2);
+  ctx.stroke();
+  stepRing(ctx, c, cy - 6, 84, 24, 4, 'rgba(255,240,190,0.75)');
+
+  // beam of light from the shrine
+  ctx.save();
+  ctx.globalCompositeOperation = 'lighter';
+  const beam = ctx.createLinearGradient(0, 4, 0, cy - 40);
+  beam.addColorStop(0, 'rgba(160,255,240,0)');
+  beam.addColorStop(1, 'rgba(200,255,245,0.85)');
+  poly(ctx, [
+    [c - 6, cy - 40],
+    [c + 6, cy - 40],
+    [c + 22, 4],
+    [c - 22, 4],
+  ]);
+  ctx.fillStyle = beam;
+  ctx.fill();
+  ctx.restore();
+
+  // step pyramid: 4 gold tiers (bottom → top)
+  const tiers = [
+    { w: 176, y: cy + 50, h: 24 },
+    { w: 144, y: cy + 26, h: 24 },
+    { w: 112, y: cy + 2, h: 24 },
+    { w: 80, y: cy - 22, h: 24 },
+  ];
+  shadow(ctx, 16, 8, 0.7);
+  poly(ctx, [
+    [c - 88, cy + 74],
+    [c + 88, cy + 74],
+    [c + 40, cy - 22],
+    [c - 40, cy - 22],
+  ]);
+  ctx.fillStyle = '#000';
   ctx.fill();
   noShadow(ctx);
-  ctx.strokeStyle = INK;
-  ctx.lineWidth = 4;
-  ctx.stroke();
+  for (const t of tiers) {
+    const x0 = c - t.w / 2;
+    const inset = 8;
+    poly(ctx, [
+      [x0, t.y + t.h],
+      [x0 + t.w, t.y + t.h],
+      [x0 + t.w - inset, t.y],
+      [x0 + inset, t.y],
+    ]);
+    ctx.fillStyle = lin(ctx, 0, t.y, 0, t.y + t.h, [
+      [0, '#fff3b0'],
+      [0.35, '#f0bf45'],
+      [0.7, '#b8780f'],
+      [1, '#7a4a06'],
+    ]);
+    ctx.fill();
+    ctx.strokeStyle = INK;
+    ctx.lineWidth = 3;
+    ctx.stroke();
+    // jade inlay band with carved blocks
+    ctx.fillStyle = lin(ctx, 0, t.y + 9, 0, t.y + 16, [
+      [0, '#6ff0cf'],
+      [1, '#107a64'],
+    ]);
+    ctx.fillRect(x0 + inset + 4, t.y + 9, t.w - 2 * inset - 8, 7);
+    ctx.fillStyle = 'rgba(20,40,30,0.55)';
+    for (let x = x0 + inset + 10; x < x0 + t.w - inset - 8; x += 14) ctx.fillRect(x, t.y + 9, 2, 7);
+  }
+  // central staircase
   poly(ctx, [
-    [c, c - 90],
-    [c + 86, c],
-    [c, c + 90],
-    [c - 86, c],
+    [c - 20, cy + 74],
+    [c + 20, cy + 74],
+    [c + 11, cy - 22],
+    [c - 11, cy - 22],
   ]);
-  ctx.fillStyle = lin(ctx, 0, c - 90, 0, c + 90, [
-    [0, '#c8fdff'],
-    [0.4, '#22c3de'],
-    [1, '#064a66'],
+  ctx.fillStyle = lin(ctx, 0, cy - 22, 0, cy + 74, [
+    [0, '#ffe9a0'],
+    [1, '#a8690c'],
+  ]);
+  ctx.fill();
+  ctx.strokeStyle = INK;
+  ctx.lineWidth = 2.5;
+  ctx.stroke();
+  ctx.strokeStyle = 'rgba(60,30,0,0.6)';
+  ctx.lineWidth = 1.5;
+  for (let y = cy - 14; y < cy + 74; y += 8) {
+    const k = (y - (cy - 22)) / 96;
+    const hw = 11 + k * 9;
+    ctx.beginPath();
+    ctx.moveTo(c - hw, y);
+    ctx.lineTo(c + hw, y);
+    ctx.stroke();
+  }
+  // shrine on top with a glowing portal
+  const sy = cy - 50;
+  poly(ctx, [
+    [c - 30, cy - 22],
+    [c + 30, cy - 22],
+    [c + 26, sy],
+    [c - 26, sy],
+  ]);
+  ctx.fillStyle = lin(ctx, 0, sy, 0, cy - 22, [
+    [0, '#fff3b0'],
+    [1, '#b8780f'],
   ]);
   ctx.fill();
   ctx.strokeStyle = INK;
   ctx.lineWidth = 3;
   ctx.stroke();
-  // glossy highlight
+  // roof comb
   poly(ctx, [
-    [c, c - 84],
-    [c + 42, c - 42],
-    [c, c - 20],
-    [c - 42, c - 42],
+    [c - 32, sy],
+    [c + 32, sy],
+    [c + 22, sy - 12],
+    [c - 22, sy - 12],
   ]);
-  ctx.fillStyle = 'rgba(255,255,255,0.28)';
-  ctx.fill();
-  // carved sun glyph
-  ctx.beginPath();
-  ctx.arc(c, c, 26, 0, Math.PI * 2);
-  ctx.fillStyle = rad(ctx, c, c, 2, 26, [
-    [0, '#ffffff'],
-    [1, '#ffe27a'],
-  ]);
-  ctx.fill();
-  ctx.strokeStyle = '#6b3f06';
-  ctx.lineWidth = 4;
-  ctx.stroke();
-  ctx.fillStyle = '#fff4c0';
-  ctx.strokeStyle = '#6b3f06';
-  ctx.lineWidth = 2;
-  for (let i = 0; i < 8; i++) {
-    const a = (i / 8) * Math.PI * 2;
-    ctx.save();
-    ctx.translate(c + Math.cos(a) * 42, c + Math.sin(a) * 42);
-    ctx.rotate(a + Math.PI / 2);
-    poly(ctx, [
-      [-7, 7],
-      [7, 7],
-      [0, -11],
-    ]);
-    ctx.fill();
-    ctx.stroke();
-    ctx.restore();
-  }
-  ctx.beginPath();
-  ctx.arc(c, c, 11, 0, Math.PI * 2);
   ctx.fillStyle = '#e8a21a';
   ctx.fill();
+  ctx.stroke();
+  // portal
+  ctx.save();
+  ctx.shadowColor = 'rgba(120,255,235,1)';
+  ctx.shadowBlur = 22;
+  ctx.beginPath();
+  ctx.moveTo(c - 12, cy - 22);
+  ctx.lineTo(c - 12, sy + 12);
+  ctx.quadraticCurveTo(c, sy + 2, c + 12, sy + 12);
+  ctx.lineTo(c + 12, cy - 22);
+  ctx.closePath();
+  ctx.fillStyle = rad(ctx, c, cy - 30, 2, 22, [
+    [0, '#ffffff'],
+    [0.5, '#9ffff0'],
+    [1, '#1bc7b0'],
+  ]);
+  ctx.fill();
   ctx.restore();
-  ribbon(ctx, 'BONUS', 220, lin(ctx, 0, 200, 0, 240, [
-    [0, '#23c8d8'],
-    [1, '#075a70'],
+  ctx.strokeStyle = INK;
+  ctx.lineWidth = 2.5;
+  ctx.stroke();
+  // sparkles
+  ctx.fillStyle = 'rgba(255,255,255,0.95)';
+  for (const [x, y, r] of [
+    [c - 70, cy - 58, 7],
+    [c + 74, cy - 40, 5],
+    [c + 58, cy - 82, 6],
+    [c - 52, cy - 92, 4],
+  ] as [number, number, number][])
+    star(ctx, x, y, r, 1.6);
+
+  ribbon(ctx, 'BONUS', 222, lin(ctx, 0, 202, 0, 242, [
+    [0, '#1fc9a8'],
+    [1, '#06594a'],
   ]));
 }
 
