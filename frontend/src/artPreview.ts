@@ -37,11 +37,11 @@ import { drawMascotBody, drawMascotHead, drawMascotTail, MASCOT_GEO } from './ar
     ctx.fillRect(0, 180, 1200, 30);
     const G = MASCOT_GEO;
     const ox = 20, oy = 180 - G.belly + 10;
-    ctx.drawImage(drawMascotTail(), ox + G.tail.x - G.tail.ax, oy + G.tail.y - G.tail.ay);
-    ctx.drawImage(drawMascotBody(), ox, oy);
-    ctx.drawImage(drawMascotHead('open'), ox + G.head.x - G.head.ax, oy + G.head.y - G.head.ay);
-    (['closed', 'happy', 'roar'] as const).forEach((f, i) => ctx.drawImage(drawMascotHead(f, i === 2), 520 + i * 230, 0));
-    ctx.drawImage(drawMascotHead('open', true), 750, 260);
+    ctx.drawImage(drawMascotTail(), ox + G.tail.x - G.tail.ax, oy + G.tail.y - G.tail.ay, G.tail.w, G.tail.h);
+    ctx.drawImage(drawMascotBody(), ox, oy, G.bodyW, G.bodyH);
+    ctx.drawImage(drawMascotHead('open'), ox + G.head.x - G.head.ax, oy + G.head.y - G.head.ay, G.head.w, G.head.h);
+    (['closed', 'happy', 'roar'] as const).forEach((f, i) => ctx.drawImage(drawMascotHead(f, i === 2), 520 + i * 230, 0, G.head.w, G.head.h));
+    ctx.drawImage(drawMascotHead('open', true), 750, 260, G.head.w, G.head.h);
   } else {
     c.width = 1600;
     c.height = 1500;

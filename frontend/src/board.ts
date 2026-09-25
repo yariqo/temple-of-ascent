@@ -15,9 +15,9 @@ const W = REELS * CELL;
 const H = ROWS * CELL;
 const MARGIN = 40;
 /** room above the frame for the jaguar mascot, and to the right for its tail */
-const TOP = 112;
+const TOP = 128;
 const SIDE = 22;
-const MASCOT_SCALE = 0.7;
+const MASCOT_SCALE = 0.84;
 const KEPT_SCALE = 0.95;
 const SYM_SIZE = CELL * 0.94;
 /** plate centre of the stele texture (y = 184 of 256) relative to the symbol centre */

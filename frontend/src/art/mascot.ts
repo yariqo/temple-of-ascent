@@ -4,15 +4,24 @@
  * All drawing is procedural Canvas2D (no image files).
  */
 import { lin, makeCanvas, rad } from './draw';
+import { MAT, bevel, gloss, solid, sparkle, texture } from './kit';
 
 type Ctx = CanvasRenderingContext2D;
+
+/** the mascot is painted at 2× resolution; the game creates its textures with resolution 2 */
+export const MASCOT_RES = 2;
+function canvas(w: number, h: number): [HTMLCanvasElement, Ctx] {
+  const [c, ctx] = makeCanvas(w * MASCOT_RES, h * MASCOT_RES);
+  ctx.scale(MASCOT_RES, MASCOT_RES);
+  return [c, ctx];
+}
 
 /** Geometry shared with the animation code (src/mascot.ts). Body canvas coordinates. */
 export const MASCOT_GEO = {
   bodyW: 480,
   bodyH: 200,
   belly: 160, // y of the line the jaguar lies on
-  head: { w: 240, h: 290, ax: 120, ay: 176, x: 102, y: 74 }, // head canvas size, anchor, position on the body
+  head: { w: 300, h: 330, ax: 150, ay: 216, x: 102, y: 74 }, // head canvas size, anchor, position on the body
   tail: { w: 120, h: 250, ax: 26, ay: 14, x: 436, y: 136 },
   right: 462, // right end of the body
 };
@@ -68,8 +77,8 @@ function dot(ctx: Ctx, x: number, y: number, r: number) {
 }
 
 // ------------------------------------------------------------------ body
-function bodyPath(ctx: Ctx) {
-  ctx.beginPath();
+function bodyP(): Path2D {
+  const ctx = new Path2D();
   ctx.moveTo(96, 160);
   ctx.bezierCurveTo(88, 120, 104, 84, 140, 66); // chest -> neck
   ctx.bezierCurveTo(168, 52, 196, 56, 214, 64); // shoulder blade
@@ -77,35 +86,39 @@ function bodyPath(ctx: Ctx) {
   ctx.bezierCurveTo(398, 42, 440, 56, 456, 92); // hip
   ctx.bezierCurveTo(466, 116, 464, 146, 452, 160); // rump
   ctx.closePath();
+  return ctx;
 }
+
 
 function drawPaw(ctx: Ctx, x: number, top: number, bottom: number, w: number) {
   // fore leg hanging over the frame edge
-  ctx.beginPath();
-  ctx.moveTo(x - w / 2, top);
-  ctx.bezierCurveTo(x - w / 2 - 2, top + 20, x - w / 2 - 4, bottom - 18, x - w / 2 - 3, bottom - 10);
-  ctx.quadraticCurveTo(x, bottom + 8, x + w / 2 + 3, bottom - 10);
-  ctx.bezierCurveTo(x + w / 2 + 4, bottom - 18, x + w / 2 + 2, top + 20, x + w / 2, top);
-  ctx.closePath();
+  const PP = new Path2D();
+  PP.moveTo(x - w / 2, top);
+  PP.bezierCurveTo(x - w / 2 - 2, top + 20, x - w / 2 - 4, bottom - 18, x - w / 2 - 3, bottom - 10);
+  PP.quadraticCurveTo(x, bottom + 8, x + w / 2 + 3, bottom - 10);
+  PP.bezierCurveTo(x + w / 2 + 4, bottom - 18, x + w / 2 + 2, top + 20, x + w / 2, top);
+  PP.closePath();
   ctx.fillStyle = lin(ctx, x - w / 2, 0, x + w / 2, 0, [
-    [0, '#c77a1c'],
-    [0.45, '#f2b44e'],
-    [1, '#d68a26'],
+    [0, '#b8680f'],
+    [0.4, '#f6b650'],
+    [1, '#c97a1c'],
   ]);
-  ctx.fill();
-  ctx.strokeStyle = INK;
-  ctx.lineWidth = 3;
-  ctx.stroke();
-  // paw tip lighter
+  ctx.fill(PP);
+  // paw tip lighter + spots
   ctx.save();
-  ctx.clip();
-  ctx.fillStyle = 'rgba(255,236,200,0.75)';
+  ctx.clip(PP);
+  ctx.fillStyle = 'rgba(255,236,200,0.8)';
   ctx.beginPath();
   ctx.ellipse(x, bottom - 4, w * 0.6, 12, 0, 0, Math.PI * 2);
   ctx.fill();
   const r = rng(Math.round(x));
   for (let i = 0; i < 5; i++) dot(ctx, x - w * 0.3 + r() * w * 0.6, top + 8 + r() * (bottom - top - 30), 2.2 + r() * 2);
   ctx.restore();
+  texture(ctx, PP, 0.2);
+  bevel(ctx, PP, 3, 'rgba(255,240,200,0.55)', 'rgba(60,25,0,0.5)');
+  ctx.strokeStyle = INK;
+  ctx.lineWidth = 3;
+  ctx.stroke(PP);
   // toes
   ctx.strokeStyle = 'rgba(60,28,4,0.8)';
   ctx.lineWidth = 2;
@@ -128,38 +141,43 @@ function drawPaw(ctx: Ctx, x: number, top: number, bottom: number, w: number) {
 
 export function drawMascotBody(): HTMLCanvasElement {
   const G = MASCOT_GEO;
-  const [c, ctx] = makeCanvas(G.bodyW, G.bodyH);
+  const [c, ctx] = canvas(G.bodyW, G.bodyH);
+  const BP = bodyP();
 
   // soft contact shadow on the frame
   ctx.beginPath();
-  ctx.ellipse(280, 162, 190, 10, 0, 0, Math.PI * 2);
-  ctx.fillStyle = 'rgba(0,0,0,0.35)';
-  ctx.fill();
-
-  // hind leg (back side, darker)
-  ctx.beginPath();
-  ctx.ellipse(392, 128, 58, 36, -0.15, 0, Math.PI * 2);
-  ctx.fillStyle = '#b76a16';
-  ctx.fill();
-
-  // body
-  ctx.save();
-  ctx.shadowColor = 'rgba(0,0,0,0.5)';
-  ctx.shadowBlur = 14;
-  ctx.shadowOffsetY = 5;
-  bodyPath(ctx);
-  ctx.fillStyle = lin(ctx, 0, 44, 0, 160, [
-    [0, '#e39a34'],
-    [0.35, '#f3b24b'],
-    [0.7, '#eaa441'],
-    [1, '#d88b2a'],
+  ctx.ellipse(280, 162, 196, 11, 0, 0, Math.PI * 2);
+  ctx.fillStyle = rad(ctx, 280, 162, 10, 196, [
+    [0, 'rgba(0,0,0,0.5)'],
+    [1, 'rgba(0,0,0,0)'],
   ]);
   ctx.fill();
+
+  // hind leg (far side, in shadow)
+  const far = new Path2D();
+  far.ellipse(392, 128, 58, 36, -0.15, 0, Math.PI * 2);
+  ctx.fillStyle = lin(ctx, 0, 92, 0, 164, [
+    [0, '#a85e12'],
+    [1, '#5a2e06'],
+  ]);
+  ctx.fill(far);
+
+  // body: warm fur gradient
+  ctx.save();
+  ctx.shadowColor = 'rgba(0,0,0,0.55)';
+  ctx.shadowBlur = 16;
+  ctx.shadowOffsetY = 6;
+  ctx.fillStyle = lin(ctx, 0, 44, 0, 160, [
+    [0, '#f6b650'],
+    [0.3, '#f0a53a'],
+    [0.65, '#e0902a'],
+    [1, '#c47418'],
+  ]);
+  ctx.fill(BP);
   ctx.restore();
 
   ctx.save();
-  bodyPath(ctx);
-  ctx.clip();
+  ctx.clip(BP);
   // belly (cream) along the bottom
   ctx.beginPath();
   ctx.moveTo(90, 170);
@@ -172,18 +190,26 @@ export function drawMascotBody(): HTMLCanvasElement {
     [1, CREAM],
   ]);
   ctx.fill();
-  // rim light along the back, shade under it
-  ctx.fillStyle = lin(ctx, 0, 50, 0, 90, [
-    [0, 'rgba(255,238,190,0.55)'],
-    [1, 'rgba(255,238,190,0)'],
+  // volume: shade under the flank, rim light along the back
+  ctx.globalCompositeOperation = 'multiply';
+  ctx.fillStyle = lin(ctx, 0, 60, 0, 160, [
+    [0, 'rgba(255,255,255,1)'],
+    [0.55, 'rgba(240,215,180,1)'],
+    [1, 'rgba(170,120,80,1)'],
+  ]);
+  ctx.fillRect(0, 0, 480, 200);
+  ctx.globalCompositeOperation = 'source-over';
+  ctx.fillStyle = lin(ctx, 0, 46, 0, 84, [
+    [0, 'rgba(255,240,195,0.7)'],
+    [1, 'rgba(255,240,195,0)'],
   ]);
   ctx.fillRect(80, 40, 400, 50);
-  // thigh muscle
+  // thigh and shoulder muscles (light + crease)
   ctx.beginPath();
-  ctx.ellipse(398, 118, 52, 40, -0.3, 0, Math.PI * 2);
-  ctx.fillStyle = rad(ctx, 390, 100, 4, 60, [
-    [0, 'rgba(255,214,140,0.5)'],
-    [1, 'rgba(160,80,10,0.0)'],
+  ctx.ellipse(398, 116, 52, 40, -0.3, 0, Math.PI * 2);
+  ctx.fillStyle = rad(ctx, 388, 98, 4, 62, [
+    [0, 'rgba(255,220,150,0.6)'],
+    [1, 'rgba(160,80,10,0)'],
   ]);
   ctx.fill();
   ctx.beginPath();
@@ -191,7 +217,13 @@ export function drawMascotBody(): HTMLCanvasElement {
   ctx.strokeStyle = 'rgba(110,52,6,0.55)';
   ctx.lineWidth = 3;
   ctx.stroke();
-  // shoulder muscle
+  ctx.beginPath();
+  ctx.ellipse(178, 98, 46, 40, 0.2, 0, Math.PI * 2);
+  ctx.fillStyle = rad(ctx, 170, 84, 4, 50, [
+    [0, 'rgba(255,220,150,0.5)'],
+    [1, 'rgba(160,80,10,0)'],
+  ]);
+  ctx.fill();
   ctx.beginPath();
   ctx.ellipse(176, 104, 44, 38, 0.2, Math.PI * 1.05, Math.PI * 1.85);
   ctx.strokeStyle = 'rgba(110,52,6,0.45)';
@@ -201,7 +233,7 @@ export function drawMascotBody(): HTMLCanvasElement {
   // rosettes – big on the flank, smaller towards belly and legs
   const r = rng(11);
   const placed: [number, number, number][] = [];
-  for (let tries = 0; tries < 900 && placed.length < 38; tries++) {
+  for (let tries = 0; tries < 900 && placed.length < 40; tries++) {
     const x = 150 + r() * 310;
     const y = 62 + r() * 86;
     const size = 6 + (1 - (y - 62) / 86) * 6 + r() * 2.5;
@@ -220,12 +252,15 @@ export function drawMascotBody(): HTMLCanvasElement {
     dot(ctx, x, y + 4, 2.6);
   }
   ctx.restore();
+  // fur grain + soft bevel
+  texture(ctx, BP, 0.22);
+  bevel(ctx, BP, 5, 'rgba(255,240,200,0.55)', 'rgba(60,25,0,0.5)');
+  fur(ctx, BP, 90, 470, 44, 1);
 
   // outline
-  bodyPath(ctx);
   ctx.strokeStyle = INK;
   ctx.lineWidth = 3.5;
-  ctx.stroke();
+  ctx.stroke(BP);
 
   // fore paws draped over the frame edge (under the head)
   drawPaw(ctx, 70, 120, 188, 34);
@@ -233,10 +268,31 @@ export function drawMascotBody(): HTMLCanvasElement {
   return c;
 }
 
+/** short hair strokes along the top edge of a shape (rim light) */
+function fur(ctx: Ctx, clip: Path2D, x0: number, x1: number, yTop: number, seed: number) {
+  const r = rng(seed * 97 + 13);
+  ctx.save();
+  ctx.clip(clip);
+  ctx.strokeStyle = 'rgba(255,238,190,0.55)';
+  ctx.lineWidth = 1.3;
+  for (let x = x0; x < x1; x += 3) {
+    // find the top of the shape at this x
+    let y = yTop;
+    while (y < yTop + 140 && !ctx.isPointInPath(clip, x * MASCOT_RES, y * MASCOT_RES)) y += 2;
+    if (y >= yTop + 140) continue;
+    const len = 5 + r() * 6;
+    ctx.beginPath();
+    ctx.moveTo(x, y + 2);
+    ctx.lineTo(x + 2 + r() * 2, y + 2 + len);
+    ctx.stroke();
+  }
+  ctx.restore();
+}
+
 // ------------------------------------------------------------------ tail
 export function drawMascotTail(): HTMLCanvasElement {
   const T = MASCOT_GEO.tail;
-  const [c, ctx] = makeCanvas(T.w, T.h);
+  const [c, ctx] = canvas(T.w, T.h);
   const pts: [number, number][] = [];
   for (let i = 0; i <= 40; i++) {
     const t = i / 40;
@@ -275,8 +331,8 @@ export function drawMascotTail(): HTMLCanvasElement {
 // ------------------------------------------------------------------ head
 export type Face = 'open' | 'closed' | 'happy' | 'roar';
 
-function headPath(ctx: Ctx, cx: number, cy: number) {
-  ctx.beginPath();
+function headP(cx: number, cy: number): Path2D {
+  const ctx = new Path2D();
   ctx.moveTo(cx - 60, cy - 34);
   ctx.bezierCurveTo(cx - 52, cy - 86, cx + 52, cy - 86, cx + 60, cy - 34); // skull
   ctx.bezierCurveTo(cx + 76, cy - 10, cx + 84, cy + 14, cx + 72, cy + 30); // right cheek
@@ -288,42 +344,36 @@ function headPath(ctx: Ctx, cx: number, cy: number) {
   ctx.lineTo(cx - 72, cy + 30);
   ctx.bezierCurveTo(cx - 84, cy + 14, cx - 76, cy - 10, cx - 60, cy - 34);
   ctx.closePath();
+  return ctx;
 }
 
 export function drawMascotHead(face: Face, glowEyes = false): HTMLCanvasElement {
   const H = MASCOT_GEO.head;
-  const [c, ctx] = makeCanvas(H.w, H.h);
+  const [c, ctx] = canvas(H.w, H.h);
   const cx = H.ax;
   const cy = H.ay;
 
   // quetzal feathers behind the head (right side)
-  const feathers: [number, string][] = [
-    [-0.15, '#1f9e7a'],
-    [0.2, '#2bc4b4'],
-    [0.55, '#1a7f63'],
+  const feathers: [number, [number, string][]][] = [
+    [-0.15, MAT.jade],
+    [0.2, MAT.turquoise],
+    [0.55, MAT.crimson],
   ];
-  feathers.forEach(([rot, col], i) => {
+  feathers.forEach(([rot, mat], i) => {
     ctx.save();
     ctx.translate(cx + 40, cy - 66);
-    ctx.rotate(rot + 0.35);
+    ctx.rotate(rot + 0.8);
+    const f = new Path2D();
+    f.moveTo(0, 0);
+    f.bezierCurveTo(20, -26, 36, -66 - i * 6, 16, -98 - i * 8);
+    f.bezierCurveTo(-6, -70, -16, -30, 0, 0);
+    f.closePath();
+    solid(ctx, f, mat, { y0: -100, y1: 0, bevel: 2.5, tex: 0.1, line: 2.5 });
     ctx.beginPath();
-    ctx.moveTo(0, 0);
-    ctx.bezierCurveTo(18, -26, 34, -66 - i * 6, 16, -96 - i * 8);
-    ctx.bezierCurveTo(-4, -70, -14, -30, 0, 0);
-    ctx.fillStyle = lin(ctx, 0, 0, 0, -100, [
-      [0, col],
-      [0.8, '#8ff0c8'],
-      [1, '#ffe27a'],
-    ]);
-    ctx.fill();
-    ctx.strokeStyle = INK;
-    ctx.lineWidth = 2;
-    ctx.stroke();
-    ctx.beginPath();
-    ctx.moveTo(0, 0);
-    ctx.quadraticCurveTo(12, -50, 14, -96 - i * 8);
+    ctx.moveTo(0, -2);
+    ctx.quadraticCurveTo(12, -50, 14, -94 - i * 8);
     ctx.strokeStyle = '#ffd35a';
-    ctx.lineWidth = 1.5;
+    ctx.lineWidth = 1.6;
     ctx.stroke();
     ctx.restore();
   });
@@ -333,13 +383,12 @@ export function drawMascotHead(face: Face, glowEyes = false): HTMLCanvasElement 
     ctx.save();
     ctx.translate(cx + sx * 48, cy - 62);
     ctx.rotate(sx * 0.35);
-    ctx.beginPath();
-    ctx.ellipse(0, 0, 19, 17, 0, 0, Math.PI * 2);
-    ctx.fillStyle = '#d08424';
-    ctx.fill();
-    ctx.strokeStyle = INK;
-    ctx.lineWidth = 3;
-    ctx.stroke();
+    const ear = new Path2D();
+    ear.ellipse(0, 0, 19, 17, 0, 0, Math.PI * 2);
+    solid(ctx, ear, [
+      [0, '#f6b650'],
+      [1, '#b8680f'],
+    ], { y0: -17, y1: 17, bevel: 3, tex: 0.15, line: 3 });
     ctx.beginPath();
     ctx.ellipse(0, 3, 11, 10, 0, 0, Math.PI * 2);
     ctx.fillStyle = '#3a1c08';
@@ -356,18 +405,17 @@ export function drawMascotHead(face: Face, glowEyes = false): HTMLCanvasElement 
   ctx.shadowColor = 'rgba(0,0,0,0.5)';
   ctx.shadowBlur = 12;
   ctx.shadowOffsetY = 4;
-  headPath(ctx, cx, cy);
-  ctx.fillStyle = rad(ctx, cx, cy - 26, 8, 96, [
-    [0, '#f7c164'],
-    [0.6, '#eba23c'],
-    [1, '#c97a1c'],
+  const HP = headP(cx, cy);
+  ctx.fillStyle = rad(ctx, cx - 10, cy - 34, 8, 100, [
+    [0, '#fbc868'],
+    [0.55, '#eea03a'],
+    [1, '#b8680f'],
   ]);
-  ctx.fill();
+  ctx.fill(HP);
   ctx.restore();
 
   ctx.save();
-  headPath(ctx, cx, cy);
-  ctx.clip();
+  ctx.clip(HP);
   // cream areas: around the eyes, muzzle, chin
   ctx.fillStyle = CREAM;
   for (const sx of [-1, 1]) {
@@ -411,41 +459,41 @@ export function drawMascotHead(face: Face, glowEyes = false): HTMLCanvasElement 
     dot(ctx, cx + sx * 48, cy + 20, 3);
     dot(ctx, cx + sx * 62, cy + 22, 2.4);
   }
+  // volume: darker cheeks and jaw sides
+  ctx.globalCompositeOperation = 'multiply';
+  for (const sx of [-1, 1]) {
+    ctx.fillStyle = rad(ctx, cx + sx * 74, cy + 30, 4, 56, [
+      [0, 'rgba(170,90,20,0.7)'],
+      [1, 'rgba(170,90,20,0)'],
+    ]);
+    ctx.fillRect(cx - 120, cy - 120, 240, 240);
+  }
+  ctx.globalCompositeOperation = 'source-over';
   ctx.restore();
+  texture(ctx, HP, 0.2);
+  bevel(ctx, HP, 5, 'rgba(255,240,200,0.6)', 'rgba(60,25,0,0.5)');
+  fur(ctx, HP, cx - 70, cx + 70, cy - 100, 3);
 
-  headPath(ctx, cx, cy);
   ctx.strokeStyle = INK;
   ctx.lineWidth = 3.5;
-  ctx.stroke();
+  ctx.stroke(HP);
 
   // gold headband with jade stone
-  ctx.beginPath();
-  ctx.moveTo(cx - 56, cy - 50);
-  ctx.quadraticCurveTo(cx, cy - 76, cx + 56, cy - 50);
-  ctx.lineWidth = 9;
-  ctx.strokeStyle = INK;
-  ctx.stroke();
-  ctx.lineWidth = 6;
-  ctx.strokeStyle = lin(ctx, 0, cy - 72, 0, cy - 48, [
-    [0, '#fff3b0'],
-    [0.5, '#e6b43a'],
-    [1, '#8a5a08'],
-  ]);
-  ctx.stroke();
-  ctx.beginPath();
-  ctx.moveTo(cx, cy - 76);
-  ctx.lineTo(cx + 10, cy - 63);
-  ctx.lineTo(cx, cy - 50);
-  ctx.lineTo(cx - 10, cy - 63);
-  ctx.closePath();
-  ctx.fillStyle = rad(ctx, cx - 3, cy - 67, 1, 12, [
-    [0, '#b8ffe6'],
-    [1, '#10805e'],
-  ]);
-  ctx.fill();
-  ctx.strokeStyle = '#6b4204';
-  ctx.lineWidth = 2.5;
-  ctx.stroke();
+  const band = new Path2D();
+  band.moveTo(cx - 58, cy - 46);
+  band.quadraticCurveTo(cx, cy - 80, cx + 58, cy - 46);
+  band.lineTo(cx + 56, cy - 54);
+  band.quadraticCurveTo(cx, cy - 86, cx - 56, cy - 54);
+  band.closePath();
+  solid(ctx, band, MAT.gold, { y0: cy - 86, y1: cy - 46, bevel: 2, tex: 0.1, line: 2.5 });
+  const gem = new Path2D();
+  gem.moveTo(cx, cy - 80);
+  gem.lineTo(cx + 11, cy - 66);
+  gem.lineTo(cx, cy - 52);
+  gem.lineTo(cx - 11, cy - 66);
+  gem.closePath();
+  solid(ctx, gem, MAT.jade, { y0: cy - 80, y1: cy - 52, bevel: 2, tex: 0, line: 2.5 });
+  sparkle(ctx, cx - 4, cy - 72, 8);
 
   // eyes
   for (const sx of [-1, 1]) {
@@ -466,7 +514,7 @@ export function drawMascotHead(face: Face, glowEyes = false): HTMLCanvasElement 
       ctx.lineCap = 'round';
       ctx.stroke();
     } else {
-      const h = face === 'roar' ? 6.5 : 9;
+      const h = face === 'roar' ? 6.5 : 11.5;
       ctx.beginPath();
       ctx.moveTo(-15, 1);
       ctx.quadraticCurveTo(-2, -h - 3, 15, -2);
@@ -490,9 +538,10 @@ export function drawMascotHead(face: Face, glowEyes = false): HTMLCanvasElement 
       ctx.fillStyle = '#0a0604';
       ctx.fill();
       ctx.beginPath();
-      ctx.arc(sx * 1.5 - 2, -2.5, 1.7, 0, Math.PI * 2);
+      ctx.arc(sx * 1.5 - 2, -2.5, 1.9, 0, Math.PI * 2);
       ctx.fillStyle = '#ffffff';
       ctx.fill();
+      gloss(ctx, -5, -3, 7, 2.5, 0.55, -0.2);
       // black liner
       ctx.beginPath();
       ctx.moveTo(-15, 1);
@@ -550,10 +599,7 @@ export function drawMascotHead(face: Face, glowEyes = false): HTMLCanvasElement 
   ctx.strokeStyle = INK;
   ctx.lineWidth = 2.5;
   ctx.stroke();
-  ctx.beginPath();
-  ctx.ellipse(cx - 3, cy + 12, 5, 2, 0, 0, Math.PI * 2);
-  ctx.fillStyle = 'rgba(255,255,255,0.45)';
-  ctx.fill();
+  gloss(ctx, cx - 3, cy + 13, 7, 3, 0.7, 0);
 
   // whisker spots
   for (const sx of [-1, 1])
@@ -662,23 +708,12 @@ export function drawMascotHead(face: Face, glowEyes = false): HTMLCanvasElement 
     ctx.lineWidth = 1.5;
     ctx.stroke();
   }
-  ctx.beginPath();
-  ctx.arc(cx, cy + 92, 12, 0, Math.PI * 2);
-  ctx.fillStyle = lin(ctx, 0, cy + 80, 0, cy + 104, [
-    [0, '#fff3b0'],
-    [0.5, '#e6b43a'],
-    [1, '#8a5a08'],
-  ]);
-  ctx.fill();
-  ctx.strokeStyle = INK;
-  ctx.lineWidth = 2.5;
-  ctx.stroke();
-  ctx.beginPath();
-  ctx.arc(cx, cy + 92, 6, 0, Math.PI * 2);
-  ctx.fillStyle = rad(ctx, cx - 2, cy + 90, 1, 7, [
-    [0, '#b8ffe6'],
-    [1, '#10805e'],
-  ]);
-  ctx.fill();
+  const pend = new Path2D();
+  pend.arc(cx, cy + 92, 12, 0, Math.PI * 2);
+  solid(ctx, pend, MAT.gold, { y0: cy + 80, y1: cy + 104, bevel: 2.5, tex: 0.1, line: 2.5 });
+  const pj = new Path2D();
+  pj.arc(cx, cy + 92, 6, 0, Math.PI * 2);
+  solid(ctx, pj, MAT.jade, { y0: cy + 86, y1: cy + 98, bevel: 1.5, tex: 0, line: 1.5 });
+  sparkle(ctx, cx - 3, cy + 89, 6);
   return c;
 }

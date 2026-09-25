@@ -1,5 +1,10 @@
-import { Container, Sprite, Texture, type Ticker } from 'pixi.js';
-import { drawMascotBody, drawMascotHead, drawMascotTail, MASCOT_GEO as G, type Face } from './art/mascot';
+import { CanvasSource, Container, Sprite, Texture, type Ticker } from 'pixi.js';
+import { drawMascotBody, drawMascotHead, drawMascotTail, MASCOT_GEO as G, MASCOT_RES, type Face } from './art/mascot';
+
+/** mascot canvases are 2× – keep their logical size */
+function hiTex(c: HTMLCanvasElement): Texture {
+  return new Texture({ source: new CanvasSource({ resource: c, resolution: MASCOT_RES }) });
+}
 import { TEX } from './art/textures';
 import { ease, lerp, tween, wait } from './anim';
 import { sound } from './sound';
@@ -8,7 +13,7 @@ const faces = new Map<string, Texture>();
 function faceTex(face: Face, glow: boolean): Texture {
   const k = `${face}${glow ? 'g' : ''}`;
   let t = faces.get(k);
-  if (!t) faces.set(k, (t = Texture.from(drawMascotHead(face, glow))));
+  if (!t) faces.set(k, (t = hiTex(drawMascotHead(face, glow))));
   return t;
 }
 
@@ -23,9 +28,9 @@ const BODY_Y = -G.belly;
 export class Mascot {
   readonly root = new Container();
   private rig = new Container();
-  private body = new Sprite(Texture.from(drawMascotBody()));
+  private body = new Sprite(hiTex(drawMascotBody()));
   private head = new Sprite(faceTex('open', false));
-  private tail = new Sprite(Texture.from(drawMascotTail()));
+  private tail = new Sprite(hiTex(drawMascotTail()));
   private aura = new Sprite(TEX.glow);
   private time = Math.random() * 10;
   private nextBlink = 2.5;

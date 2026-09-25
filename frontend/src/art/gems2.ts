@@ -90,6 +90,7 @@ export const GEMS2: Record<string, Gem> = {
     cut: 'brilliant',
     col: ['#fffbe0', '#ffd96a', '#e08a12', '#6a2e02'],
     tableY: -0.04,
+    size: 84,
   },
   // L4 amethyst – trillion (rounded triangle)
   L4: {

@@ -121,7 +121,7 @@ export function texture(ctx: Ctx, p: Path2D, alpha = 0.18, mode: GlobalComposite
   ctx.globalAlpha = alpha;
   ctx.globalCompositeOperation = mode;
   ctx.fillStyle = ctx.createPattern(noiseTile(), 'repeat')!;
-  ctx.fillRect(0, 0, 256, 256);
+  ctx.fillRect(-100, -100, 1200, 1200);
   ctx.restore();
 }
 

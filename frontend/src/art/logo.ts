@@ -52,7 +52,7 @@ function medallion(ctx: Ctx, x: number, y: number, r: number, head: HTMLCanvasEl
   ctx.arc(x, y, r * 0.76, 0, Math.PI * 2);
   ctx.clip();
   const H = MASCOT_GEO.head;
-  const s = (r * 1.5) / H.w;
+  const s = (r * 1.5) / 240; // head drawing is ~240 wide inside its canvas
   ctx.translate(x, y + r * 0.12);
   if (flip) ctx.scale(-1, 1);
   ctx.drawImage(head, -H.ax * s, -H.ay * s, H.w * s, H.h * s);
