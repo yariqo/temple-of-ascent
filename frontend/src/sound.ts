@@ -73,6 +73,7 @@ class Sound {
     const d = this.noiseBuf.getChannelData(0);
     for (let i = 0; i < len; i++) d[i] = Math.random() * 2 - 1;
     this.startMusic();
+    this.loadSamples();
   }
 
   setMuted(m: boolean) {
@@ -227,108 +228,47 @@ class Sound {
     this.tone(660, 0.5, { type: 'triangle', vol: 0.18, at: 0.45 });
     this.tone(990, 0.6, { type: 'triangle', vol: 0.12, at: 0.5 });
   }
-  /**
-   * Big-cat roar: a buzzing vocal source (saw with a fast "flutter" in the amplitude) through
-   * throat formants and a little distortion, plus breath noise and a sub rumble.
-   * Pitch swells up and falls off like a real roar. Golden = longer, with a shimmer on top.
-   */
+  /** recorded samples (src/sfx/*.mp3), decoded once the audio context exists */
+  private samples: Record<string, AudioBuffer> = {};
+  private loadSamples() {
+    const files = import.meta.glob('./sfx/*.{mp3,ogg,wav}', { eager: true, query: '?url', import: 'default' }) as Record<string, string>;
+    for (const [path, url] of Object.entries(files)) {
+      const name = path.split('/').pop()!.replace(/\.\w+$/, '');
+      fetch(url)
+        .then((r) => r.arrayBuffer())
+        .then((b) => this.ctx!.decodeAudioData(b))
+        .then((buf) => (this.samples[name] = buf))
+        .catch(() => {
+          /* sample missing or not decodable: effect falls back */
+        });
+    }
+  }
+  private playSample(name: string, o: { vol?: number; rate?: number; at?: number } = {}) {
+    const buf = this.samples[name];
+    if (!buf || !this.ok()) return false;
+    const c = this.ctx!;
+    const src = c.createBufferSource();
+    src.buffer = buf;
+    src.playbackRate.value = o.rate ?? 1;
+    const g = c.createGain();
+    g.gain.value = o.vol ?? 1;
+    src.connect(g).connect(this.sfx);
+    src.start(this.t + (o.at ?? 0));
+    return true;
+  }
+
+  /** jaguar roar: recorded big-cat roar (slightly varied each time); golden = deeper, with a shimmer */
   roar(golden: boolean, vol = 1) {
     if (!this.ok()) return;
-    const c = this.ctx!;
-    const t0 = this.t;
-    const dur = golden ? 1.9 : 1.5;
-    this.duck(dur + 0.3);
-    const out = c.createGain();
-    out.gain.value = 1.1 * vol;
-    // dark and heavy: no fizz above ~2.6 kHz
-    const dark = c.createBiquadFilter();
-    dark.type = 'lowpass';
-    dark.frequency.value = 2600;
-    dark.Q.value = 0.7;
-    out.connect(dark).connect(this.sfx);
-
-    // envelope shared by voice and breath
-    const env = c.createGain();
-    env.gain.setValueAtTime(0.0001, t0);
-    env.gain.exponentialRampToValueAtTime(1, t0 + 0.18);
-    env.gain.setValueAtTime(1, t0 + dur * 0.45);
-    env.gain.exponentialRampToValueAtTime(0.0001, t0 + dur);
-
-    // vocal source: two detuned saws, pitch contour 85 → 150 → 60 Hz
-    const flutter = c.createGain(); // amplitude "rattle"
-    flutter.gain.value = 0.6;
-    const lfo = c.createOscillator();
-    lfo.type = 'triangle';
-    lfo.frequency.setValueAtTime(22, t0);
-    lfo.frequency.linearRampToValueAtTime(34, t0 + dur * 0.4);
-    lfo.frequency.linearRampToValueAtTime(16, t0 + dur);
-    const lfoAmt = c.createGain();
-    lfoAmt.gain.value = 0.45;
-    lfo.connect(lfoAmt).connect(flutter.gain);
-    const oscs = [0, 9].map((cents) => {
-      const o = c.createOscillator();
-      o.type = 'sawtooth';
-      o.detune.value = cents;
-      o.frequency.setValueAtTime(85, t0);
-      o.frequency.exponentialRampToValueAtTime(150, t0 + dur * 0.35);
-      o.frequency.exponentialRampToValueAtTime(60, t0 + dur);
-      o.connect(flutter);
-      return o;
-    });
-    // growl distortion
-    const shaper = c.createWaveShaper();
-    const curve = new Float32Array(1024);
-    for (let i = 0; i < 1024; i++) {
-      const x = (i / 1023) * 2 - 1;
-      curve[i] = Math.tanh(x * 3.2);
-    }
-    shaper.curve = curve;
-    flutter.connect(shaper);
-    // throat formants (open "aaoo" that closes at the end)
-    const formants: [number, number, number, number][] = [
-      [320, 260, 4, 0.9],
-      [850, 600, 6, 0.6],
-      [1700, 1200, 8, 0.25],
-    ];
-    for (const [f0, f1, q, g] of formants) {
-      const bp = c.createBiquadFilter();
-      bp.type = 'bandpass';
-      bp.Q.value = q;
-      bp.frequency.setValueAtTime(f0 * 0.8, t0);
-      bp.frequency.linearRampToValueAtTime(f0, t0 + dur * 0.35);
-      bp.frequency.linearRampToValueAtTime(f1, t0 + dur);
-      const gg = c.createGain();
-      gg.gain.value = g * 0.55;
-      shaper.connect(bp).connect(gg).connect(env);
-    }
-    // breath / rasp
-    const br = c.createBufferSource();
-    br.buffer = this.noiseBuf;
-    br.loop = true;
-    const bf = c.createBiquadFilter();
-    bf.type = 'bandpass';
-    bf.Q.value = 1.2;
-    bf.frequency.setValueAtTime(700, t0);
-    bf.frequency.linearRampToValueAtTime(1300, t0 + dur * 0.35);
-    bf.frequency.linearRampToValueAtTime(450, t0 + dur);
-    const bg = c.createGain();
-    bg.gain.value = 0.28;
-    br.connect(bf).connect(bg).connect(flutter);
-    const bd = c.createGain();
-    bd.gain.value = 0.35;
-    br.connect(bf);
-    bf.connect(bd).connect(env);
-    env.connect(out);
-    // chest rumble
-    this.tone(48, dur, { type: 'sine', vol: 0.32 * vol, slide: 0.7, attack: 0.12 });
-    for (const n of [...oscs, lfo, br]) {
-      n.start(t0);
-      n.stop(t0 + dur + 0.05);
-    }
+    this.duck(golden ? 2.4 : 2);
+    const rate = (golden ? 0.9 : 1) * (0.96 + Math.random() * 0.08);
+    const played = this.playSample('roar', { vol: 0.95 * vol, rate });
+    // weight underneath: chest rumble + low taiko
+    this.tone(46, 1.2, { type: 'sine', vol: (played ? 0.22 : 0.4) * vol, slide: 0.7, attack: 0.08 });
+    if (!played) this.noise(0.9, { freq: 260, sweep: 90, q: 1.5, vol: 0.35 * vol, type: 'lowpass' });
     if (golden) {
-      // golden jaguar: shimmering bell cascade over the tail
-      [1319, 1760, 2217, 2637].forEach((f, i) => this.bell(f, 0.55 + i * 0.08, 0.06));
-      this.noise(1.2, { freq: 7000, sweep: 12000, vol: 0.04, type: 'highpass', at: 0.5 });
+      [1319, 1760, 2217, 2637].forEach((f, i) => this.bell(f, 0.5 + i * 0.08, 0.05));
+      this.noise(1.2, { freq: 7000, sweep: 12000, vol: 0.035, type: 'highpass', at: 0.45 });
     }
   }
   thud() {

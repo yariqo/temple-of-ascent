@@ -210,6 +210,11 @@ async function main() {
   };
 
   async function runRound(round: Round, betAmount: number, closeEarly: Promise<number> | null) {
+    // Jaguar Spin: the jaguar roars as the reels start
+    if (round.mode === 'jaguar') {
+      sound.roar(true);
+      void board.mascot.roar();
+    }
     await player.play(round, betAmount, MODES[round.mode]?.cost ?? 1);
     if (round.active) {
       // close the round; retry a few times on network trouble so the win is never left open
@@ -340,14 +345,8 @@ async function main() {
     refresh();
   };
   const setToggle = (m: string | null) => {
-    const wasJaguar = toggle === 'jaguar';
     toggle = m as typeof toggle;
     refresh();
-    // the jaguar wakes up with a roar when Jaguar Spin is switched on
-    if (toggle === 'jaguar' && !wasJaguar) {
-      sound.roar(true, 0.9);
-      void board.mascot.roar();
-    }
   };
   document.getElementById('feature-btn')!.onclick = async () => {
     if (busy || auto) return;

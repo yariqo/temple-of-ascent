@@ -785,8 +785,11 @@ export class Board {
   }
 
   private async jaguarRoar(golden: boolean) {
-    sound.roar(golden);
-    void this.mascot.roar();
+    // the golden jaguar (Jaguar Spin) already roared when the spin started
+    if (!golden) {
+      sound.roar(false);
+      void this.mascot.roar();
+    }
     const eyes = this.eyes;
     const dim = this.dim(0.55, 300);
     await tween(
