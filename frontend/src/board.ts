@@ -355,6 +355,7 @@ export class Board {
     for (const a of this.antic) this.reelsLayer.addChild(a);
     this.buildEyes();
     this.buildKept();
+    this.buildPlaque();
     upgradeFx = (v, lvl) => {
       const lp = this.root.toLocal(v.getGlobalPosition());
       const tint = [[0xc9c2b8], [0xffb070, 0xffe0b0, 0xc9c2b8], [0x9fe8ff, 0xffffff, 0x7fd6f5], [0xffb030, 0xffe27a, 0x2a2733]][lvl];
@@ -840,8 +841,7 @@ export class Board {
   private drawLines(wins: { positions: Pos[] }[], progress: number) {
     const g = this.lines;
     g.clear();
-    wins.forEach((w, i) => {
-      const color = [0xffe066, 0x5fe3ff, 0xff7ab8, 0x7dff8a, 0xffa94d][i % 5];
+    wins.forEach((w) => {
       const pts = w.positions.map((p) => this.center(p));
       const total = pts.length - 1;
       const upto = progress * total;
@@ -857,13 +857,101 @@ export class Board {
         }
         g.stroke({ width, color: col, alpha, cap: 'round', join: 'round' });
       };
-      draw(18, 0.25, color);
-      draw(7, 0.95, color);
-      draw(2.5, 0.9, 0xffffff);
+      // one calm gold line with a soft glow
+      draw(14, 0.16, 0xffc94a);
+      draw(5, 0.9, 0xf4c152);
+      draw(1.6, 0.9, 0xfff6d6);
     });
   }
 
-  async showWins(wins: { positions: Pos[] }[], amountText: string) {
+  // ------------------------------------------------------------------ win plaque
+  /** the plaque on the bottom edge of the board: "$0.30  ×13  = $3.90" */
+  private plaque = new Container();
+  private plaqueBg = new Graphics();
+  private pBase = new Text({ text: '', style: new TextStyle({ fontFamily: 'Cinzel, Georgia, serif', fontWeight: '900', fontSize: 40, fill: 0xfff4dc }) });
+  private pMult = new Text({ text: '', style: new TextStyle({ fontFamily: 'Cinzel, Georgia, serif', fontWeight: '900', fontSize: 40, fill: 0xffc94a }) });
+  private pTotal = new Text({ text: '', style: new TextStyle({ fontFamily: 'Cinzel, Georgia, serif', fontWeight: '900', fontSize: 46, fill: 0xffe08a }) });
+  private pills = new Container();
+
+  private buildPlaque() {
+    for (const tx of [this.pBase, this.pMult, this.pTotal]) {
+      tx.anchor.set(0, 0.5);
+      this.plaque.addChild(tx);
+    }
+    this.plaque.addChildAt(this.plaqueBg, 0);
+    this.plaque.position.set(W / 2, H + 6);
+    this.plaque.visible = false;
+    this.root.addChild(this.pills, this.plaque);
+  }
+
+  private layoutPlaque() {
+    const gap = 14;
+    const parts = [this.pBase, this.pMult, this.pTotal].filter((t) => t.text);
+    const w = parts.reduce((s, t) => s + t.width, 0) + gap * Math.max(0, parts.length - 1);
+    let x = -w / 2;
+    for (const t of [this.pBase, this.pMult, this.pTotal]) {
+      t.visible = !!t.text;
+      if (!t.text) continue;
+      t.x = x;
+      x += t.width + gap;
+    }
+    const pw = Math.max(170, w + 64);
+    const g = this.plaqueBg;
+    g.clear();
+    g.roundRect(-pw / 2, -35, pw, 70, 35).fill({ color: 0x120d07, alpha: 0.94 });
+    g.roundRect(-pw / 2, -35, pw, 70, 35).stroke({ width: 3, color: 0xc8961e, alpha: 0.95 });
+    g.roundRect(-pw / 2 + 6, -29, pw - 12, 58, 29).stroke({ width: 1.2, color: 0xfff0b0, alpha: 0.2 });
+  }
+
+  private setPlaque(base: string, mult = '', total = '') {
+    this.pBase.text = base;
+    this.pMult.text = mult;
+    this.pTotal.text = total;
+    this.layoutPlaque();
+    const show = !!(base || mult || total);
+    if (show && !this.plaque.visible) {
+      this.plaque.visible = true;
+      this.plaque.alpha = 0;
+      void tween(220, (k) => {
+        this.plaque.alpha = k;
+        this.plaque.scale.set(lerp(0.85, 1, k));
+      }, ease.outBack);
+    }
+    if (!show) this.plaque.visible = false;
+  }
+
+  private pop(t: Text) {
+    void tween(260, (k) => t.scale.set(lerp(1.35, 1, k)), ease.outBack);
+  }
+
+  /** small amount tags at the end of every winning line */
+  private linePills(wins: { positions: Pos[]; win?: number }[], fmt?: (w: number) => string) {
+    this.pills.removeChildren().forEach((c) => c.destroy());
+    if (!fmt || wins.length > 6) return;
+    const used = new Map<string, number>();
+    for (const w of wins) {
+      if (!w.win) continue;
+      const last = w.positions[w.positions.length - 1];
+      const key = `${last.reel},${last.row}`;
+      const n = used.get(key) ?? 0;
+      used.set(key, n + 1);
+      const c = this.center(last);
+      const pill = new Container();
+      const tx = new Text({ text: fmt(w.win), style: new TextStyle({ fontFamily: 'Alegreya Sans, sans-serif', fontWeight: '800', fontSize: 26, fill: 0xfff4dc }) });
+      tx.anchor.set(0.5);
+      const bg = new Graphics().roundRect(-tx.width / 2 - 11, -17, tx.width + 22, 34, 17).fill({ color: 0x120d07, alpha: 0.88 }).stroke({ width: 1.5, color: 0xc8961e });
+      pill.addChild(bg, tx);
+      pill.position.set(c.x + CELL * 0.3, c.y - CELL * 0.34 + n * 38);
+      pill.alpha = 0;
+      this.pills.addChild(pill);
+      void tween(240, (k) => {
+        pill.alpha = k;
+        pill.scale.set(lerp(0.6, 1, k));
+      }, ease.outBack);
+    }
+  }
+
+  async showWins(wins: { positions: Pos[]; win?: number }[], amountText: string, fmt?: (w: number) => string) {
     const all = new Set<SymbolView>();
     wins.forEach((w) =>
       w.positions.forEach((p) => {
@@ -871,34 +959,25 @@ export class Board {
         if (v) all.add(v);
       }),
     );
-    for (const col of this.cells) for (const v of col) v.alpha = all.has(v) || v.sym.name === 'T' ? 1 : 0.4;
+    for (const col of this.cells) for (const v of col) v.alpha = all.has(v) || v.sym.name === 'T' ? 1 : 0.35;
     all.forEach((v) => v.setGlow(true, 0xfff2a8));
     sound.win(Math.min(6, wins.length));
-    const lines = tween(420, (t) => this.drawLines(wins, t), ease.outCubic);
-    await this.pulse([...all], 1.13, 520);
+    const lines = tween(380, (t) => this.drawLines(wins, t), ease.outCubic);
+    await this.pulse([...all], 1.08, 420);
     await lines;
-    for (const v of all) {
-      const lp = this.root.toLocal(v.getGlobalPosition());
-      this.particles.emit(TEX.spark, lp.x, lp.y, { n: 3, speed: [40, 120], life: [300, 600], scale: [0.45, 0.05], tint: 0xffe07a, blend: 'add' });
+    if (amountText) {
+      this.linePills(wins, fmt);
+      this.setPlaque(amountText);
+      this.pop(this.pBase);
+      await wait(520);
     }
-    await this.popWin(amountText, 650);
     all.forEach((v) => v.setGlow(false));
-  }
-
-  private async popWin(text: string, ms: number) {
-    if (!text) return; // big wins: the amount is revealed only by the big-win screen
-    const t = this.winText;
-    t.text = text;
-    t.visible = true;
-    t.alpha = 1;
-    await tween(260, (k) => t.scale.set(lerp(0.4, 1, k)), ease.outBack);
-    await wait(ms);
-    await tween(200, (k) => (t.alpha = 1 - k));
-    t.visible = false;
   }
 
   clearWins() {
     this.lines.clear();
+    this.pills.removeChildren().forEach((c) => c.destroy());
+    this.setPlaque('');
     for (const col of this.cells)
       for (const v of col) {
         v.alpha = 1;
@@ -907,65 +986,73 @@ export class Board {
       }
   }
 
-  /** Steles add up (beams to the centre) and multiply the line win. */
-  /** The steles are added up one after another (×5 → ×15 → ×40 …), then the line win is multiplied. */
-  async totemPower(totems: Pos[], totalMult: number, explain: string, resultText: string) {
-    const cx = W / 2;
-    const cy = H / 2 - 20;
+  /**
+   * The steles fly into the plaque one after another; the multiplier builds up (×5 → ×15 …),
+   * then "= total" appears. With empty texts (big win follows) only the multiplier is shown.
+   */
+  async totemPower(totems: Pos[], totalMult: number, baseText: string, resultText: string) {
     const items = totems
       .map((p) => ({ p, v: this.cellAt(p), m: (p as any).multiplier as number | undefined }))
       .filter((x) => x.v) as { p: Pos; v: SymbolView; m?: number }[];
     const kept = this.keptBox.visible ? this.keptValue : 0;
+    this.pills.children.forEach((c) => void tween(200, (k) => (c.alpha = 1 - k)));
+    this.setPlaque(baseText, '×0', '');
+    const target = () => ({ x: this.plaque.x + this.pMult.x + this.pMult.width / 2, y: this.plaque.y });
     let sum = 0;
-    const b = this.bigText;
-    b.visible = true;
-    b.alpha = 1;
-    this.subText.visible = false;
-    const show = (v: number, i: number) => {
-      b.text = `×${v}`;
-      sound.multTick(i);
-      this.particles.emit(TEX.spark, cx, cy, { n: 10 + i * 3, speed: [80, 240], life: [300, 700], scale: [0.6, 0.05], tint: [0xffe066, 0xfff3c4], blend: 'add' });
-      void tween(220, (k) => b.scale.set(lerp(1.35, 1, k)), ease.outBack);
+    let i = 0;
+    const show = (v: number) => {
+      this.pMult.text = `×${v}`;
+      this.layoutPlaque();
+      this.pop(this.pMult);
+      sound.multTick(i++);
+      const tg = target();
+      this.particles.emit(TEX.spark, tg.x, tg.y, { n: 8, speed: [60, 180], life: [300, 600], scale: [0.5, 0.05], tint: [0xffe066, 0xfff3c4], blend: 'add' });
     };
     const beam = async (from: { x: number; y: number }) => {
       const g = new Graphics();
       this.fx.addChild(g);
+      const to = target();
       await tween(
-        200,
+        190,
         (t) => {
           g.clear();
-          g.moveTo(from.x, from.y).lineTo(lerp(from.x, cx, t), lerp(from.y, cy, t));
-          g.stroke({ width: 14, color: 0xffc94a, alpha: 0.35, cap: 'round' });
-          g.moveTo(from.x, from.y).lineTo(lerp(from.x, cx, t), lerp(from.y, cy, t));
-          g.stroke({ width: 4, color: 0xfff6c8, alpha: 0.95, cap: 'round' });
+          g.moveTo(from.x, from.y).lineTo(lerp(from.x, to.x, t), lerp(from.y, to.y, t));
+          g.stroke({ width: 10, color: 0xffc94a, alpha: 0.3, cap: 'round' });
+          g.moveTo(from.x, from.y).lineTo(lerp(from.x, to.x, t), lerp(from.y, to.y, t));
+          g.stroke({ width: 3, color: 0xfff6c8, alpha: 0.95, cap: 'round' });
         },
         ease.inCubic,
       );
       void tween(160, (t) => (g.alpha = 1 - t)).then(() => g.destroy());
     };
-    let i = 0;
     if (kept > 0) {
       await beam({ x: this.keptBox.x, y: this.keptBox.y });
       sum += kept;
-      show(sum, i++);
-      await wait(120);
+      show(sum);
+      await wait(100);
     }
     for (const it of items) {
       it.v.alpha = 1;
       it.v.setGlow(true, 0xffd24a);
-      void this.pulse([it.v], 1.18, 260);
+      void this.pulse([it.v], 1.14, 240);
       await beam(this.center(it.p));
       sum += it.m ?? it.v.sym.multiplier ?? 0;
-      show(sum, i++);
-      await wait(90);
+      show(sum);
+      await wait(80);
       it.v.setGlow(false);
     }
-    if (sum !== totalMult) show(totalMult, i);
+    if (sum !== totalMult) show(totalMult);
     sound.multiply();
-    await wait(260);
-    b.visible = false;
-    await this.flashText(`×${totalMult}`, explain ? 1300 : 650, explain);
-    await this.popWin(resultText, 500);
+    await wait(220);
+    if (resultText) {
+      this.pTotal.text = `= ${resultText}`;
+      this.layoutPlaque();
+      this.pop(this.pTotal);
+      this.particles.emit(TEX.spark, this.plaque.x + this.pTotal.x + this.pTotal.width / 2, this.plaque.y, { n: 16, speed: [80, 220], life: [300, 700], scale: [0.6, 0.05], tint: [0xffe066, 0xfff3c4], blend: 'add' });
+      await wait(900);
+    } else {
+      await wait(300);
+    }
   }
 
   async flashText(text: string, ms = 900, sub = '') {

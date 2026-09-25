@@ -99,18 +99,13 @@ export class RoundPlayer {
       case 'winInfo': {
         // the jaguar only cheers for real wins (≥ round cost) – or any win inside free spins
         if (!this.hidden && (this.inFreeSpins || this.money(ev.totalWin) >= this.bet * this.cost)) void this.board.mascot.happy();
-        await this.board.showWins(ev.wins, this.hidden ? '' : money(this.money(ev.totalWin)));
+        await this.board.showWins(ev.wins, this.hidden ? '' : money(this.money(ev.totalWin)), (w) => money(this.money(w)));
         break;
       }
       case 'totemMultiplier': {
         // the steles multiply the LINE win, not the bet – say so
-        const kept = ev.keptMult ?? 0;
-        const explain =
-          kept > 0
-            ? t('keptExplain', { a: `${t('lineWin')} ${money(this.money(ev.baseWin))}`, m: ev.totalMult, b: ev.totalMult - kept, k: kept, c: money(this.money(ev.totalWin)) })
-            : `${t('lineWin')} ${money(this.money(ev.baseWin))} × ${ev.totalMult} = ${money(this.money(ev.totalWin))}`;
         if (this.hidden) await this.board.totemPower(ev.totems, ev.totalMult, '', '');
-        else await this.board.totemPower(ev.totems, ev.totalMult, explain, money(this.money(ev.totalWin)));
+        else await this.board.totemPower(ev.totems, ev.totalMult, money(this.money(ev.baseWin)), money(this.money(ev.totalWin)));
         break;
       }
       case 'setWin': {
