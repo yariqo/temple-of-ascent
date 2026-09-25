@@ -51,8 +51,8 @@ const en: Dict = {
   chip_bonushunt: '2× BONUS CHANCE',
   chip_jaguar: '5–50× EVERY SPIN',
   jaguarking: 'Jaguar King',
-  jaguarkingLong: 'Only king steles – every one 50× or more. No free spins.',
-  chip_jaguarking: '50–500× EVERY SPIN',
+  jaguarkingLong: 'King steles up to 1000× – all or nothing. No free spins.',
+  chip_jaguarking: 'UP TO 10,000×',
   kingJaguar: 'JAGUAR KING',
   chipSpins: '{n} SPINS',
   chipStage: 'STAGE {n}',
@@ -188,8 +188,8 @@ const de: Dict = {
   chip_bonushunt: '2× BONUS-CHANCE',
   chip_jaguar: '5–50× JEDER SPIN',
   jaguarking: 'Jaguar-König',
-  jaguarkingLong: 'Nur Königsstelen – jede 50× oder mehr. Keine Freispiele.',
-  chip_jaguarking: '50–500× JEDER SPIN',
+  jaguarkingLong: 'Königsstelen bis 1000× – alles oder nichts. Keine Freispiele.',
+  chip_jaguarking: 'BIS 10.000×',
   kingJaguar: 'JAGUAR-KÖNIG',
   chipSpins: '{n} SPINS',
   chipStage: 'STUFE {n}',
@@ -313,7 +313,7 @@ In den Freispielen gesammelte BONUS-Symbole füllen die Pyramide: alle 3 steigt 
 <h4>Modi</h4>
 <p><b>Bonus-Jagd (1,5× Einsatz):</b> doppelte Chance auf Freispiele.<br>
 <b>Jaguar-Spin (25× Einsatz):</b> Der Jaguar wirft bei jedem Spin 2–4 goldene Stelen (5×–50×). Jeder Jaguar-Spin zahlt einen Gewinn, der kleiner als der Einsatz sein kann. Keine Freispiele.<br>
-<b>Jaguar-König (200× Einsatz):</b> Der Jaguar wirft bei jedem Spin 2–4 Königsstelen (50×, 100×, 250× oder 500×). Jeder Spin zahlt einen Gewinn, der kleiner als der Einsatz sein kann. Keine Freispiele.<br>
+<b>Jaguar-König (250× Einsatz):</b> Der Jaguar wirft bei jedem Spin 2–4 Königsstelen (50×, 100×, 250×, 500× oder 1000×). Sie zahlen nur zusammen mit einem Liniengewinn – ein Spin kann auch nichts zahlen. Keine Freispiele.<br>
 <b>Tempel-Bonus kaufen (100× Einsatz):</b> wie 3 BONUS-Symbole.<br>
 <b>Super-Bonus kaufen (200× Einsatz):</b> wie 4 BONUS-Symbole.<br>
 <b>Göttlichen Bonus kaufen (500× Einsatz):</b> wie 5 BONUS-Symbole.</p>
@@ -337,7 +337,7 @@ BONUS symbols collected during free spins fill the pyramid: every 3 move you up 
 <h4>Modes</h4>
 <p><b>Bonus Hunt (1.5× bet):</b> double chance to trigger free spins.<br>
 <b>Jaguar Spin (25× bet):</b> the jaguar throws 2–4 golden steles (5×–50×) every spin. Every Jaguar Spin pays a win, which may be less than its cost. No free spins.<br>
-<b>Jaguar King (200× bet):</b> the jaguar throws 2–4 king steles (50×, 100×, 250× or 500×) every spin. Every Jaguar King spin pays a win, which may be less than its cost. No free spins.<br>
+<b>Jaguar King (250× bet):</b> the jaguar throws 2–4 king steles (50×, 100×, 250×, 500× or 1000×) every spin. They only pay together with a line win – a spin can pay nothing. No free spins.<br>
 <b>Buy Temple Bonus (100× bet):</b> same as 3 BONUS symbols.<br>
 <b>Buy Super Bonus (200× bet):</b> same as 4 BONUS symbols.<br>
 <b>Buy Divine Bonus (500× bet):</b> same as 5 BONUS symbols.</p>

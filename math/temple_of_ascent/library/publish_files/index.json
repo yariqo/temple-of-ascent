@@ -20,7 +20,7 @@
         },
         {
             "name": "jaguarking",
-            "cost": 200.0,
+            "cost": 250.0,
             "events": "books_jaguarking.jsonl.zst",
             "weights": "lookUpTable_jaguarking_0.csv"
         },

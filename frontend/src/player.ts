@@ -150,7 +150,12 @@ export class RoundPlayer {
         this.setStage(ev.stage, ev.runes, true);
         // let the temple wake up before the first spin
         await this.ui.templeReady();
-        if (ev.stage > 1) await this.ui.banner(t('stage', { n: ev.stage }), t('startsHigher'), 1500, 'gold');
+        // Super / Divine Bonus start higher up: the same climb as a real stage-up
+        if (ev.stage > 1) {
+          sound.bonusChime();
+          await this.ui.templeSurge(ev.stage);
+          await this.ui.stageUp(ev.stage, 0, STAGE_TOTEMS[ev.stage]);
+        }
         break;
       }
       case 'updateFreeSpin': {

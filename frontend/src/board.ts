@@ -16,6 +16,10 @@ const H = ROWS * CELL;
 const MARGIN = 40;
 /** room above the frame for the jaguar mascot, and to the right for its tail */
 const TOP = 128;
+/** room below the frame (only the win plaque needs a little) – keeps the console close to the reels */
+const BOTTOM = 34;
+/** vertical shift so the extra room is only above the frame */
+const SHIFT = (TOP - BOTTOM) / 2;
 const SIDE = 22;
 const MASCOT_SCALE = 0.84;
 const KEPT_SCALE = 0.95;
@@ -169,7 +173,7 @@ class SymbolView extends Container {
     this.plate.text = `×${v}`;
     const tier = totemTier(v);
     this.plate.style.fill = spinning ? 0xdcd2c0 : this.golden ? 0xfff0a0 : tier.color;
-    this.plate.style.fontSize = String(v).length >= 3 ? 30 : 36;
+    this.plate.style.fontSize = String(v).length >= 4 ? 25 : String(v).length >= 3 ? 30 : 36;
   }
 
   /** Plate shows '?' until the stele is revealed. */
@@ -383,7 +387,7 @@ export class Board {
     const sw = this.app.screen.width;
     const sh = this.app.screen.height;
     // the same room is reserved above and below, so the reels sit exactly in the centre
-    const s = Math.min((sw - 8) / (W + 2 * MARGIN + 2 * SIDE), (sh - 8) / (H + 2 * MARGIN + 2 * TOP));
+    const s = Math.min((sw - 8) / (W + 2 * MARGIN + 2 * SIDE), (sh - 8) / (H + 2 * MARGIN + TOP + BOTTOM));
     this.baseScale = s;
     this.applyZoom();
   }
@@ -395,7 +399,7 @@ export class Board {
     const sw = this.app.screen.width;
     const sh = this.app.screen.height;
     const x = (sw - W * s) / 2 - MARGIN * s;
-    const y = (sh - H * s) / 2 - MARGIN * s;
+    const y = (sh - H * s) / 2 + SHIFT * s - MARGIN * s;
     return new DOMRect(c.left + x, c.top + y, (W + 2 * MARGIN) * s, (H + 2 * MARGIN) * s);
   }
 
@@ -405,7 +409,7 @@ export class Board {
     const sh = this.app.screen.height;
     const s = this.baseScale * this.zoom;
     this.root.scale.set(s);
-    this.root.position.set((sw - W * s) / 2, (sh - H * s) / 2);
+    this.root.position.set((sw - W * s) / 2, (sh - H * s) / 2 + SHIFT * this.baseScale);
     this.baseX = this.root.x;
     this.baseY = this.root.y;
   }

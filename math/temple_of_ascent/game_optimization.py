@@ -141,6 +141,7 @@ class OptimizationSetup:
         self.game_config.opt_params["jaguarking"] = {
             "conditions": {
                 "kingspin": ConstructConditions(rtp=0.960, hr="x").return_dict(),
+                "0": ConstructConditions(rtp=0, av_win=0, search_conditions=0).return_dict(),
             },
             "scaling": ConstructScaling(
                 [

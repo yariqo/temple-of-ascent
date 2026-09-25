@@ -130,11 +130,16 @@
             {
                 "reel": 1,
                 "row": 3,
-                "multiplier": 50
+                "multiplier": 500
             },
             {
                 "reel": 3,
                 "row": 4,
+                "multiplier": 500
+            },
+            {
+                "reel": 4,
+                "row": 1,
                 "multiplier": 50
             }
         ]
@@ -177,30 +182,35 @@
             {
                 "reel": 1,
                 "row": 3,
-                "multiplier": 50
+                "multiplier": 500
             },
             {
                 "reel": 3,
                 "row": 4,
+                "multiplier": 500
+            },
+            {
+                "reel": 4,
+                "row": 1,
                 "multiplier": 50
             }
         ],
-        "totalMult": 100,
+        "totalMult": 1050,
         "keptMult": 0,
         "baseWin": 20,
-        "totalWin": 2000
+        "totalWin": 21000
     },
     "setWin": {
         "type": "setWin",
-        "amount": 2000,
-        "winLevel": 6
+        "amount": 21000,
+        "winLevel": 9
     },
     "setTotalWin": {
         "type": "setTotalWin",
-        "amount": 2000
+        "amount": 21000
     },
     "finalWin": {
         "type": "finalWin",
-        "amount": 2000
+        "amount": 21000
     }
 }

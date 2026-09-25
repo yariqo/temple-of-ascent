@@ -105,7 +105,7 @@ async function main() {
     st.setProperty('--fr-top', `${r.top}px`);
     st.setProperty('--fr-h', `${r.height}px`);
     st.setProperty('--pyr-left', `${r.right + gap}px`);
-    st.setProperty('--side-w', `${Math.min(pw, innerWidth - r.right - gap - 12)}px`);
+    st.setProperty('--side-w', `${Math.min(pw, innerWidth - r.right - gap - 22)}px`);
     st.setProperty('--bonus-right', `${innerWidth - r.left + gap}px`);
     document.body.classList.toggle('pyr-compact', r.height < 560);
   };

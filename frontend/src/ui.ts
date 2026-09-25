@@ -248,9 +248,11 @@ export class Ui {
       const d = document.createElement('div');
       d.className = `tier s${s}`;
       d.dataset.stage = String(s);
-      d.style.width = `${46 + (MAX_STAGE - s) * 18}%`;
+      d.style.width = `${76 + (MAX_STAGE - s) * 8}%`;
       const vals = STAGE_TOTEMS[s];
-      d.innerHTML = `<div class="t-name">${t('stage', { n: s })}</div><div class="t-vals">${vals[0]}–${vals[vals.length - 1]}×</div><div class="t-runes"></div>`;
+      d.innerHTML =
+        `<div class="t-body"><img class="t-img" alt=""><div class="t-txt"><div class="t-name">${t('stage', { n: s })}</div>` +
+        `<div class="t-vals">${vals[0]}–${vals[vals.length - 1]}×</div></div><div class="t-runes"></div></div>`;
       const rr = d.querySelector('.t-runes')!;
       if (s < MAX_STAGE) for (let i = 0; i < RUNES_PER_STAGE; i++) rr.appendChild(Object.assign(document.createElement('span'), { className: 'rune' }));
       this.tiersEl.appendChild(d);
@@ -267,6 +269,10 @@ export class Ui {
       const s = Number(el.dataset.stage);
       el.classList.toggle('current', s === this.stage);
       el.classList.toggle('done', this.stage > 0 && s < this.stage);
+      el.classList.toggle('locked', s > this.stage);
+      const img = el.querySelector('.t-img') as HTMLImageElement | null;
+      const key = ['T', 'T', 'TB', 'TD', 'TO'][s];
+      if (img && !img.src && this.icons[key]) img.src = this.icons[key];
       if (bump && s === this.stage) {
         el.classList.remove('bump');
         void el.offsetWidth;
@@ -416,7 +422,7 @@ export class Ui {
     const mats = [keys[Math.max(0, Math.min(3, stage - 1))]];
     $('ss-steles').innerHTML = mats.map((k, i) => `<img src="${this.icons[k]}" alt="" style="animation-delay:${0.15 + i * 0.12}s">`).join('');
     $('ss-vals').innerHTML = `${t('steleNow')} <b>${values[0]}×–${values[values.length - 1]}×</b>`;
-    $('ss-spins').textContent = t('extraSpins', { n: extra });
+    $('ss-spins').textContent = extra > 0 ? t('extraSpins', { n: extra }) : t('startsHigher');
     el.hidden = false;
     this.overlayBusy = true;
     // a skip tapped during the previous spin must not close this screen at once

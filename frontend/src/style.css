@@ -4677,3 +4677,226 @@ footer {
   width: 30px;
   height: 30px;
 }
+
+/* values in the console: plain bright text (no dark-gold gradient) – easy to read */
+.stat b,
+#win.big {
+  background: none;
+  -webkit-background-clip: border-box;
+  background-clip: border-box;
+  filter: none;
+}
+.stat b {
+  color: #fffaf0;
+  text-shadow: 0 2px 3px rgba(0, 0, 0, 0.85);
+}
+#win.big {
+  color: #fff3b8;
+  text-shadow: 0 2px 3px rgba(0, 0, 0, 0.85), 0 0 14px rgba(255, 210, 90, 0.75);
+}
+#stat-win .st-txt span {
+  color: #ffd35a;
+}
+/* spin button: calm – no turning dotted ring, no ray wreath; only the arrows turn while spinning */
+#spin .spin-ring,
+#spin::before {
+  display: none;
+}
+#spin:hover {
+  box-shadow:
+    0 6px 0 #3a2202,
+    0 0 44px rgba(255, 210, 90, 0.7),
+    inset 0 -8px 14px rgba(80, 40, 0, 0.35),
+    inset 0 6px 10px rgba(255, 255, 230, 0.55);
+}
+
+/* ---------- temple v3 (bonus): coloured material tiers that fill the panel ---------- */
+#pyramid .tiers {
+  flex: 1 1 auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 7px;
+  min-height: 0;
+  padding: 0 2px;
+}
+#pyramid .tier {
+  flex: 1 1 0;
+  max-height: 96px;
+  min-height: 44px;
+  padding: 0 !important;
+  clip-path: none !important;
+  background: none !important;
+  color: inherit;
+  transition: filter 0.4s, transform 0.3s;
+  filter: saturate(0.35) brightness(0.5);
+}
+#pyramid .t-body {
+  position: relative;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 4px 10% 4px 9%;
+  clip-path: polygon(7% 0, 93% 0, 100% 100%, 0 100%);
+  background: var(--tb);
+  box-shadow: inset 0 2px 0 rgba(255, 255, 255, 0.35), inset 0 -4px 8px rgba(0, 0, 0, 0.35);
+  overflow: hidden;
+}
+#pyramid .t-body::before {
+  /* carved step lines */
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: repeating-linear-gradient(90deg, transparent 0 22px, rgba(0, 0, 0, 0.12) 22px 24px);
+  pointer-events: none;
+}
+#pyramid .tier.s1 {
+  --tb: linear-gradient(180deg, #e2d8c0, #a3957c 55%, #5f5443);
+  --tc: #2a2016;
+  --tg: rgba(230, 220, 190, 0.8);
+}
+#pyramid .tier.s2 {
+  --tb: linear-gradient(180deg, #ffd6ae, #d9894a 50%, #7a3a12);
+  --tc: #2a1004;
+  --tg: rgba(255, 170, 90, 0.9);
+}
+#pyramid .tier.s3 {
+  --tb: linear-gradient(180deg, #f2fdff, #7fd0f5 45%, #1d5a9a);
+  --tc: #06244a;
+  --tg: rgba(140, 220, 255, 0.95);
+}
+#pyramid .tier.s4 {
+  --tb: linear-gradient(180deg, #5d586e, #262233 45%, #07060b);
+  --tc: #ffd35a;
+  --tg: rgba(255, 170, 40, 0.95);
+}
+#pyramid .t-img {
+  height: 86%;
+  max-height: 58px;
+  width: auto;
+  flex: none;
+  filter: drop-shadow(0 2px 3px rgba(0, 0, 0, 0.6));
+}
+#pyramid .t-img:not([src]) {
+  display: none;
+}
+#pyramid .t-txt {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  min-width: 0;
+  line-height: 1.05;
+}
+#pyramid .tier .t-name {
+  font-size: 10px;
+  letter-spacing: 0.16em;
+  color: var(--tc);
+  opacity: 0.85;
+  font-weight: 900;
+}
+#pyramid .tier .t-vals {
+  font-family: var(--display);
+  font-size: clamp(13px, 1.4vw, 19px);
+  font-weight: 900;
+  color: var(--tc);
+  white-space: nowrap;
+  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.3);
+}
+#pyramid .tier.s4 .t-vals,
+#pyramid .tier.s4 .t-name {
+  text-shadow: 0 0 8px rgba(255, 160, 40, 0.8);
+}
+#pyramid .tier .t-runes {
+  margin: 0 0 0 auto;
+  flex-direction: column;
+  gap: 3px;
+  min-height: 0;
+}
+#pyramid .rune {
+  width: 11px;
+  height: 11px;
+}
+/* states */
+#pyramid .tier.done {
+  filter: saturate(0.8) brightness(0.8);
+}
+#pyramid .tier.current {
+  filter: drop-shadow(0 0 10px var(--tg)) drop-shadow(0 0 3px var(--tg));
+  transform: scale(1.04);
+  animation: tierBreath 2.4s ease-in-out infinite;
+}
+#pyramid .tier.current .t-body::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(105deg, transparent 35%, rgba(255, 255, 255, 0.5) 50%, transparent 65%);
+  background-size: 250% 100%;
+  animation: tierShine 2.6s linear infinite;
+  pointer-events: none;
+}
+#pyramid .tier.current::after {
+  display: none;
+}
+@keyframes tierBreath {
+  50% {
+    filter: drop-shadow(0 0 16px var(--tg)) drop-shadow(0 0 4px var(--tg)) brightness(1.08);
+  }
+}
+#pyramid .tier.almost:not(.current) {
+  filter: saturate(0.7) brightness(0.75);
+  animation: tierAlmost 1s ease-in-out infinite;
+}
+@keyframes tierAlmost {
+  50% {
+    filter: saturate(1) brightness(1) drop-shadow(0 0 10px var(--tg));
+  }
+}
+#pyramid .pyr-info {
+  flex: none;
+  margin-top: 4px;
+  font-size: 12px;
+  color: #f3dca8;
+  text-align: center;
+}
+/* title row with torches, the tiers start right below it (no empty gap) */
+#pyramid.active {
+  justify-content: flex-start;
+  padding-top: 44px;
+}
+#pyramid.active .pyr-shrine,
+#pyramid.active .pyr-embers {
+  display: none;
+}
+#pyramid .pyr-torch {
+  top: 10px;
+  height: 24px;
+}
+body.aligned #pyramid {
+  left: calc(var(--pyr-left) + 10px);
+}
+#pyramid .t-body {
+  padding: 4px 8% 4px 8%;
+  gap: 6px;
+}
+#pyramid .t-img {
+  max-height: 46px;
+}
+#pyramid .tier .t-runes {
+  flex-direction: row;
+  gap: 4px;
+}
+#pyramid .rune {
+  width: 10px;
+  height: 10px;
+}
+#pyramid .tier .t-vals {
+  font-size: clamp(12px, 1.2vw, 17px);
+}
+#pyramid .t-txt {
+  flex: 1 1 auto;
+}
+#pyramid .tier .t-runes {
+  flex: none;
+}

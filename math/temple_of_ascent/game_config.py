@@ -94,7 +94,7 @@ class GameConfig(Config):
         self.runes_per_stage = 3  # every 3 runes collected -> next stage
         self.stage_up_spins = 4  # extra spins awarded on every stage-up
         self.jaguar_spin_cost = 25.0  # cost of one Jaguar-Spin (feature spin) in bets
-        self.jaguar_king_cost = 200.0  # cost of one Jaguar-King spin (premium feature spin) in bets
+        self.jaguar_king_cost = 250.0  # cost of one Jaguar-King spin (premium feature spin) in bets
         self.superbonus_cost = 200.0  # bonus buy starting on stage 2
         self.godbonus_cost = 500.0  # Divine Bonus buy (stage 3 + collected multiplier stays)
         # how many runes trigger which bonus: 3 -> Temple Bonus, 4 -> Super Bonus, 5 -> Divine Bonus
@@ -128,12 +128,12 @@ class GameConfig(Config):
             "golden": True,
         }
 
-        # Jaguar-King spin (premium feature spin, 200x): the jaguar ALWAYS throws 2-4 KING totems,
-        # every one of them at least 50x (up to 500x); every spin pays, no free spins.
+        # Jaguar-King spin (premium feature spin, 250x): the jaguar ALWAYS throws 2-4 KING totems,
+        # every one of them at least 50x (up to 1000x); they pay only together with a line win.
         self.jaguar_king_roar = {
             "chance": 1.0,
-            "count": {2: 45, 3: 35, 4: 20},
-            "values": {50: 55, 100: 30, 250: 12, 500: 3},
+            "count": {2: 40, 3: 35, 4: 25},
+            "values": {50: 40, 100: 32, 250: 18, 500: 7, 1000: 3},
             "golden": True,
             "king": True,
         }
@@ -263,7 +263,9 @@ class GameConfig(Config):
                 is_feature=True,
                 is_buybonus=False,
                 distributions=[
-                    Distribution(criteria="kingspin", quota=1.0, conditions=jaguar_king_condition),
+                    # all or nothing: the king steles only pay together with a line win
+                    Distribution(criteria="kingspin", quota=0.6, conditions=jaguar_king_condition),
+                    Distribution(criteria="0", quota=0.4, win_criteria=0.0, conditions=jaguar_king_condition),
                 ],
             ),
             # Bonus buy
