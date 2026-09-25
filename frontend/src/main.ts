@@ -15,6 +15,7 @@ import { drawLogo } from './art/logo';
 import { buildTextures, SYM_CANVAS } from './art/textures';
 import { Backdrop } from './backdrop';
 import { drawMascotHead } from './art/mascot';
+import { drawStudioLogo, drawStudioMark } from './art/studio';
 import { makeCanvas } from './art/draw';
 import { sound } from './sound';
 import type { AuthInfo, Rgs, Round } from './types';
@@ -36,6 +37,23 @@ async function main() {
   // ---------- loading: fonts → textures → scenes → renderer ----------
   ui.setLoading(0.1);
   await loadFonts();
+  // studio brand: favicon, loading screen, start screen
+  try {
+    const fav = document.createElement('link');
+    fav.rel = 'icon';
+    fav.href = drawStudioMark(64).toDataURL();
+    document.head.appendChild(fav);
+    const studio = drawStudioLogo('stack', 'dark', 160).toDataURL();
+    for (const id of ['load-studio', 'in-studio']) {
+      const im = document.getElementById(id) as HTMLImageElement | null;
+      if (im) {
+        im.src = studio;
+        im.hidden = false;
+      }
+    }
+  } catch {
+    /* brand is optional */
+  }
   // game logo (drawn once, used in the header and on the loading screen)
   try {
     const logoUrl = drawLogo().toDataURL('image/png');

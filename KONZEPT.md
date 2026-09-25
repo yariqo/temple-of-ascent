@@ -50,17 +50,18 @@ Weitere Funktionen:
   - Im Bonus kommen Taiko-Trommeln und ein Streicher-Ostinato dazu.
   - Man kann sie separat ein- und ausschalten.
 
-## Stelen-Materialien
-Jede Stele landet als Stein und rattert. Das Material richtet sich nach dem **Wert**, im Basisspiel wie im Bonus:
+## Stelen-Materialien (ab v0.19: nach Stufe)
+Das Material zeigt die **Bonus-Stufe**, nicht den einzelnen Wert. Alle Stelen einer Stufe sind aus demselben Material und leuchten in dessen Farbe; beim Aufstieg wechseln auch die Stelen auf dem Feld sofort mit.
 
-| Material | Wert | Enthüllung |
+| Material | Wo | Werte |
 |---|---|---|
-| Stein (grau) | 2×–5× | normal |
-| Bronze | 10×–25× | Die Stele zittert, glüht und platzt zu Bronze auf, mit Funken und Klang. |
-| Diamant | 50×–100× | wie Bronze, dazu bebt das Spielfeld |
-| Obsidian mit Goldglut | 250×+ | wie Diamant, dazu ein Gong |
-| Gold | Jaguar-Spin | – |
+| Stein | Basisspiel · Stufe 1 | 2×–10× · 2×–25× |
+| Bronze | Stufe 2 | 5×–50× |
+| Diamant | Stufe 3 | 10×–250× |
+| Obsidian mit Goldglut | Stufe 4 | 25×–500× |
+| Gold | Jaguar-Spin · Jaguar-König | 5×–50× · 50×–1000× |
 
+Werte ab 100× bekommen beim Enthüllen einen Extra-Effekt (Zittern, Funken, Klang), ohne das Material zu ändern.
 Starke Stelen rattern länger.
 
 Der Multiplikator wird **Stele für Stele hochgezählt** (z. B. ×3 → ×13 → ×63), mit steigendem Ton. Erst danach kommt der Gewinn.

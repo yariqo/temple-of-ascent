@@ -64,7 +64,7 @@ const T = {
         <div><img src="${c.icon('TB')}" alt=""><b>Bronze</b><span>stage 2<br>5×–50×</span></div>
         <div><img src="${c.icon('TD')}" alt=""><b>Diamond</b><span>stage 3<br>10×–250×</span></div>
         <div><img src="${c.icon('TO')}" alt=""><b>Obsidian</b><span>stage 4<br>25×–500×</span></div>
-        <div><img src="${c.icon('TG')}" alt=""><b>Gold</b><span>Jaguar Spin<br>5×–50×</span></div>
+        <div><img src="${c.icon('TG')}" alt=""><b>Gold</b><span>Jaguar Spin 5×–50×<br>Jaguar King 50×–1000×</span></div>
       </div>
       <h4>Jaguar Roar</h4>
       <p>In the base game the jaguar Balam sometimes roars after the reels stop and throws <b>1–3 extra stone steles</b> (2×–25×) onto regular positions of the board.</p>`,
@@ -95,7 +95,7 @@ const T = {
         <tr><td><b>Super Bonus</b></td><td>${MODES.superbonus.cost}× bet</td><td>Same as 4 BONUS symbols.</td></tr>
         <tr><td><b>Divine Bonus</b></td><td>${MODES.godbonus.cost}× bet</td><td>Same as 5 BONUS symbols.</td></tr></table>
       <h4>Big wins</h4>
-      <p>Wins of at least 20× the bet are celebrated. While the amount counts up, the title climbs: <b>BIG WIN</b> (20×) → <b>MEGA WIN</b> (50×) → <b>EPIC WIN</b> (100×) → <b>LEGENDARY WIN</b> (500×) → <b>BALAM WIN</b> (1,000×). In free spins every single spin can be a big win, and the bonus total is celebrated at the end.</p>`,
+      <p>Wins of at least 20× the bet are celebrated (in a bought bonus only from its purchase price on). While the amount counts up, the title climbs: <b>BIG WIN</b> (20×) → <b>MEGA WIN</b> (50×) → <b>EPIC WIN</b> (100×) → <b>LEGENDARY WIN</b> (500×) → <b>BALAM WIN</b> (1,000×). In free spins every single spin can be a big win, and the bonus total is celebrated at the end.</p>`,
     lines: () => `<p>20 fixed paylines. Wins count from reel 1 (left) to the right.</p><div class="lines">${PAYLINES.map((l, i) => lineSvg(l, i + 1)).join('')}</div>`,
     controls: () => `
       <ul class="ctl">
@@ -140,7 +140,7 @@ const T = {
         <div><img src="${c.icon('TB')}" alt=""><b>Bronze</b><span>Stufe 2<br>5×–50×</span></div>
         <div><img src="${c.icon('TD')}" alt=""><b>Diamant</b><span>Stufe 3<br>10×–250×</span></div>
         <div><img src="${c.icon('TO')}" alt=""><b>Obsidian</b><span>Stufe 4<br>25×–500×</span></div>
-        <div><img src="${c.icon('TG')}" alt=""><b>Gold</b><span>Jaguar-Spin<br>5×–50×</span></div>
+        <div><img src="${c.icon('TG')}" alt=""><b>Gold</b><span>Jaguar-Spin 5×–50×<br>Jaguar-König 50×–1000×</span></div>
       </div>
       <h4>Jaguar-Ruf</h4>
       <p>Im Basisspiel brüllt der Jaguar Balam manchmal nach dem Walzenstopp und wirft <b>1–3 zusätzliche Stein-Stelen</b> (2×–25×) auf normale Felder.</p>`,
@@ -171,7 +171,7 @@ const T = {
         <tr><td><b>Super-Bonus</b></td><td>${MODES.superbonus.cost}× Einsatz</td><td>Wie 4 BONUS-Symbole.</td></tr>
         <tr><td><b>Göttlicher Bonus</b></td><td>${MODES.godbonus.cost}× Einsatz</td><td>Wie 5 BONUS-Symbole.</td></tr></table>
       <h4>Große Gewinne</h4>
-      <p>Gewinne ab 20× Einsatz werden gefeiert. Während der Betrag hochzählt, steigt der Titel: <b>BIG WIN</b> (20×) → <b>MEGA WIN</b> (50×) → <b>EPIC WIN</b> (100×) → <b>LEGENDARY WIN</b> (500×) → <b>BALAM WIN</b> (1.000×). In den Freispielen kann jeder einzelne Spin ein Big Win sein, am Ende wird der Bonus-Gesamtgewinn gefeiert.</p>`,
+      <p>Gewinne ab 20× Einsatz werden gefeiert (bei einem gekauften Bonus erst ab seinem Kaufpreis). Während der Betrag hochzählt, steigt der Titel: <b>BIG WIN</b> (20×) → <b>MEGA WIN</b> (50×) → <b>EPIC WIN</b> (100×) → <b>LEGENDARY WIN</b> (500×) → <b>BALAM WIN</b> (1.000×). In den Freispielen kann jeder einzelne Spin ein Big Win sein, am Ende wird der Bonus-Gesamtgewinn gefeiert.</p>`,
     lines: () => `<p>20 feste Gewinnlinien. Gewinne zählen ab Walze 1 (links) nach rechts.</p><div class="lines">${PAYLINES.map((l, i) => lineSvg(l, i + 1)).join('')}</div>`,
     controls: () => `
       <ul class="ctl">
