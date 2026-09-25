@@ -169,11 +169,12 @@ export class RoundPlayer {
         break;
       }
       case 'extraSpin': {
-        // top stage: every BONUS symbol adds a free spin
         sound.bonusChime();
+        const pop = this.ui.extraSpinPop(ev.extraSpins, this.spinsPlayed, ev.totalFs);
+        await wait(380);
         this.ui.setFsCounter(this.spinsPlayed, ev.totalFs);
         this.ui.bumpFsCounter();
-        await this.ui.banner(t('extraSpin', { n: ev.extraSpins }), t('extraSpinSub'), 1300, 'gold');
+        await pop;
         break;
       }
       case 'stageUp': {

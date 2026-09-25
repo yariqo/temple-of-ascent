@@ -306,6 +306,31 @@ export class Ui {
       ms: kind === 'godbonus' ? 3400 : 2600,
     });
   }
+  /** summit bonus: a BONUS symbol at the top stage adds a free spin – centred pop over the reels */
+  async extraSpinPop(n: number, played: number, total: number) {
+    const el = $('xspin');
+    ($('xs-icon') as HTMLImageElement).src = this.icons.S;
+    $('xs-title').textContent = t('extraSpin', { n });
+    $('xs-sub').textContent = t('extraSpinSub');
+    $('xs-total').textContent = t('freeSpin', { n: Math.max(1, played), t: total });
+    el.classList.remove('out');
+    el.hidden = false;
+    // restart the CSS animations
+    for (const c of Array.from(el.children) as HTMLElement[]) {
+      c.style.animation = 'none';
+      void c.offsetWidth;
+      c.style.animation = '';
+    }
+    let done = false;
+    const onClick = () => (done = true);
+    el.addEventListener('click', onClick);
+    const end = performance.now() + Math.max(950, 1500 / speed.factor());
+    while (!done && !speed.skip && performance.now() < end) await sleepReal(30);
+    el.removeEventListener('click', onClick);
+    el.classList.add('out');
+    await sleepReal(240);
+    el.hidden = true;
+  }
   /** stage-up splash: the steles of the new stage, their value range and the extra spins */
   async stageUp(stage: number, extra: number, values: number[]) {
     const el = $('stagesplash');

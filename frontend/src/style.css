@@ -3461,3 +3461,86 @@ dialog button.gold,
 #bigwin.lv5 .bw-title:not(.slam):not(.bw-ghost) {
   animation: shimmer 1.4s linear infinite, titleBreath 1s ease-in-out infinite;
 }
+
+/* summit bonus: +1 free spin, centred */
+#xspin {
+  position: fixed;
+  inset: 0;
+  z-index: 23;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.6vh;
+  cursor: pointer;
+  background: radial-gradient(ellipse at 50% 50%, rgba(60, 30, 90, 0.55), rgba(0, 0, 0, 0.35) 55%, rgba(0, 0, 0, 0) 80%);
+  animation: fadein 0.2s;
+}
+#xspin[hidden] {
+  display: none !important;
+}
+#xspin.out {
+  animation: introOut 0.24s forwards;
+}
+#xspin .xs-glow {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: min(80vw, 640px);
+  aspect-ratio: 1;
+  transform: translate(-50%, -50%);
+  background: repeating-conic-gradient(from 0deg, rgba(255, 210, 110, 0.22) 0 7deg, rgba(255, 210, 110, 0) 7deg 20deg);
+  -webkit-mask: radial-gradient(circle, #000 0 20%, transparent 68%);
+  mask: radial-gradient(circle, #000 0 20%, transparent 68%);
+  animation: xsSpin 6s linear infinite, fadein 0.4s;
+  pointer-events: none;
+}
+@keyframes xsSpin {
+  to {
+    transform: translate(-50%, -50%) rotate(360deg);
+  }
+}
+#xs-icon {
+  position: relative;
+  width: clamp(80px, 12vw, 150px);
+  filter: drop-shadow(0 0 22px rgba(120, 200, 255, 0.9)) drop-shadow(0 8px 12px rgba(0, 0, 0, 0.7));
+  animation: bwPop 0.55s cubic-bezier(0.2, 1.7, 0.4, 1);
+}
+#xspin .xs-title {
+  position: relative;
+  font-family: var(--display);
+  font-weight: 900;
+  font-size: clamp(40px, 8vw, 104px);
+  line-height: 1;
+  white-space: nowrap;
+  background: linear-gradient(180deg, #fffbe0, #ffe486 35%, #e4a634 58%, #a8680e 59%, #ffd35a);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  filter: drop-shadow(0 5px 0 #1a0d02) drop-shadow(0 0 26px #ffb030);
+  animation: bwPop 0.6s 0.08s cubic-bezier(0.2, 1.7, 0.4, 1) backwards;
+}
+#xspin .xs-sub {
+  position: relative;
+  font-family: var(--serif);
+  font-weight: 800;
+  letter-spacing: 0.3em;
+  text-transform: uppercase;
+  color: #f3dca8;
+  font-size: clamp(12px, 1.8vw, 20px);
+  text-shadow: 0 2px 6px #000;
+  animation: fadein 0.35s 0.25s backwards;
+}
+#xspin .xs-total {
+  position: relative;
+  margin-top: 0.6vh;
+  padding: 4px 16px;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 211, 90, 0.6);
+  background: rgba(20, 10, 2, 0.75);
+  color: #ffe9a8;
+  font-family: var(--serif);
+  font-weight: 700;
+  font-size: clamp(12px, 1.6vw, 17px);
+  animation: fadein 0.35s 0.35s backwards;
+}

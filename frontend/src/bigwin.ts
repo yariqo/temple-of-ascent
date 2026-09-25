@@ -8,6 +8,32 @@ import { money } from './format';
 import { t } from './i18n';
 import { ease, sleepReal, speed, tween } from './anim';
 import { sound } from './sound';
+
+/** pre-rendered coin sprite (drawing gradients per particle per frame made taps stutter) */
+const COIN = (() => {
+  const c = document.createElement('canvas');
+  c.width = c.height = 64;
+  const x = c.getContext('2d')!;
+  const r = 30;
+  x.translate(32, 32);
+  const grd = x.createLinearGradient(0, -r, 0, r);
+  grd.addColorStop(0, '#fff3b0');
+  grd.addColorStop(0.5, '#e8a92c');
+  grd.addColorStop(1, '#8a5a08');
+  x.beginPath();
+  x.arc(0, 0, r - 2.5, 0, Math.PI * 2);
+  x.fillStyle = grd;
+  x.fill();
+  x.lineWidth = 5;
+  x.strokeStyle = '#6b4204';
+  x.stroke();
+  x.beginPath();
+  x.arc(0, 0, r * 0.55, 0, Math.PI * 2);
+  x.strokeStyle = 'rgba(255,245,200,0.7)';
+  x.lineWidth = 3;
+  x.stroke();
+  return c;
+})();
 import { drawMascotHead } from './art/mascot';
 
 export const BIG_TIERS = [
@@ -176,6 +202,7 @@ export class BigWin {
     if (lv >= 4 && Math.random() < rate / 3) this.parts.push({ x: Math.random() * w, y: -20, vx: (Math.random() - 0.5) * 2, vy: 2 * dpr, r: 10 * dpr, a: Math.random() * 6, va: 0.2, life: 1, kind: 0, color: '#ffd24a' });
     const g = 0.42 * dpr;
     this.parts = this.parts.filter((p) => p.y < h + 60 && p.life > 0);
+    if (this.parts.length > 320) this.parts.splice(0, this.parts.length - 320);
     for (const p of this.parts) {
       p.vy += g;
       p.x += p.vx;
@@ -192,22 +219,7 @@ export class BigWin {
         // spinning coin
         const sx = Math.abs(Math.cos(p.a));
         c.scale(Math.max(0.12, sx), 1);
-        const grd = c.createLinearGradient(0, -p.r, 0, p.r);
-        grd.addColorStop(0, '#fff3b0');
-        grd.addColorStop(0.5, '#e8a92c');
-        grd.addColorStop(1, '#8a5a08');
-        c.beginPath();
-        c.arc(0, 0, p.r, 0, Math.PI * 2);
-        c.fillStyle = grd;
-        c.fill();
-        c.lineWidth = p.r * 0.18;
-        c.strokeStyle = '#6b4204';
-        c.stroke();
-        c.beginPath();
-        c.arc(0, 0, p.r * 0.55, 0, Math.PI * 2);
-        c.strokeStyle = 'rgba(255,245,200,0.7)';
-        c.lineWidth = p.r * 0.1;
-        c.stroke();
+        c.drawImage(COIN, -p.r, -p.r, p.r * 2, p.r * 2);
       } else if (p.kind === 1) {
         c.rotate(p.a);
         c.beginPath();
@@ -222,12 +234,16 @@ export class BigWin {
         c.lineWidth = 1.5 * dpr;
         c.stroke();
       } else {
-        c.globalAlpha = Math.max(0, p.life);
+        const al = Math.max(0, p.life);
+        c.globalAlpha = al * 0.3;
+        c.beginPath();
+        c.arc(0, 0, p.r * 2.4, 0, Math.PI * 2);
+        c.fillStyle = '#ffe27a';
+        c.fill();
+        c.globalAlpha = al;
         c.beginPath();
         c.arc(0, 0, p.r, 0, Math.PI * 2);
         c.fillStyle = p.color;
-        c.shadowColor = '#ffe27a';
-        c.shadowBlur = 12;
         c.fill();
       }
       c.restore();
@@ -251,9 +267,24 @@ export class BigWin {
     this.running = true;
     requestAnimationFrame(this.loop);
 
-    let skipped = false;
-    const onClick = () => (skipped = true);
-    this.el.addEventListener('click', onClick);
+    // every tap jumps one tier up (to the next threshold, with its tier change);
+    // on the last stretch a tap jumps to the final amount
+    let taps = 0;
+    let lastTap = 0;
+    const onClick = () => {
+      const now = performance.now();
+      if (now - lastTap < 180) return; // one double click = one tap
+      lastTap = now;
+      taps++;
+    };
+    this.el.addEventListener('pointerdown', onClick);
+    const tapped = () => {
+      if (taps > 0) {
+        taps--;
+        return true;
+      }
+      return false;
+    };
 
     this.setLevel(1, false);
     sound.fanfare();
@@ -268,17 +299,40 @@ export class BigWin {
       this.amount.textContent = money(v);
       this.mult.textContent = `×${(v / bet).toFixed(v / bet >= 100 ? 0 : 1)}`;
     };
-    for (let i = 0; i < segs && !skipped; i++) {
+    // count that can be cut short by a tap (resolves true when tapped)
+    const count = (ms: number, update: (k: number) => void, easing: (x: number) => number) =>
+      new Promise<boolean>((resolve) => {
+        let last = performance.now();
+        let el = 0;
+        const step = (now: number) => {
+          if (tapped()) return resolve(true);
+          el += Math.min(100, now - last) * speed.factor();
+          last = now;
+          const p = Math.min(1, el / Math.max(1, ms));
+          update(easing(p));
+          if (p < 1) requestAnimationFrame(step);
+          else resolve(false);
+        };
+        requestAnimationFrame(step);
+      });
+    const pause = async (ms: number) => {
+      const end = performance.now() + ms / speed.factor();
+      while (performance.now() < end) {
+        if (taps > 0) return true; // leave the tap for the next count → it jumps one tier
+        await sleepReal(16);
+      }
+      return false;
+    };
+    for (let i = 0; i < segs; i++) {
       const from = pts[i] * bet;
       const to = pts[i + 1] * bet;
       const last = i === segs - 1;
       let lastCoin = 0;
       let charging = false;
       if (!last) sound.riser(segMs / 1000 / speed.factor());
-      await tween(
+      const cut = await count(
         segMs,
         (k) => {
-          if (skipped) return;
           put(from + (to - from) * k);
           // the last stretch before a new tier: everything starts to tremble and glow
           if (!last && k > 0.6 && !charging) {
@@ -296,19 +350,20 @@ export class BigWin {
       );
       this.el.classList.remove('charge');
       this.el.style.setProperty('--charge', '0');
-      if (skipped || last) break;
-      // threshold reached: short freeze … then the new tier explodes in
+      if (last) break;
+      // threshold reached (or tapped): the new tier explodes in
       put(to);
       this.amount.classList.remove('hit');
       void this.amount.offsetWidth;
       this.amount.classList.add('hit');
-      await sleepReal(200 / speed.factor());
+      if (!cut) await pause(200);
       const lv = tierLevel(pts[i + 1]);
       this.transition(lv, false);
       sound.tierUp(lv);
       sound.boom(lv);
       opts.onTier?.(lv);
-      await sleepReal(650 / speed.factor());
+      // let the new tier breathe a moment; a tap here ends the pause and jumps the next tier
+      await pause(cut ? 380 : 650);
     }
     if (this.level < finalLv) {
       this.transition(finalLv, opts.max === true && finalLv === 5);
@@ -320,10 +375,10 @@ export class BigWin {
     this.mult.textContent = `×${(win / bet).toFixed(finalMult >= 100 ? 0 : 1)}`;
     this.amount.classList.add('done');
     // hold, then close (tap closes earlier)
-    skipped = false;
+    taps = 0;
     const end = performance.now() + 2600 / speed.factor();
-    while (!skipped && !speed.skip && performance.now() < end) await sleepReal(40);
-    this.el.removeEventListener('click', onClick);
+    while (!taps && !speed.skip && performance.now() < end) await sleepReal(30);
+    this.el.removeEventListener('pointerdown', onClick);
     await tween(250, (p) => (this.el.style.opacity = String(1 - p)), ease.linear);
     this.el.hidden = true;
     this.el.style.opacity = '';
