@@ -11,6 +11,10 @@ export const speed = {
   factor(): number {
     return this.skip ? 3.5 : [1, 2, 3.6][this.level] ?? 1;
   },
+  /** how long info screens stay: only a little shorter in turbo, never affected by skip */
+  hold(): number {
+    return [1, 1.35, 1.7][this.level] ?? 1;
+  },
 };
 
 export const ease = {

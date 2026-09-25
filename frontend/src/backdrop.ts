@@ -1038,11 +1038,15 @@ export class Backdrop {
       }
       const bk = t - this.boltT;
       if (bk < 0.35) {
-        const fl = bk < 0.08 || (bk > 0.14 && bk < 0.2) ? 1 : 0.3;
-        ctx.globalAlpha = alpha * 0.22 * fl;
-        ctx.fillStyle = '#d8c4ff';
-        ctx.fillRect(0, 0, w, h);
-        ctx.globalAlpha = alpha * fl;
+        // soft fade in/out (no hard full-screen flash)
+        const fl = Math.sin(Math.min(1, bk / 0.35) * Math.PI);
+        ctx.globalAlpha = alpha * 0.1 * fl;
+        ctx.fillStyle = rad(ctx, this.boltX * w, 0, 0, h * 0.6, [
+          [0, '#d8c4ff'],
+          [1, 'rgba(216,196,255,0)'],
+        ]);
+        ctx.fillRect(0, 0, w, h * 0.6);
+        ctx.globalAlpha = alpha * fl * 0.8;
         ctx.strokeStyle = '#f4ecff';
         ctx.lineWidth = Math.max(1.5, w / 700);
         ctx.beginPath();

@@ -326,8 +326,14 @@ export class Ui {
     title.style.animation = '';
     el.hidden = false;
     this.overlayBusy = true;
+    // a skip tapped during the previous spin must not close this screen at once
+    speed.skip = false;
     let skipped = false;
-    const onClick = () => (skipped = true);
+    // a tap only counts once the screen has been visible for a moment (no accidental skip)
+    const openedAt = performance.now();
+    const onClick = () => {
+      if (performance.now() - openedAt > 650) skipped = true;
+    };
     el.addEventListener('click', onClick);
     // count-up of the amount
     if (o.count !== undefined) {
@@ -347,8 +353,8 @@ export class Ui {
       );
       amountEl.textContent = money(target);
     }
-    const end = performance.now() + o.ms / speed.factor();
-    while (!skipped && !speed.skip && performance.now() < end) await sleepReal(40);
+    const end = performance.now() + o.ms / speed.hold();
+    while (!skipped && !(speed.skip && performance.now() - openedAt > 650) && performance.now() < end) await sleepReal(40);
     el.removeEventListener('click', onClick);
     el.hidden = true;
     this.overlayBusy = false;
@@ -368,6 +374,7 @@ export class Ui {
   }
   /** summit bonus: a BONUS symbol at the top stage adds a free spin – centred pop over the reels */
   async extraSpinPop(n: number, played: number, total: number) {
+    speed.skip = false;
     const el = $('xspin');
     ($('xs-icon') as HTMLImageElement).src = this.icons.S;
     $('xs-title').textContent = t('extraSpin', { n });
@@ -382,10 +389,14 @@ export class Ui {
       c.style.animation = '';
     }
     let done = false;
-    const onClick = () => (done = true);
+    // a tap only counts once the screen has been visible for a moment (no accidental skip)
+    const openedAt = performance.now();
+    const onClick = () => {
+      if (performance.now() - openedAt > 650) done = true;
+    };
     el.addEventListener('click', onClick);
-    const end = performance.now() + Math.max(950, 1500 / speed.factor());
-    while (!done && !speed.skip && performance.now() < end) await sleepReal(30);
+    const end = performance.now() + Math.max(950, 1500 / speed.hold());
+    while (!done && !(speed.skip && performance.now() - openedAt > 650) && performance.now() < end) await sleepReal(30);
     el.removeEventListener('click', onClick);
     el.classList.add('out');
     await sleepReal(240);
@@ -400,17 +411,25 @@ export class Ui {
     // which stele materials can show up now (material follows the value)
     const lvl = (v: number) => (v >= 250 ? 3 : v >= 50 ? 2 : v >= 10 ? 1 : 0);
     const keys = ['T', 'TB', 'TD', 'TO'];
-    const mats = [...new Set(values.map(lvl))].map((l) => keys[l]);
+    // the steles of this stage are all made of one material (stage 2 bronze, 3 diamond, 4 obsidian)
+    void lvl;
+    const mats = [keys[Math.max(0, Math.min(3, stage - 1))]];
     $('ss-steles').innerHTML = mats.map((k, i) => `<img src="${this.icons[k]}" alt="" style="animation-delay:${0.15 + i * 0.12}s">`).join('');
     $('ss-vals').innerHTML = `${t('steleNow')} <b>${values[0]}×–${values[values.length - 1]}×</b>`;
     $('ss-spins').textContent = t('extraSpins', { n: extra });
     el.hidden = false;
     this.overlayBusy = true;
+    // a skip tapped during the previous spin must not close this screen at once
+    speed.skip = false;
     let done = false;
-    const onClick = () => (done = true);
+    // a tap only counts once the screen has been visible for a moment (no accidental skip)
+    const openedAt = performance.now();
+    const onClick = () => {
+      if (performance.now() - openedAt > 650) done = true;
+    };
     el.addEventListener('click', onClick);
-    const end = performance.now() + 2600 / speed.factor();
-    while (!done && !speed.skip && performance.now() < end) await sleepReal(40);
+    const end = performance.now() + 2600 / speed.hold();
+    while (!done && !(speed.skip && performance.now() - openedAt > 650) && performance.now() < end) await sleepReal(40);
     el.removeEventListener('click', onClick);
     el.classList.add('out');
     await sleepReal(280);
@@ -430,8 +449,14 @@ export class Ui {
     el.hidden = false;
     el.classList.remove('out');
     this.overlayBusy = true;
+    // a skip tapped during the previous spin must not close this screen at once
+    speed.skip = false;
     let done = false;
-    const onClick = () => (done = true);
+    // a tap only counts once the screen has been visible for a moment (no accidental skip)
+    const openedAt = performance.now();
+    const onClick = () => {
+      if (performance.now() - openedAt > 650) done = true;
+    };
     el.addEventListener('click', onClick);
     sound.gong(0.25);
     // count up (quick if the big-win screen already showed the amount)
@@ -447,9 +472,9 @@ export class Ui {
     amt.classList.remove('pop');
     void amt.offsetWidth;
     amt.classList.add('pop');
-    const end = performance.now() + 6000 / speed.factor();
+    const end = performance.now() + 6000 / speed.hold();
     done = false;
-    while (!done && !speed.skip && performance.now() < end) await sleepReal(40);
+    while (!done && !(speed.skip && performance.now() - openedAt > 650) && performance.now() < end) await sleepReal(40);
     el.removeEventListener('click', onClick);
     el.classList.add('out');
     await sleepReal(300);

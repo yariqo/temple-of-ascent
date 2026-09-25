@@ -93,10 +93,29 @@ async function main() {
   }
   host.appendChild(app.canvas);
   const board = new Board(app);
+  // desktop: the temple panel and the BONUS tablet hug the reel frame (same height, small gap)
+  const alignPanels = () => {
+    const wide = window.matchMedia('(min-width: 761px) and (min-height: 521px)').matches;
+    document.body.classList.toggle('aligned', wide);
+    if (!wide) return;
+    const r = board.frameRect();
+    const gap = Math.max(10, r.width * 0.02);
+    const pw = Math.min(260, Math.max(170, r.left - gap - 12));
+    const st = document.body.style;
+    st.setProperty('--fr-top', `${r.top}px`);
+    st.setProperty('--fr-h', `${r.height}px`);
+    st.setProperty('--pyr-left', `${r.right + gap}px`);
+    st.setProperty('--side-w', `${Math.min(pw, innerWidth - r.right - gap - 12)}px`);
+    st.setProperty('--bonus-right', `${innerWidth - r.left + gap}px`);
+    document.body.classList.toggle('pyr-compact', r.height < 560);
+  };
   new ResizeObserver(() => {
     app.resize();
     board.layout();
+    alignPanels();
   }).observe(host);
+  window.addEventListener('resize', alignPanels);
+  requestAnimationFrame(alignPanels);
   const player = new RoundPlayer(board, ui);
   ui.setLoading(1);
 

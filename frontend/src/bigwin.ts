@@ -263,6 +263,8 @@ export class BigWin {
    */
   async show(win: number, bet: number, opts: { kicker?: string; max?: boolean; onTier?: (lv: number) => void } = {}) {
     const finalMult = win / bet;
+    // a skip from the spin that led here must not rush or close the celebration
+    speed.skip = false;
     const finalLv = opts.max ? 5 : Math.max(1, tierLevel(finalMult));
     if (!this.faceUrl) this.faceUrl = drawMascotHead('roar').toDataURL();
     this.face.src = this.faceUrl;

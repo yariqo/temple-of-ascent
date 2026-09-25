@@ -89,6 +89,8 @@ export function steleLevel(v: number): number {
   return v >= 250 ? 3 : v >= 50 ? 2 : v >= 10 ? 1 : 0;
 }
 const STELE_KEYS = ['T', 'TB', 'TD', 'TO'];
+/** stele material of the current bonus stage: 0 stone (base game / stage 1), 1 bronze, 2 diamond, 3 obsidian */
+let stageMat = 0;
 const STELE_COLORS = [0xc9c2b8, 0xf0a060, 0x9fe8ff, 0xffb030];
 /** set by the board: particles / shake when a stele bursts into a stronger material */
 let upgradeFx: ((v: SymbolView, lvl: number) => void) | null = null;
@@ -100,8 +102,6 @@ let reelsSpinning = false;
 class SymbolView extends Container {
   sym: BoardSymbol = { name: 'L1' };
   golden = false;
-  /** material after the reveal (null = stone until revealed) */
-  revealedKey: string | null = null;
   private glow = new Sprite(TEX.glow);
   private sprite = new Sprite(Texture.EMPTY);
   private _rays: Sprite | null = null;
@@ -131,7 +131,7 @@ class SymbolView extends Container {
   set(sym: BoardSymbol, golden = false, blurred = false) {
     this.sym = sym;
     this.golden = golden;
-    const key = sym.name === 'T' ? (golden ? 'TG' : this.revealedKey ?? 'T') : sym.name;
+    const key = sym.name === 'T' ? (golden ? 'TG' : STELE_KEYS[stageMat]) : sym.name;
     this.sprite.texture = (blurred ? TEX.blur[key] : TEX.sym[key]) ?? TEX.sym.L1;
     this.sprite.width = this.sprite.height = SYM_SIZE;
     const isS = sym.name === 'S' && !blurred;
@@ -149,6 +149,7 @@ class SymbolView extends Container {
       this.plate.visible = !blurred;
       this.setPlate(sym.multiplier ?? 2);
     } else if (this._plate) this._plate.visible = false;
+    this.setGlow(false);
   }
 
   /** called every frame – bonus symbols glow and breathe */
@@ -180,6 +181,13 @@ class SymbolView extends Container {
   }
 
   setGlow(on: boolean, color = 0xfff2a8) {
+    // steles of a higher bonus stage always glow softly in their stage colour
+    if (!on && this.sym.name === 'T' && !this.golden && stageMat > 0) {
+      this.glow.visible = true;
+      this.glow.tint = STELE_COLORS[stageMat];
+      this.glow.alpha = 0.45;
+      return;
+    }
     this.glow.visible = on;
     this.glow.tint = color;
     this.glow.alpha = 0.75;
@@ -189,8 +197,10 @@ class SymbolView extends Container {
    *  shake harder and then burst into their material (bronze / diamond / obsidian). */
   async spinPlate(values: number[], final: number, ms = 650) {
     if (this.sym.name !== 'T' || this.destroyed) return;
-    const lvl = this.golden ? 0 : steleLevel(final);
-    const dur = ms + lvl * 280;
+    // material comes from the bonus stage; only a strong value (100×+) still bursts with effects
+    const lvl = this.golden ? 0 : final >= 100 ? Math.max(1, steleLevel(final)) : 0;
+    const col = STELE_COLORS[Math.max(lvl, stageMat)];
+    const dur = ms + lvl * 220;
     let last = -1;
     const plate = this.plate;
     const baseX = this.sprite.x;
@@ -209,7 +219,7 @@ class SymbolView extends Container {
         if (lvl > 0 && t > 0.45) {
           const k = (t - 0.45) / 0.55;
           this.sprite.x = baseX + Math.sin(t * 90) * k * (1.5 + lvl * 1.6);
-          this.setGlow(true, STELE_COLORS[lvl]);
+          this.setGlow(true, col);
           this.glow.alpha = 0.25 + 0.6 * k;
         }
       },
@@ -218,15 +228,12 @@ class SymbolView extends Container {
     if (this.destroyed) return;
     this.sprite.x = baseX;
     if (lvl > 0) {
-      this.revealedKey = STELE_KEYS[lvl];
-      this.sprite.texture = TEX.sym[this.revealedKey];
-      this.sprite.width = this.sprite.height = SYM_SIZE;
       upgradeFx?.(this, lvl);
       sound.steleUpgrade(lvl);
     }
     this.setPlate(final);
     plate.y = PLATE_Y;
-    this.setGlow(true, lvl > 0 ? STELE_COLORS[lvl] : totemTier(final).color);
+    this.setGlow(true, lvl > 0 || stageMat > 0 ? col : totemTier(final).color);
     this.glow.alpha = lvl > 0 ? 1 : 0.75;
     sound.steleReveal(tierName(final));
     await tween(
@@ -381,6 +388,17 @@ export class Board {
     this.applyZoom();
   }
 
+  /** the reel frame (incl. its border) in page coordinates – the side panels align to it */
+  frameRect(): DOMRect {
+    const c = this.app.canvas.getBoundingClientRect();
+    const s = this.baseScale;
+    const sw = this.app.screen.width;
+    const sh = this.app.screen.height;
+    const x = (sw - W * s) / 2 - MARGIN * s;
+    const y = (sh - H * s) / 2 - MARGIN * s;
+    return new DOMRect(c.left + x, c.top + y, (W + 2 * MARGIN) * s, (H + 2 * MARGIN) * s);
+  }
+
   /** zoom around the centre of the reels (used for the bonus tease) */
   private applyZoom() {
     const sw = this.app.screen.width;
@@ -400,6 +418,12 @@ export class Board {
   }
 
   setTheme(stage: number) {
+    const mat = stage >= 2 ? Math.min(3, stage - 1) : 0;
+    if (mat !== stageMat) {
+      stageMat = mat;
+      // steles already on the board take the new material at once
+      for (const col of this.cells) for (const v of col) if (v.sym.name === 'T' && !v.destroyed) v.set(v.sym, v.golden);
+    }
     this.frame.tint = stage >= 4 ? 0xd8c8ff : stage === 3 ? 0xffc0a0 : stage === 2 ? 0xffe0b0 : 0xffffff;
   }
 
@@ -957,17 +981,30 @@ export class Board {
       const n = used.get(key) ?? 0;
       used.set(key, n + 1);
       const c = this.center(last);
+      // line win: gold number with a dark edge and a warm glow, popping up on the last symbol
       const pill = new Container();
-      const tx = new Text({ text: fmt(w.win), style: new TextStyle({ fontFamily: 'Alegreya Sans, sans-serif', fontWeight: '800', fontSize: 26, fill: 0xfff4dc }) });
+      const tx = new Text({
+        text: fmt(w.win),
+        style: new TextStyle({
+          fontFamily: 'Cinzel, Georgia, serif',
+          fontWeight: '900',
+          fontSize: 34,
+          fill: 0xffe391,
+          stroke: { color: 0x2a1400, width: 7, join: 'round' },
+          dropShadow: { color: 0xffa21a, blur: 10, distance: 0, alpha: 0.85, angle: 0 },
+          letterSpacing: 1,
+        }),
+      });
       tx.anchor.set(0.5);
-      const bg = new Graphics().roundRect(-tx.width / 2 - 11, -17, tx.width + 22, 34, 17).fill({ color: 0x120d07, alpha: 0.88 }).stroke({ width: 1.5, color: 0xc8961e });
-      pill.addChild(bg, tx);
-      pill.position.set(c.x + CELL * 0.3, c.y - CELL * 0.34 + n * 38);
+      pill.addChild(tx);
+      pill.position.set(c.x, c.y - CELL * 0.08 + n * 40);
       pill.alpha = 0;
       this.pills.addChild(pill);
-      void tween(240, (k) => {
-        pill.alpha = k;
-        pill.scale.set(lerp(0.6, 1, k));
+      this.particles.emit(TEX.spark, pill.x, pill.y, { n: 6, speed: [40, 140], life: [250, 500], scale: [0.45, 0.05], tint: [0xffe066, 0xfff3c4], blend: 'add' });
+      void tween(320, (k) => {
+        pill.alpha = Math.min(1, k * 2);
+        pill.scale.set(lerp(0.4, 1, k));
+        pill.y = c.y - CELL * 0.08 + n * 40 - 10 * k;
       }, ease.outBack);
     }
   }
