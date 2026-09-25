@@ -148,6 +148,8 @@ export class RoundPlayer {
         this.board.setKept(ev.divine ? 0 : null);
         this.board.mascot.setFreeSpins(true);
         this.setStage(ev.stage, ev.runes, true);
+        // let the temple wake up before the first spin
+        await this.ui.templeReady();
         if (ev.stage > 1) await this.ui.banner(t('stage', { n: ev.stage }), t('startsHigher'), 1500, 'gold');
         break;
       }
@@ -184,6 +186,7 @@ export class RoundPlayer {
         this.setStage(ev.stage, undefined, true);
         this.board.celebrate(8);
         void this.board.mascot.jump(1);
+        await this.ui.templeSurge(ev.stage);
         await this.ui.stageUp(ev.stage, ev.extraSpins, vals);
         break;
       }

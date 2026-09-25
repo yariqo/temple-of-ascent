@@ -169,12 +169,70 @@ export class Ui {
 
   /** Background + pyramid state for a stage (0 = base game). */
   setStage(stage: number, runes = this.runes, bump = false) {
-    if (this.stage === 0 && stage > 0) sound.doorOpen();
+    const opening = this.stage === 0 && stage > 0;
+    if (opening) sound.doorOpen();
     this.stage = stage;
     this.runes = runes;
     this.showScene(stage);
     $('pyramid').classList.toggle('active', stage > 0);
     this.renderPyramid(bump);
+    if (opening) this.templeAwaken(stage);
+  }
+
+  private restartClass(el: Element, cls: string, ms: number) {
+    el.classList.remove(cls);
+    void (el as HTMLElement).offsetWidth;
+    el.classList.add(cls);
+    window.setTimeout(() => el.classList.remove(cls), ms);
+  }
+  /**
+   * The temple comes alive when the bonus starts: the door grinds open, then a wave of light runs
+   * up through every tier, the torches flare and the shrine on top lights up.
+   */
+  private awakenUntil = 0;
+  private templeAwaken(stage: number) {
+    const pyr = $('pyramid');
+    this.awakenUntil = performance.now() + 3200;
+    this.restartClass(pyr, 'opening', 900); // rumble before the halves move
+    window.setTimeout(() => {
+      this.restartClass(pyr, 'awaken', 2200);
+      for (let s = 1; s <= MAX_STAGE; s++) {
+        const el = this.tierEl(s);
+        if (el) window.setTimeout(() => this.restartClass(el, 'ignite', 800), (s - 1) * 230);
+      }
+      window.setTimeout(() => this.restartClass(pyr, 'crown', 1400), MAX_STAGE * 230);
+      // start stage above 1: the light settles on it
+      if (stage > 1) window.setTimeout(() => this.tierEl(stage) && this.restartClass(this.tierEl(stage)!, 'bump', 800), MAX_STAGE * 230 + 300);
+    }, 1500);
+  }
+  /** wait until the temple wake-up is visible enough to go on */
+  async templeReady() {
+    const left = this.awakenUntil - performance.now();
+    if (left > 0) await sleepReal(Math.min(left, 3200) / speed.factor());
+  }
+  /**
+   * Stage-up: a wave climbs from the bottom tier up to the new stage, which bursts into light,
+   * a pillar of light shoots to the shrine and the torches flare.
+   */
+  async templeSurge(stage: number) {
+    const pyr = $('pyramid');
+    const f = speed.factor();
+    pyr.style.setProperty('--surge-ms', `${Math.round(900 / f)}ms`);
+    this.restartClass(pyr, 'surge', 1400 / f);
+    for (let s = 1; s <= stage; s++) {
+      const el = this.tierEl(s);
+      if (el) window.setTimeout(() => this.restartClass(el, s === stage ? 'burst' : 'ignite', 900), ((s - 1) * 200) / f);
+    }
+    const top = this.tierEl(stage);
+    await sleepReal(((stage - 1) * 200 + 250) / f);
+    if (top) {
+      const pr = pyr.getBoundingClientRect();
+      const tr = top.getBoundingClientRect();
+      pyr.style.setProperty('--pillar-bottom', `${pr.bottom - tr.top - 6}px`);
+    }
+    this.restartClass(pyr, 'pillar', 1300);
+    this.restartClass(pyr, 'crown', 1400);
+    await sleepReal(750 / f);
   }
 
   setRunes(runes: number) {
