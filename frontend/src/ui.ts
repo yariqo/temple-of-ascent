@@ -447,11 +447,15 @@ export class Ui {
         const on = current === m;
         const price = bet * MODES[m].cost;
         const card = document.createElement('div');
-        card.className = `fm-card${on ? ' on' : ''}`;
+        card.className = `fm-card feat f-${m}${on ? ' on' : ''}`;
         card.dataset.on = t('active');
-        card.innerHTML = `<div class="fm-art"><img alt="" src="${m === 'jaguar' ? this.icons.TG : this.icons.S}"></div><b>${t(m)}</b><p>${t(m + 'Long')}</p><div class="fm-price">${t('perSpin', { v: money(price) })}</div><button class="fm-action${on ? ' off' : ''}"></button>`;
+        card.innerHTML =
+          `<div class="fm-art"><img alt="" src="${m === 'jaguar' ? this.icons.TG : this.icons.S}"></div>` +
+          `<div class="fm-info"><b>${t(m)}</b><span class="fm-tag">${t(m + 'Long')}</span><div class="fm-chips"><i>${t('chip_' + m)}</i></div></div>` +
+          `<button class="fm-action${on ? ' off' : ''}"><span></span><em></em></button>`;
         const btn = card.querySelector('button')!;
-        btn.textContent = on ? t('deactivate') : t('activate');
+        btn.querySelector('span')!.textContent = on ? t('deactivate') : t('activate');
+        btn.querySelector('em')!.textContent = on ? '' : t('perSpinShort', { v: money(price) });
         btn.disabled = !on && price > balance + 1e-9;
         btn.onclick = () => {
           sound.click();
@@ -461,25 +465,36 @@ export class Ui {
       }
       // ---- bonus buys
       let armed: string | null = null;
+      const SPINS: Record<number, number> = { 1: 10, 2: 10, 3: 8 };
+      const TOP: Record<number, string> = { 1: 'TB', 2: 'TD', 3: 'TO' };
       for (const b of BUYS) {
         const def = MODES[b.mode];
         const price = bet * def.cost;
         const vals = STAGE_TOTEMS[b.stage];
         const card = document.createElement('div');
-        card.className = 'fm-card';
-        const pyr = Array.from({ length: MAX_STAGE }, (_, i) => `<i class="${i < b.stage ? 'lit' : ''}" style="width:${56 - i * 11}px"></i>`).join('');
-        card.innerHTML = `<div class="fm-art"><div class="fm-pyr">${pyr}</div></div><b>${t('buyName_' + b.mode)}</b><p>${t('buyDesc_' + b.mode, { n: b.stage, v: `${vals[0]}–${vals[vals.length - 1]}×` })}</p><div class="fm-price">${money(price)}</div><button class="fm-action"></button>`;
+        card.className = `fm-card buy t${b.stage}`;
+        const scat = Array.from({ length: b.stage + 2 }, () => `<img alt="" src="${this.icons.S}">`).join('');
+        card.innerHTML =
+          `<div class="fm-art"><div class="fm-rays"></div><img class="fm-stele" alt="" src="${this.icons[TOP[b.stage]] ?? this.icons.T}"><div class="fm-scat">${scat}</div></div>` +
+          `<div class="fm-info"><b>${t('buyName_' + b.mode)}</b><span class="fm-tag">${t('buyTag_' + b.mode)}</span>` +
+          `<div class="fm-range">${vals[0]}×–${vals[vals.length - 1]}×</div>` +
+          `<div class="fm-chips"><i>${t('chipSpins', { n: SPINS[b.stage] ?? 10 })}</i><i>${t('chipStage', { n: b.stage })}</i></div></div>` +
+          `<button class="fm-action"><span></span><em></em></button>`;
         const btn = card.querySelector('button')!;
-        btn.textContent = t('buyBtn');
+        const label = (armedNow: boolean) => {
+          btn.querySelector('span')!.textContent = armedNow ? t('buyConfirmBtn') : t('buyBtn');
+          btn.querySelector('em')!.textContent = money(price);
+        };
+        label(false);
         btn.disabled = price > balance + 1e-9;
         btn.onclick = () => {
           sound.click();
           if (armed === b.mode) return done({ buy: b.mode });
           armed = b.mode;
           buys.querySelectorAll('.fm-card').forEach((c) => c.classList.remove('armed'));
-          buys.querySelectorAll('.fm-action').forEach((x) => ((x as HTMLButtonElement).textContent = t('buyBtn')));
+          buys.querySelectorAll('.fm-action span').forEach((x) => (x.textContent = t('buyBtn')));
           card.classList.add('armed');
-          btn.textContent = t('buyNow', { v: money(price) });
+          label(true);
         };
         buys.appendChild(card);
       }

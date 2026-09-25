@@ -188,6 +188,7 @@ async function main() {
     ui.setBet(bet());
     ui.setActiveToggle(toggle);
     board.mascot.setGold(toggle === 'jaguar');
+    sound.setJaguar(toggle === 'jaguar');
   };
   refresh();
 
@@ -339,8 +340,14 @@ async function main() {
     refresh();
   };
   const setToggle = (m: string | null) => {
+    const wasJaguar = toggle === 'jaguar';
     toggle = m as typeof toggle;
     refresh();
+    // the jaguar wakes up with a roar when Jaguar Spin is switched on
+    if (toggle === 'jaguar' && !wasJaguar) {
+      sound.roar(true, 0.9);
+      void board.mascot.roar();
+    }
   };
   document.getElementById('feature-btn')!.onclick = async () => {
     if (busy || auto) return;

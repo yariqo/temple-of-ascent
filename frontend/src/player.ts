@@ -94,6 +94,7 @@ export class RoundPlayer {
       }
       case 'jaguarRoar': {
         const golden = !!ev.golden;
+        if (!this.inFreeSpins) sound.hype(1);
         void this.ui.banner(golden ? t('goldenJaguar') : t('jaguarRoar'), '', 1100, golden ? 'gold' : '');
         await this.board.dropTotems(ev.totems, golden, golden ? GOLDEN_TOTEMS : ROAR_TOTEMS);
         break;
@@ -178,7 +179,6 @@ export class RoundPlayer {
         break;
       }
       case 'stageUp': {
-        sound.gong(0.45);
         sound.bonusChime();
         const vals = STAGE_TOTEMS[ev.stage];
         this.setStage(ev.stage, undefined, true);
@@ -240,6 +240,7 @@ export class RoundPlayer {
 
   /** the board and the jaguar react to every big-win tier */
   private onTier(lv: number) {
+    sound.hype(lv);
     if (lv >= 3) void this.board.shake(8 + lv * 3, 450);
     if (lv >= 4) void this.board.mascot.roar();
     else void this.board.mascot.jump(lv >= 2 ? 2 : 1);
@@ -248,7 +249,11 @@ export class RoundPlayer {
   private async celebrate(win: number) {
     if (this.capShown) return;
     const tier = this.tierFor(win);
-    if (!tier) return;
+    if (!tier) {
+      // a solid win without a celebration still lifts the music a little
+      if (win / this.bet >= 8) sound.hype(1);
+      return;
+    }
     await this.ui.bigWin(win, this.bet, { onTier: (lv) => this.onTier(lv) });
   }
 }

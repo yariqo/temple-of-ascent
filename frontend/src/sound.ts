@@ -13,6 +13,9 @@ class Sound {
   private sfx!: GainNode;
   private music!: GainNode;
   private noiseBuf!: AudioBuffer;
+  private room!: GainNode;
+  private lastCoin = 0;
+  private lastTick = 0;
   private loopTimer = 0;
   private nextBeat = 0;
   private beat = 0;
@@ -38,10 +41,30 @@ class Sound {
     this.ctx = new AC();
     this.master = this.ctx.createGain();
     this.master.gain.value = this.muted ? 0 : 0.8;
-    this.master.connect(this.ctx.destination);
+    // glue compressor: keeps stacked effects from getting harsh / clipping
+    const comp = this.ctx.createDynamicsCompressor();
+    comp.threshold.value = -16;
+    comp.knee.value = 12;
+    comp.ratio.value = 4;
+    comp.attack.value = 0.006;
+    comp.release.value = 0.2;
+    this.master.connect(comp).connect(this.ctx.destination);
     this.sfx = this.ctx.createGain();
     this.sfx.gain.value = 0.9;
     this.sfx.connect(this.master);
+    // a little room on the effects (short stone-hall reverb)
+    const rl = Math.floor(this.ctx.sampleRate * 1.4);
+    const rir = this.ctx.createBuffer(2, rl, this.ctx.sampleRate);
+    for (let ch = 0; ch < 2; ch++) {
+      const d = rir.getChannelData(ch);
+      for (let i = 0; i < rl; i++) d[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / rl, 3.2);
+    }
+    const rv = this.ctx.createConvolver();
+    rv.buffer = rir;
+    this.room = this.ctx.createGain();
+    this.room.gain.value = 0.22;
+    this.room.connect(rv).connect(this.master);
+    this.sfx.connect(this.room);
     this.music = this.ctx.createGain();
     this.music.gain.value = 0.35;
     this.music.connect(this.master);
@@ -107,15 +130,29 @@ class Sound {
   }
 
   // ---------------------------------------------------------------- effects
+  /** wooden mallet on a marimba bar – the basic "Aztec" voice of the effects */
+  private marimba(f: number, at = 0, vol = 0.12, len = 0.45) {
+    this.tone(f, len, { type: 'sine', vol, at, attack: 0.004 });
+    this.tone(f * 4, len * 0.35, { type: 'sine', vol: vol * 0.22, at, attack: 0.002 });
+    this.tone(f * 10, 0.03, { type: 'sine', vol: vol * 0.12, at, attack: 0.001 });
+  }
+  /** short dry wood knock */
+  private knock(at = 0, vol = 0.06, freq = 2400) {
+    this.noise(0.035, { freq, q: 5, vol, at });
+    this.tone(freq / 3.4, 0.05, { type: 'sine', vol: vol * 0.8, at, attack: 0.002 });
+  }
   click() {
-    this.tone(900, 0.05, { type: 'triangle', vol: 0.12 });
+    this.knock(0, 0.07, 2200);
   }
   spinStart() {
-    this.noise(0.35, { freq: 400, sweep: 2400, vol: 0.12, type: 'bandpass' });
+    this.noise(0.32, { freq: 250, sweep: 1100, vol: 0.07, type: 'lowpass' });
+    this.knock(0, 0.04, 1600);
   }
   reelStop(i: number) {
-    this.tone(90 - i * 4, 0.18, { type: 'sine', vol: 0.45, slide: 0.5 });
-    this.noise(0.08, { freq: 2200, vol: 0.08 });
+    // stone block settling into place: short low thunk + a little grit
+    this.tone(118 - i * 5, 0.16, { type: 'sine', vol: 0.3, slide: 0.55, attack: 0.003 });
+    this.noise(0.07, { freq: 700, vol: 0.1, type: 'lowpass' });
+    this.knock(0.005, 0.025, 1800 - i * 80);
   }
   /** bonus tease: rising tension + heartbeat for the given time; higher level = later reel = more intense */
   tease(seconds: number, level = 1) {
@@ -123,30 +160,34 @@ class Sound {
     const dur = Math.max(0.6, seconds);
     this.duck(dur + 0.3);
     const base = 180 * Math.pow(2, (level - 1) / 4);
-    this.tone(base, dur, { type: 'sawtooth', vol: 0.05, slide: 2.4, attack: dur * 0.6 });
-    this.tone(base * 1.5, dur, { type: 'triangle', vol: 0.05, slide: 2.4, attack: dur * 0.7 });
-    this.noise(dur, { freq: 500, sweep: 5000, vol: 0.06, type: 'bandpass' });
+    this.tone(base, dur, { type: 'triangle', vol: 0.05, slide: 2.4, attack: dur * 0.6 });
+    this.tone(base * 1.5, dur, { type: 'sine', vol: 0.05, slide: 2.4, attack: dur * 0.7 });
+    this.noise(dur, { freq: 400, sweep: 3500, vol: 0.045, type: 'bandpass' });
     // heartbeat, getting faster
     let at = 0.05;
     let gap = 0.5;
     while (at < dur - 0.1) {
-      this.tone(62, 0.18, { type: 'sine', vol: 0.4, slide: 0.6, at });
-      this.tone(58, 0.16, { type: 'sine', vol: 0.28, slide: 0.6, at: at + 0.14 });
+      this.tone(62, 0.18, { type: 'sine', vol: 0.36, slide: 0.6, at });
+      this.tone(58, 0.16, { type: 'sine', vol: 0.24, slide: 0.6, at: at + 0.14 });
       at += gap;
       gap = Math.max(0.28, gap * 0.9);
     }
   }
   anticipation() {
-    this.tone(220, 1.1, { type: 'sawtooth', vol: 0.06, slide: 2, attack: 0.3 });
-    this.noise(1.1, { freq: 600, sweep: 3000, vol: 0.05, attack: 0.3 } as any);
+    this.tone(220, 1.1, { type: 'triangle', vol: 0.06, slide: 2, attack: 0.3 });
+    this.noise(1.1, { freq: 600, sweep: 3000, vol: 0.04 });
   }
   scatterLand(n: number) {
-    const base = 440 * Math.pow(2, n / 6);
-    this.tone(base, 0.5, { type: 'triangle', vol: 0.22 });
-    this.tone(base * 1.5, 0.6, { type: 'sine', vol: 0.12, at: 0.05 });
+    // BONUS symbol: bright marimba + bell, one step higher per symbol
+    const f = 440 * Math.pow(2, PENTA[Math.min(n, 8)] / 12);
+    this.marimba(f, 0, 0.16, 0.6);
+    this.bell(f * 2, 0.04, 0.07);
   }
   steleTick() {
-    this.tone(1400 + Math.random() * 300, 0.03, { type: 'square', vol: 0.03 });
+    const now = performance.now();
+    if (now - this.lastTick < 45) return;
+    this.lastTick = now;
+    this.knock(0, 0.018, 2600 + Math.random() * 600);
   }
   steleReveal(tier: Tier) {
     const map: Record<Tier, number[]> = {
@@ -156,14 +197,14 @@ class Sound {
       obsidian: [440, 554, 659, 880],
       sun: [523, 659, 784, 1047, 1319],
     };
-    map[tier].forEach((f, i) => this.tone(f, 0.5 + i * 0.05, { type: 'triangle', vol: 0.16, at: i * 0.06 }));
+    map[tier].forEach((f, i) => this.marimba(f, i * 0.06, 0.12, 0.55));
     if (tier === 'sun' || tier === 'obsidian') this.gong(0.25);
   }
   /** one stele added to the multiplier – rising pitch */
   multTick(i: number) {
-    const f = 523 * Math.pow(2, Math.min(i, 12) * 2 / 12);
-    this.tone(f, 0.22, { type: 'triangle', vol: 0.16 });
-    this.tone(f * 1.5, 0.3, { type: 'sine', vol: 0.08, at: 0.03 });
+    const f = 440 * Math.pow(2, PENTA[Math.min(i, 10)] / 12);
+    this.marimba(f, 0, 0.14, 0.5);
+    this.bell(f * 2, 0.02, 0.045);
   }
   /** a stele bursts into bronze (1), diamond (2) or obsidian (3) */
   steleUpgrade(lvl: number) {
@@ -178,17 +219,117 @@ class Sound {
   win(level: number) {
     // short pentatonic run, longer for bigger wins
     const n = Math.min(3 + level, 9);
-    for (let i = 0; i < n; i++) this.tone(392 * Math.pow(2, PENTA[i] / 12), 0.22, { type: 'triangle', vol: 0.14, at: i * 0.06 });
+    for (let i = 0; i < n; i++) this.marimba(440 * Math.pow(2, PENTA[i] / 12), i * 0.07, 0.1, 0.5);
+    if (level >= 3) this.bell(440 * Math.pow(2, PENTA[n - 1] / 12) * 2, n * 0.07, 0.06);
   }
   multiply() {
     this.tone(180, 0.6, { type: 'sawtooth', vol: 0.08, slide: 3 });
     this.tone(660, 0.5, { type: 'triangle', vol: 0.18, at: 0.45 });
     this.tone(990, 0.6, { type: 'triangle', vol: 0.12, at: 0.5 });
   }
-  roar(golden: boolean) {
-    this.noise(1.2, { freq: 220, sweep: 90, q: 2, vol: 0.55, type: 'lowpass' });
-    this.tone(70, 1.0, { type: 'sawtooth', vol: 0.18, slide: 0.6 });
-    if (golden) this.tone(880, 0.8, { type: 'triangle', vol: 0.12, at: 0.5 });
+  /**
+   * Big-cat roar: a buzzing vocal source (saw with a fast "flutter" in the amplitude) through
+   * throat formants and a little distortion, plus breath noise and a sub rumble.
+   * Pitch swells up and falls off like a real roar. Golden = longer, with a shimmer on top.
+   */
+  roar(golden: boolean, vol = 1) {
+    if (!this.ok()) return;
+    const c = this.ctx!;
+    const t0 = this.t;
+    const dur = golden ? 1.9 : 1.5;
+    this.duck(dur + 0.3);
+    const out = c.createGain();
+    out.gain.value = 1.1 * vol;
+    // dark and heavy: no fizz above ~2.6 kHz
+    const dark = c.createBiquadFilter();
+    dark.type = 'lowpass';
+    dark.frequency.value = 2600;
+    dark.Q.value = 0.7;
+    out.connect(dark).connect(this.sfx);
+
+    // envelope shared by voice and breath
+    const env = c.createGain();
+    env.gain.setValueAtTime(0.0001, t0);
+    env.gain.exponentialRampToValueAtTime(1, t0 + 0.18);
+    env.gain.setValueAtTime(1, t0 + dur * 0.45);
+    env.gain.exponentialRampToValueAtTime(0.0001, t0 + dur);
+
+    // vocal source: two detuned saws, pitch contour 85 → 150 → 60 Hz
+    const flutter = c.createGain(); // amplitude "rattle"
+    flutter.gain.value = 0.6;
+    const lfo = c.createOscillator();
+    lfo.type = 'triangle';
+    lfo.frequency.setValueAtTime(22, t0);
+    lfo.frequency.linearRampToValueAtTime(34, t0 + dur * 0.4);
+    lfo.frequency.linearRampToValueAtTime(16, t0 + dur);
+    const lfoAmt = c.createGain();
+    lfoAmt.gain.value = 0.45;
+    lfo.connect(lfoAmt).connect(flutter.gain);
+    const oscs = [0, 9].map((cents) => {
+      const o = c.createOscillator();
+      o.type = 'sawtooth';
+      o.detune.value = cents;
+      o.frequency.setValueAtTime(85, t0);
+      o.frequency.exponentialRampToValueAtTime(150, t0 + dur * 0.35);
+      o.frequency.exponentialRampToValueAtTime(60, t0 + dur);
+      o.connect(flutter);
+      return o;
+    });
+    // growl distortion
+    const shaper = c.createWaveShaper();
+    const curve = new Float32Array(1024);
+    for (let i = 0; i < 1024; i++) {
+      const x = (i / 1023) * 2 - 1;
+      curve[i] = Math.tanh(x * 3.2);
+    }
+    shaper.curve = curve;
+    flutter.connect(shaper);
+    // throat formants (open "aaoo" that closes at the end)
+    const formants: [number, number, number, number][] = [
+      [320, 260, 4, 0.9],
+      [850, 600, 6, 0.6],
+      [1700, 1200, 8, 0.25],
+    ];
+    for (const [f0, f1, q, g] of formants) {
+      const bp = c.createBiquadFilter();
+      bp.type = 'bandpass';
+      bp.Q.value = q;
+      bp.frequency.setValueAtTime(f0 * 0.8, t0);
+      bp.frequency.linearRampToValueAtTime(f0, t0 + dur * 0.35);
+      bp.frequency.linearRampToValueAtTime(f1, t0 + dur);
+      const gg = c.createGain();
+      gg.gain.value = g * 0.55;
+      shaper.connect(bp).connect(gg).connect(env);
+    }
+    // breath / rasp
+    const br = c.createBufferSource();
+    br.buffer = this.noiseBuf;
+    br.loop = true;
+    const bf = c.createBiquadFilter();
+    bf.type = 'bandpass';
+    bf.Q.value = 1.2;
+    bf.frequency.setValueAtTime(700, t0);
+    bf.frequency.linearRampToValueAtTime(1300, t0 + dur * 0.35);
+    bf.frequency.linearRampToValueAtTime(450, t0 + dur);
+    const bg = c.createGain();
+    bg.gain.value = 0.28;
+    br.connect(bf).connect(bg).connect(flutter);
+    const bd = c.createGain();
+    bd.gain.value = 0.35;
+    br.connect(bf);
+    bf.connect(bd).connect(env);
+    env.connect(out);
+    // chest rumble
+    this.tone(48, dur, { type: 'sine', vol: 0.32 * vol, slide: 0.7, attack: 0.12 });
+    for (const n of [...oscs, lfo, br]) {
+      n.start(t0);
+      n.stop(t0 + dur + 0.05);
+    }
+    if (golden) {
+      // golden jaguar: shimmering bell cascade over the tail
+      [1319, 1760, 2217, 2637].forEach((f, i) => this.bell(f, 0.55 + i * 0.08, 0.06));
+      this.noise(1.2, { freq: 7000, sweep: 12000, vol: 0.04, type: 'highpass', at: 0.5 });
+    }
   }
   thud() {
     this.tone(60, 0.25, { type: 'sine', vol: 0.5, slide: 0.5 });
@@ -204,9 +345,16 @@ class Sound {
   }
   fanfare() {
     this.duck(2.5);
-    const seq = [0, 4, 7, 12, 7, 12, 16];
-    seq.forEach((s, i) => this.tone(330 * Math.pow(2, s / 12), 0.35, { type: 'sawtooth', vol: 0.07, at: i * 0.11 }));
-    seq.forEach((s, i) => this.tone(330 * Math.pow(2, s / 12), 0.35, { type: 'triangle', vol: 0.12, at: i * 0.11 }));
+    // taiko hit + brass swell + marimba run instead of a chiptune arpeggio
+    this.tone(55, 0.9, { type: 'sine', vol: 0.45, slide: 0.5 });
+    this.noise(0.25, { freq: 200, vol: 0.2, type: 'lowpass' });
+    for (const st of [0, 7, 12, 16]) {
+      const f = 220 * Math.pow(2, st / 12);
+      this.tone(f, 1.4, { type: 'sawtooth', vol: 0.025, attack: 0.25 });
+      this.tone(f, 1.5, { type: 'triangle', vol: 0.06, attack: 0.15 });
+    }
+    [0, 3, 5, 7, 10, 12, 15].forEach((st, i) => this.marimba(440 * Math.pow(2, st / 12), 0.1 + i * 0.06, 0.08, 0.4));
+    this.noise(1.3, { freq: 7000, sweep: 4000, vol: 0.06, type: 'highpass', at: 0.05 });
   }
   /** rising tension before the next big-win tier */
   riser(sec: number) {
@@ -237,7 +385,13 @@ class Sound {
     if (level >= 4) this.gong(0.3);
   }
   coin() {
-    this.tone(1800 + Math.random() * 600, 0.08, { type: 'triangle', vol: 0.06 });
+    // soft gold "ting" – rate limited so count-ups do not turn into a buzz
+    const now = performance.now();
+    if (now - this.lastCoin < 70) return;
+    this.lastCoin = now;
+    const f = [1319, 1480, 1568, 1760][Math.floor(Math.random() * 4)];
+    this.tone(f, 0.18, { type: 'sine', vol: 0.035, attack: 0.002 });
+    this.tone(f * 2.76, 0.07, { type: 'sine', vol: 0.01, attack: 0.002 });
   }
 
   /** bell with inharmonic partials – used for chimes */
@@ -281,13 +435,24 @@ class Sound {
 
   // ---------------------------------------------------------------- music
   /*
-   * Cinematic temple score, generated live (no audio files):
-   *   base game  – slow string + choir chords in a big hall, deep cello bass, a distant taiko now and then,
-   *                a soft horn call every few bars. No repeating jingle.
-   *   free spins – faster, taiko groove, driving string ostinato; brass stabs and higher choir on later stages.
+   * Adaptive temple score, generated live (no audio files).
+   * One piece that grows with the game: an "energy" value (0 … 6) decides the tempo and which
+   * layers play. Base game ≈ 0, jaguar spins ≈ 1.6, bonus stage 1–4 ≈ 2.2 … 4.6, and every big win
+   * pushes it up for a while (hype) before it settles again. Stages also lift the key.
+   *   0   strings + choir pads, cello, distant taiko, horn calls
+   *   1+  pulse: low taiko on every half bar, shaker
+   *   2+  taiko groove, string ostinato
+   *   3+  high drums, brass stabs, choir always
+   *   4+  16th ostinato, second brass hit, cymbal swell into every chord
+   *   5+  taiko roll before every chord, choir an octave up
    */
   musicOn = true;
   private musicStage = 0;
+  private jaguarMode = false;
+  private hypeLevel = 0;
+  private hypeFrom = 0;
+  private hypeUntil = 0;
+  private bpm = 66;
   private bus: GainNode | null = null; // music -> dry + reverb
 
   setMusic(on: boolean) {
@@ -310,7 +475,49 @@ class Sound {
 
   /** stage 0 = base game, 1..4 = free-spin stages */
   setLoop(stage: number) {
-    this.musicStage = Math.max(0, stage);
+    const st = Math.max(0, stage);
+    if (st > this.musicStage && st > 0 && this.ok() && this.musicOn) this.stinger(st);
+    this.musicStage = st;
+    if (st === 0) this.hypeLevel = Math.min(this.hypeLevel, 2); // leaving the bonus: calm down
+  }
+  /** jaguar spins are on: the base game music runs hotter */
+  setJaguar(on: boolean) {
+    this.jaguarMode = on;
+  }
+  /** a big win (tier 1..5) pushes the music up for a while, then it settles back */
+  hype(level: number) {
+    const now = performance.now();
+    this.hypeLevel = Math.max(this.currentHype(), [0, 1.2, 2, 2.8, 3.6, 4.4][Math.max(0, Math.min(5, level))]);
+    this.hypeFrom = now;
+    this.hypeUntil = now + 12000 + level * 5000;
+  }
+  private currentHype() {
+    const now = performance.now();
+    if (now >= this.hypeUntil) return 0;
+    // holds for the first 40 %, then fades out
+    const k = (now - this.hypeFrom) / (this.hypeUntil - this.hypeFrom);
+    return this.hypeLevel * (k < 0.4 ? 1 : 1 - (k - 0.4) / 0.6);
+  }
+  private energy() {
+    const base = this.musicStage > 0 ? 1.6 + this.musicStage * 0.75 : this.jaguarMode ? 1.6 : 0;
+    return Math.min(6, base + this.currentHype());
+  }
+  /** key lift per bonus stage (semitones) */
+  private keyShift() {
+    return [0, 0, 2, 3, 5][this.musicStage] ?? 5;
+  }
+
+  /** stage change: big hit – taiko roll, brass chord in the new key, cymbal */
+  private stinger(stage: number, t0 = 0) {
+    const k = [0, 0, 2, 3, 5][stage] ?? 5;
+    for (let i = 0; i < 6; i++) this.taiko(t0 + i * 0.07, 0.18 + i * 0.05, 70 + i * 4);
+    const at = t0 + 0.45;
+    this.taiko(at, 0.6, 55);
+    for (const st of [0, 7, 12, 15, 19]) {
+      const f = 110 * Math.pow(2, (st + k) / 12);
+      this.voice(f, at, 2.4, { vol: 0.045, attack: 0.04, release: 1.6, cutoff: 2400, detune: [-7, 0, 7] });
+    }
+    this.noise(2.2, { freq: 8000, sweep: 4000, vol: 0.08, type: 'highpass', at, dest: this.bus! });
   }
 
   private startMusic() {
@@ -326,9 +533,9 @@ class Sound {
     const verb = c.createConvolver();
     verb.buffer = ir;
     const wet = c.createGain();
-    wet.gain.value = 0.55;
+    wet.gain.value = 0.5;
     const dry = c.createGain();
-    dry.gain.value = 0.7;
+    dry.gain.value = 0.72;
     this.bus = c.createGain();
     this.bus.connect(dry).connect(this.music);
     this.bus.connect(verb).connect(wet).connect(this.music);
@@ -339,17 +546,15 @@ class Sound {
       if (!this.ok()) return;
       if (this.nextBeat < this.t) this.nextBeat = this.t + 0.05; // no catch-up after a hidden tab
       while (this.nextBeat < this.t + 0.4) {
-        const st = this.musicStage;
-        if (this.musicOn) this.musicStep(this.beat, st, this.nextBeat - this.t);
-        this.nextBeat += this.eighth(st);
+        const en = this.energy();
+        // tempo glides towards the target instead of jumping
+        const target = 66 + en * 10;
+        this.bpm += Math.max(-1.2, Math.min(1.2, target - this.bpm));
+        if (this.musicOn) this.musicStep(this.beat, en, this.nextBeat - this.t);
+        this.nextBeat += 60 / this.bpm / 2;
         this.beat++;
       }
     }, 60);
-  }
-
-  private eighth(stage: number) {
-    const bpm = stage > 0 ? 84 + stage * 5 : 66;
-    return 60 / bpm / 2;
   }
 
   /** sustained voice with a real attack / sustain / release envelope */
@@ -410,9 +615,12 @@ class Sound {
     this.tone(pitch, 0.9, { type: 'sine', vol, slide: 0.55, at, dest: this.bus! });
     this.noise(0.18, { freq: 180, vol: vol * 0.5, at, type: 'lowpass', dest: this.bus! });
   }
+  private shaker(at: number, vol: number) {
+    this.noise(0.06, { freq: 7000, q: 1.5, vol, at, type: 'bandpass', dest: this.bus! });
+  }
 
-  private musicStep(b: number, stage: number, at: number) {
-    const e = this.eighth(stage);
+  private musicStep(b: number, en: number, at: number) {
+    const e = 60 / this.bpm / 2;
     // chords last 2 bars (16 eighths). A minor: Am – F – C – G, then Am – F – Dm – E (dramatic turn)
     const prog = [
       [0, 3, 7],
@@ -427,26 +635,26 @@ class Sound {
     const step = b % 16;
     const ci = Math.floor(b / 16) % prog.length;
     const chord = prog[ci];
-    const A = 220;
+    const A = 220 * Math.pow(2, this.keyShift() / 12);
     const hz = (n: number, oct = 0) => A * Math.pow(2, n / 12 + oct);
     const chordLen = e * 16;
     const bass = ((chord[0] % 12) + 12) % 12;
+    const i = step % 8;
 
     if (step === 0) {
-      // strings: low chord, three detuned saws each
-      for (const n of chord) this.voice(hz(n, -1), at, chordLen + 0.6, { vol: 0.024, attack: 1.4, release: 1.6, cutoff: 1000, detune: [-8, 0, 8] });
+      // strings: low chord, three detuned saws each (brighter with more energy)
+      for (const n of chord) this.voice(hz(n, -1), at, chordLen + 0.6, { vol: 0.024, attack: en >= 3 ? 0.5 : 1.4, release: 1.6, cutoff: 1000 + en * 180, detune: [-8, 0, 8] });
       // cello / contrabass
       this.voice(hz(bass, -2), at, chordLen + 0.4, { vol: 0.05, attack: 0.9, release: 1.2, cutoff: 500, detune: [-5, 5] });
-      // choir on top (from the 2nd chord on, or always in the bonus)
-      if (stage > 0 || ci % 2 === 1)
-        for (const n of chord.slice(1)) this.voice(hz(n), at + 0.2, chordLen + 0.4, { vol: stage >= 3 ? 0.05 : 0.035, attack: 2, release: 1.8, formant: true, detune: [-6, 6] });
+      // choir: every 2nd chord when calm, always from energy 2.5, an octave higher from 5
+      if (en >= 2.5 || ci % 2 === 1)
+        for (const n of chord.slice(1)) this.voice(hz(n, en >= 5 ? 1 : 0), at + 0.2, chordLen + 0.4, { vol: en >= 3 ? 0.048 : 0.035, attack: 2, release: 1.8, formant: true, detune: [-6, 6] });
     }
 
-    if (stage === 0) {
-      // distant taiko at the start of every chord, a soft double hit at the turnaround
+    if (en < 1) {
+      // calm base game: distant taiko at every chord, soft double hit at the turnaround, horn calls
       if (step === 0) this.taiko(at, 0.28);
       if (ci === 7 && (step === 12 || step === 14)) this.taiko(at, 0.18, 70);
-      // horn call every 4 chords (long notes, no jingle)
       if (ci % 4 === 2 && (step === 4 || step === 10)) {
         const n = step === 4 ? chord[2] : chord[1];
         this.voice(hz(n, -1), at, e * 6, { vol: 0.045, attack: 0.35, release: 0.8, cutoff: 900, type: 'sawtooth', detune: [0, 6] });
@@ -454,17 +662,37 @@ class Sound {
       return;
     }
 
-    // ---- bonus: taiko groove + string ostinato
-    const i = step % 8;
+    // ---- energy 1+: pulse
+    if (en < 2) {
+      if (i === 0 || i === 4) this.taiko(at, i === 0 ? 0.34 : 0.22);
+      if (i % 2 === 1) this.shaker(at, 0.012 + (en - 1) * 0.01);
+      // horn line gets more frequent
+      if (ci % 2 === 0 && step === 6) this.voice(hz(chord[2], -1), at, e * 5, { vol: 0.04, attack: 0.2, release: 0.6, cutoff: 1100, detune: [0, 6] });
+      return;
+    }
+
+    // ---- energy 2+: groove + ostinato
     if (i === 0 || i === 3 || i === 6) this.taiko(at, i === 0 ? 0.42 : 0.26);
-    if (stage >= 2 && (i === 4 || i === 7)) this.taiko(at, 0.16, 110);
-    if (stage >= 2) this.noise(0.05, { freq: 6000, vol: 0.02, at, type: 'highpass', dest: this.bus! });
-    // staccato ostinato: root – root – fifth – root …
+    this.shaker(at, i % 2 ? 0.02 : 0.012);
     const ost = [0, 0, 7, 0, 0, 7, 12, 7];
     this.voice(hz(bass + ost[i], -1), at, e * 0.9, { vol: 0.03, attack: 0.02, release: 0.12, cutoff: 1800, detune: [-6, 6] });
-    // brass stabs on later stages
-    if (stage >= 3 && step === 0) for (const n of chord) this.voice(hz(n, -1), at, e * 3, { vol: 0.03, attack: 0.05, release: 0.5, cutoff: 1600, detune: [0, 7] });
-    if (stage >= 4 && step === 8) for (const n of chord) this.voice(hz(n), at, e * 2, { vol: 0.02, attack: 0.05, release: 0.4, cutoff: 2200, detune: [0, 7] });
+    if (en >= 4) this.voice(hz(bass + ost[(i + 3) % 8], 0), at + e / 2, e * 0.45, { vol: 0.018, attack: 0.01, release: 0.08, cutoff: 2600, detune: [-6, 6] });
+
+    // ---- energy 3+: high drums + brass
+    if (en >= 3) {
+      if (i === 4 || i === 7) this.taiko(at, 0.18, 115);
+      if (step === 0) for (const n of chord) this.voice(hz(n, -1), at, e * 3, { vol: 0.032, attack: 0.04, release: 0.5, cutoff: 1800, detune: [0, 7] });
+    }
+    // ---- energy 4+: second brass hit, cymbal swell into the next chord
+    if (en >= 4) {
+      if (step === 8) for (const n of chord) this.voice(hz(n), at, e * 2, { vol: 0.022, attack: 0.04, release: 0.4, cutoff: 2400, detune: [0, 7] });
+      if (step === 12) this.noise(e * 4, { freq: 3000, sweep: 11000, vol: 0.05, type: 'highpass', at, dest: this.bus! });
+    }
+    // ---- energy 5+: taiko roll before every chord
+    if (en >= 5 && step >= 13) {
+      this.taiko(at, 0.22, 80);
+      this.taiko(at + e / 2, 0.26, 84);
+    }
   }
 }
 
