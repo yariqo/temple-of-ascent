@@ -1,4 +1,5 @@
 import { sound } from './sound';
+import roarUrl from './sfx/roar.mp3?url';
 /* Offline render of one jaguar roar (?golden=1) – dev preview only */
 (async () => {
   const SR = 44100;
@@ -19,6 +20,7 @@ import { sound } from './sound';
   s.noiseBuf = nb;
   s.ok = () => true;
   s.musicOn = false;
+  s.samples.roar = await off.decodeAudioData(await (await fetch(roarUrl)).arrayBuffer());
   sound.roar(golden);
   const buf = await off.startRendering();
   const L = buf.getChannelData(0), R = buf.getChannelData(1);

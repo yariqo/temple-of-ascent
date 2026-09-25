@@ -44,7 +44,13 @@ export const BIG_TIERS = [
   { min: 1000, key: 'winBalam' },
 ];
 /** count-up time per final tier (ms at normal speed) */
-const DURATION = [0, 3000, 4600, 6200, 7800, 9400];
+// Hacksaw-style pacing: every tier stretch has its own time – it bursts off fast after the tier
+// slam, then slows down while it creeps up on the next threshold (suspense), the new tier hits,
+// and the next stretch rushes off again.
+const SEG_FIRST = 2300; // 0 → first stop
+const SEG_TIER = 2700; // one tier to the next
+const SEG_LAST = 2600; // last stretch to the final amount
+const outPow = (p: number) => (x: number) => 1 - Math.pow(1 - x, p);
 
 export function tierLevel(mult: number): number {
   let lv = 0;
@@ -294,7 +300,6 @@ export class BigWin {
     // BIG WIN is shown from the start; every further tier threshold below the final amount is a stop
     const pts = [0, ...BIG_TIERS.slice(1).map((tt) => tt.min).filter((m) => m < finalMult), finalMult];
     const segs = pts.length - 1;
-    const segMs = DURATION[finalLv] / segs;
     const put = (v: number) => {
       this.amount.textContent = money(v);
       this.mult.textContent = `×${(v / bet).toFixed(v / bet >= 100 ? 0 : 1)}`;
@@ -329,24 +334,25 @@ export class BigWin {
       const last = i === segs - 1;
       let lastCoin = 0;
       let charging = false;
+      const segMs = last ? (segs === 1 ? SEG_FIRST + 500 : SEG_LAST) : i === 0 ? SEG_FIRST : SEG_TIER;
       if (!last) sound.riser(segMs / 1000 / speed.factor());
       const cut = await count(
         segMs,
         (k) => {
           put(from + (to - from) * k);
           // the last stretch before a new tier: everything starts to tremble and glow
-          if (!last && k > 0.6 && !charging) {
+          if (!last && k > 0.7 && !charging) {
             charging = true;
             this.el.classList.add('charge');
           }
-          if (charging) this.el.style.setProperty('--charge', String((k - 0.6) / 0.4));
+          if (charging) this.el.style.setProperty('--charge', String((k - 0.7) / 0.3));
           if (k - lastCoin > (last ? 0.08 : 0.05)) {
             lastCoin = k;
             sound.coin();
           }
         },
-        // rushes up to the threshold, the last segment slows down to the final amount
-        last ? ease.outCubic : (x) => x * x * x * 0.55 + x * 0.45,
+        // fast off the mark, slowing into the threshold; the final stretch settles softly
+        last ? ease.outCubic : outPow(2.2),
       );
       this.el.classList.remove('charge');
       this.el.style.setProperty('--charge', '0');
