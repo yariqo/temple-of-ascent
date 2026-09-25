@@ -33,7 +33,8 @@ PLAN = {
              "tilt": "freegame", "tail": [(500, 0.6), (1000, 0.8)]},
     "bonushunt": {"probs": {"wincap": 1.5e-7, "freegame": 1 / 100, "basegame": BASE_HIT}, "zero": "0",
                   "tilt": "freegame", "tail": [(500, 0.7), (1000, 0.85)]},
-    "jaguar": {"probs": {"jaguarspin": 1.0}, "zero": None, "tilt": "jaguarspin", "tail": [(300, 0.75), (1000, 0.85)]},
+    # Jaguar Spin: about one spin in four pays nothing (no line win for the golden steles)
+    "jaguar": {"probs": {"jaguarspin": 0.75}, "zero": "0", "tilt": "jaguarspin", "tail": [(300, 0.75), (1000, 0.85)]},
     # Jaguar King: roughly every second spin pays nothing, the others pay big
     "jaguarking": {"probs": {"kingspin": 0.6}, "zero": "0", "tilt": "kingspin", "tail": [(10000, 0.17)]},
     # bonus buy: wins >= 4000x reduced so that the SDK volatility check (etl40b <= 0.9) passes

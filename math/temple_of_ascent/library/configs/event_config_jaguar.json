@@ -125,6 +125,7 @@
     "jaguarRoar": {
         "type": "jaguarRoar",
         "golden": true,
+        "king": false,
         "totems": [
             {
                 "reel": 0,

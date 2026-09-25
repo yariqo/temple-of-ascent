@@ -89,7 +89,7 @@ const T = {
       <p>Open the <b>BONUS</b> button to choose a feature spin or to buy a bonus. Every mode has an RTP of 96.00%.</p>
       <table class="modes"><tr><th>Option</th><th>Cost</th><th>What happens</th></tr>
         <tr><td><b>Bonus Hunt</b></td><td>${MODES.bonushunt.cost}× bet</td><td>Twice the chance to trigger a bonus on every spin. Stays active until you turn it off.</td></tr>
-        <tr><td><b>Jaguar Spin</b></td><td>${MODES.jaguar.cost}× bet</td><td>The jaguar throws 2–4 golden steles (5×–50×) onto every spin. Every Jaguar Spin pays, but the win can be lower than its cost. No free spins in this mode.</td></tr>
+        <tr><td><b>Jaguar Spin</b></td><td>${MODES.jaguar.cost}× bet</td><td>The jaguar throws 2–4 golden steles (5×–50×) onto every spin. They only pay together with a line win, so a spin can also pay nothing. No free spins in this mode.</td></tr>
         <tr><td><b>Jaguar King</b></td><td>${MODES.jaguarking.cost}× bet</td><td>The jaguar throws 2–4 king steles onto every spin – each one 50×, 100×, 250×, 500× or 1000×. They only pay together with a line win, so a spin can also pay nothing. No free spins in this mode.</td></tr>
         <tr><td><b>Temple Bonus</b></td><td>${MODES.bonus.cost}× bet</td><td>Same as 3 BONUS symbols.</td></tr>
         <tr><td><b>Super Bonus</b></td><td>${MODES.superbonus.cost}× bet</td><td>Same as 4 BONUS symbols.</td></tr>
@@ -165,7 +165,7 @@ const T = {
       <p>Über den <b>BONUS</b>-Knopf wählst du Feature-Spins oder kaufst einen Bonus. Jeder Modus hat einen RTP von 96,00 %.</p>
       <table class="modes"><tr><th>Option</th><th>Kosten</th><th>Was passiert</th></tr>
         <tr><td><b>Bonus-Jagd</b></td><td>${MODES.bonushunt.cost}× Einsatz</td><td>Doppelte Chance auf einen Bonus bei jedem Spin. Bleibt aktiv, bis du sie ausschaltest.</td></tr>
-        <tr><td><b>Jaguar-Spin</b></td><td>${MODES.jaguar.cost}× Einsatz</td><td>Der Jaguar wirft bei jedem Spin 2–4 goldene Stelen (5×–50×). Jeder Jaguar-Spin zahlt, der Gewinn kann aber kleiner als die Kosten sein. Keine Freispiele in diesem Modus.</td></tr>
+        <tr><td><b>Jaguar-Spin</b></td><td>${MODES.jaguar.cost}× Einsatz</td><td>Der Jaguar wirft bei jedem Spin 2–4 goldene Stelen (5×–50×). Sie zahlen nur zusammen mit einem Liniengewinn, ein Spin kann also auch nichts zahlen. Keine Freispiele in diesem Modus.</td></tr>
         <tr><td><b>Jaguar-König</b></td><td>${MODES.jaguarking.cost}× Einsatz</td><td>Der Jaguar wirft bei jedem Spin 2–4 Königsstelen – jede 50×, 100×, 250×, 500× oder 1000×. Sie zahlen nur zusammen mit einem Liniengewinn, ein Spin kann also auch nichts zahlen. Keine Freispiele in diesem Modus.</td></tr>
         <tr><td><b>Tempel-Bonus</b></td><td>${MODES.bonus.cost}× Einsatz</td><td>Wie 3 BONUS-Symbole.</td></tr>
         <tr><td><b>Super-Bonus</b></td><td>${MODES.superbonus.cost}× Einsatz</td><td>Wie 4 BONUS-Symbole.</td></tr>

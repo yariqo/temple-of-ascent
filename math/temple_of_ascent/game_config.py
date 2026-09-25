@@ -250,7 +250,9 @@ class GameConfig(Config):
                 is_feature=True,
                 is_buybonus=False,
                 distributions=[
-                    Distribution(criteria="jaguarspin", quota=1.0, conditions=jaguar_spin_condition),
+                    # like the Jaguar King: the golden steles only pay together with a line win
+                    Distribution(criteria="jaguarspin", quota=0.7, conditions=jaguar_spin_condition),
+                    Distribution(criteria="0", quota=0.3, win_criteria=0.0, conditions=jaguar_spin_condition),
                 ],
             ),
             # Jaguar-King spin (premium feature spin): 2-4 king totems of 50x-500x, every spin pays

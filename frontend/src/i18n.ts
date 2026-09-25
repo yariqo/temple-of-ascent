@@ -46,19 +46,19 @@ const en: Dict = {
   fmTitle: 'Bonus & Features',
   fmSpins: 'Feature spins',
   fmBuys: 'Buy bonus',
-  bonushuntLong: 'Free spins trigger twice as often.',
-  jaguarLong: 'Golden steles on every spin. No free spins.',
+  bonushuntLong: 'Every spin has twice the chance to open the temple and start free spins.',
+  jaguarLong: 'The jaguar throws 2–4 golden steles onto every spin – they multiply your line wins.',
   chip_bonushunt: '2× BONUS CHANCE',
-  chip_jaguar: '5–50× EVERY SPIN',
+  chip_jaguar: '5–50× STELES',
   jaguarking: 'Jaguar King',
-  jaguarkingLong: 'King steles up to 1000× – all or nothing. No free spins.',
-  chip_jaguarking: 'UP TO 10,000×',
+  jaguarkingLong: 'The jaguar king throws 2–4 king steles worth 50×–1000× – they multiply your line wins.',
+  chip_jaguarking: '50–1000× STELES',
   kingJaguar: 'JAGUAR KING',
   chipSpins: '{n} SPINS',
   chipStage: 'STAGE {n}',
-  buyTag_bonus: 'The classic temple climb',
-  buyTag_superbonus: 'Start halfway up',
-  buyTag_godbonus: 'Winning multipliers stay!',
+  buyTag_bonus: 'Climb the temple from stage 1',
+  buyTag_superbonus: 'Starts on stage 2 with bronze steles',
+  buyTag_godbonus: 'Stage 3 – winning multipliers are collected and stay',
   buyConfirmBtn: 'Confirm',
   perSpinShort: '{v} / spin',
   perSpin: '{v} per spin',
@@ -183,19 +183,19 @@ const de: Dict = {
   fmTitle: 'Bonus & Features',
   fmSpins: 'Feature-Spins',
   fmBuys: 'Bonus kaufen',
-  bonushuntLong: 'Freispiele kommen doppelt so oft.',
-  jaguarLong: 'Goldene Stelen bei jedem Spin. Keine Freispiele.',
+  bonushuntLong: 'Jeder Spin hat die doppelte Chance, den Tempel zu öffnen und Freispiele zu starten.',
+  jaguarLong: 'Der Jaguar wirft bei jedem Spin 2–4 goldene Stelen – sie multiplizieren deine Liniengewinne.',
   chip_bonushunt: '2× BONUS-CHANCE',
-  chip_jaguar: '5–50× JEDER SPIN',
+  chip_jaguar: '5–50× STELEN',
   jaguarking: 'Jaguar-König',
-  jaguarkingLong: 'Königsstelen bis 1000× – alles oder nichts. Keine Freispiele.',
-  chip_jaguarking: 'BIS 10.000×',
+  jaguarkingLong: 'Der Jaguar-König wirft bei jedem Spin 2–4 Königsstelen mit 50×–1000× – sie multiplizieren deine Liniengewinne.',
+  chip_jaguarking: '50–1000× STELEN',
   kingJaguar: 'JAGUAR-KÖNIG',
   chipSpins: '{n} SPINS',
   chipStage: 'STUFE {n}',
-  buyTag_bonus: 'Der klassische Tempelaufstieg',
-  buyTag_superbonus: 'Start auf halber Höhe',
-  buyTag_godbonus: 'Gewinn-Multis bleiben!',
+  buyTag_bonus: 'Steig ab Stufe 1 den Tempel hinauf',
+  buyTag_superbonus: 'Startet auf Stufe 2 mit Bronze-Stelen',
+  buyTag_godbonus: 'Stufe 3 – Gewinn-Multis werden gesammelt und bleiben',
   buyConfirmBtn: 'Bestätigen',
   perSpinShort: '{v} / Spin',
   perSpin: '{v} pro Spin',
@@ -312,7 +312,7 @@ In den Freispielen gesammelte BONUS-Symbole füllen die Pyramide: alle 3 steigt 
 <p>Stelen, die an einem Gewinn beteiligt sind (es gibt einen Liniengewinn im Spin), werden eingesammelt. Ihr Wert bleibt bis zum Ende des Bonus erhalten und wird zu allen Stelen späterer Gewinne addiert. Beispiel: 40× gesammelt, neuer Liniengewinn 0,50 € mit einer 10×-Stele ergibt 0,50 € × 50 = 25,00 €, danach sind 50× gesammelt.</p>
 <h4>Modi</h4>
 <p><b>Bonus-Jagd (1,5× Einsatz):</b> doppelte Chance auf Freispiele.<br>
-<b>Jaguar-Spin (25× Einsatz):</b> Der Jaguar wirft bei jedem Spin 2–4 goldene Stelen (5×–50×). Jeder Jaguar-Spin zahlt einen Gewinn, der kleiner als der Einsatz sein kann. Keine Freispiele.<br>
+<b>Jaguar-Spin (25× Einsatz):</b> Der Jaguar wirft bei jedem Spin 2–4 goldene Stelen (5×–50×). Sie zahlen nur zusammen mit einem Liniengewinn – ein Spin kann auch nichts zahlen. Keine Freispiele.<br>
 <b>Jaguar-König (250× Einsatz):</b> Der Jaguar wirft bei jedem Spin 2–4 Königsstelen (50×, 100×, 250×, 500× oder 1000×). Sie zahlen nur zusammen mit einem Liniengewinn – ein Spin kann auch nichts zahlen. Keine Freispiele.<br>
 <b>Tempel-Bonus kaufen (100× Einsatz):</b> wie 3 BONUS-Symbole.<br>
 <b>Super-Bonus kaufen (200× Einsatz):</b> wie 4 BONUS-Symbole.<br>
@@ -336,7 +336,7 @@ BONUS symbols collected during free spins fill the pyramid: every 3 move you up 
 <p>Steles that take part in a win (the spin has a line win) are collected. Their value stays until the end of the bonus and is added to the steles of every later win. Example: 40× collected, a new line win of $0.50 with a 10× stele pays $0.50 × 50 = $25.00; afterwards 50× are collected.</p>
 <h4>Modes</h4>
 <p><b>Bonus Hunt (1.5× bet):</b> double chance to trigger free spins.<br>
-<b>Jaguar Spin (25× bet):</b> the jaguar throws 2–4 golden steles (5×–50×) every spin. Every Jaguar Spin pays a win, which may be less than its cost. No free spins.<br>
+<b>Jaguar Spin (25× bet):</b> the jaguar throws 2–4 golden steles (5×–50×) every spin. They only pay together with a line win – a spin can pay nothing. No free spins.<br>
 <b>Jaguar King (250× bet):</b> the jaguar throws 2–4 king steles (50×, 100×, 250×, 500× or 1000×) every spin. They only pay together with a line win – a spin can pay nothing. No free spins.<br>
 <b>Buy Temple Bonus (100× bet):</b> same as 3 BONUS symbols.<br>
 <b>Buy Super Bonus (200× bet):</b> same as 4 BONUS symbols.<br>

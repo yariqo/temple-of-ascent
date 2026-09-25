@@ -2,6 +2,9 @@ import { Board } from './board';
 import { Ui } from './ui';
 import { BONUS_BY_SCATTERS, GOLDEN_TOTEMS, KING_TOTEMS, ROAR_TOTEMS, STAGE_TOTEMS } from './config';
 import { BIG_TIERS } from './bigwin';
+
+/** big-win celebration for Jaguar / Jaguar King spins measured against the bet (not the spin price) */
+const CELEBRATE_FEATURE_WINS = true;
 import { t } from './i18n';
 import { money } from './format';
 import { speed, wait } from './anim';
@@ -21,6 +24,7 @@ export class RoundPlayer {
   private scatterCount = 0;
   private capShown = false;
   private finalAmount = 0;
+  private featureSpin = false;
   private spinsPlayed = 0;
   /** a single-spin round that ends in a big win: keep the amount hidden until the big-win screen */
   private quiet = false;
@@ -47,6 +51,7 @@ export class RoundPlayer {
   async play(round: Round, bet: number, cost: number) {
     this.bet = bet;
     this.cost = cost;
+    this.featureSpin = round.mode === 'jaguar' || round.mode === 'jaguarking';
     this.totalWin = 0;
     this.inFreeSpins = false;
     this.stage = 0;
@@ -242,7 +247,10 @@ export class RoundPlayer {
 
   /** Big-win celebration only from 20× bet and never for wins below the round cost. */
   private tierFor(win: number) {
-    if (win < this.bet * this.cost) return undefined;
+    // Jaguar / Jaguar King spins: celebrate from 20× the bet like a normal spin, even below the
+    // (high) price of the feature spin – can be switched off with CELEBRATE_FEATURE_WINS
+    const floor = this.featureSpin && CELEBRATE_FEATURE_WINS ? 0 : this.bet * this.cost;
+    if (win <= 0 || win < floor) return undefined;
     return [...BIG_TIERS].reverse().find((w) => win / this.bet >= w.min);
   }
 

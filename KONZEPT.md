@@ -33,7 +33,7 @@ Tempel- und Super-Bonus haben 10 Freispiele, der Göttliche Bonus 8. In den Frei
 |---|---|---|
 | **Normaler Spin** | 1× | Basisspiel, im Schnitt jeder 25. Spin mit Jaguar-Ruf |
 | **Bonus-Jagd** | 1,5× | Doppelte Chance auf einen Bonus |
-| **Jaguar-Spin** (Feature-Spin) | 25× | 2–4 goldene Stelen (5×–50×) bei jedem Spin, jeder Spin zahlt (oft weniger als 25×), keine Freispiele |
+| **Jaguar-Spin** (Feature-Spin) | 25× | 2–4 goldene Stelen (5×–50×) bei jedem Spin; sie zahlen nur mit Liniengewinn, 25 % der Spins zahlen 0. Keine Freispiele |
 | **Jaguar-König** (Premium-Feature-Spin) | 250× | 2–4 Königsstelen bei jedem Spin, jede 50×/100×/250×/500×/1000× (Gewichte 40/32/18/7/3). Alles oder nichts: sie zahlen nur mit Liniengewinn, 40 % der Spins zahlen 0. Keine Freispiele |
 | **Tempel-Bonus** (Kauf) | 100× | wie 3 BONUS-Symbole |
 | **Super-Bonus** (Kauf) | 200× | wie 4 BONUS-Symbole |
@@ -110,7 +110,7 @@ Max-Win: **MAX WIN** in der höchsten Stufe. Der Betrag zählt bis zur nächsten
 |---|---|---|---|---|---|---|
 | Normal (1×) | 96,00 % | 13,4 % | 0 | 1 von 28.400 | 1 von 569.000 | 1 von 1,6 Mio. |
 | Bonus-Jagd (1,5×) | 96,00 % | 9,7 % | 0 | 1 von 11.800 | 1 von 268.000 | 1 von 789.000 |
-| Jaguar-Spin (25×) | 96,00 % | 27,8 % | 14× | 1 von 16.800 | – | – |
+| Jaguar-Spin (25×) | 96,00 % | 27,9 % | 12× | 1 von 7.060 | – | – |
 | Jaguar-König (250×) | 96,00 % | 26,3 % | 80× | 1 von 20 | 1 von 574 | 1 von 13.700 |
 | Tempel-Bonus (100×) | 96,00 % | 22,1 % | 32× | 1 von 113 | 1 von 12.250 | 1 von 51.700 |
 | Super-Bonus (200×) | 96,00 % | 26,5 % | 83× | 1 von 40 | 1 von 1.900 | 1 von 30.200 |
@@ -180,3 +180,6 @@ Eigene Events:
 |---|---|---|---|
 | Normal (1×) | 1 von 232 Spins | 1 von 1.757 Spins | 1 von 8.005 Spins |
 | Bonus-Jagd (1,5×) | 1 von 116 Spins | 1 von 872 Spins | 1 von 4.097 Spins |
+
+## Gewinn-Animation bei Feature-Spins (v0.19)
+Bei Jaguar-Spin und Jaguar-König startet die Big-Win-Animation ab 20× Grundeinsatz, auch wenn der Gewinn unter dem Preis des Feature-Spins liegt (Schalter `CELEBRATE_FEATURE_WINS` in `player.ts`). Hinweis: Manche Märkte verbieten das Feiern von Gewinnen unter dem Einsatz – dann den Schalter auf `false` setzen.
