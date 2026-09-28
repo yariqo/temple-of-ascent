@@ -133,6 +133,25 @@ class Sound {
   // ---------------------------------------------------------------- effects
   /** wooden mallet on a marimba bar – the basic "Aztec" voice of the effects */
   private marimba(f: number, at = 0, vol = 0.12, len = 0.45) {
+    // recorded marimba bar (A-minor pentatonic set from A2), repitched to the wanted note
+    const st = 12 * Math.log2(f / 110);
+    const SET = [0, 3, 5, 7, 10, 12, 15];
+    let best = -1;
+    let bestD = 99;
+    let oct = 0;
+    for (let o = -24; o <= 48; o += 12)
+      SET.forEach((x, i) => {
+        const d = Math.abs(st - (x + o));
+        if (d < bestD) {
+          bestD = d;
+          best = i;
+          oct = o;
+        }
+      });
+    if (best >= 0 && this.samples['marimba_' + best]) {
+      const rate = Math.pow(2, (st - SET[best] - oct) / 12) * Math.pow(2, oct / 12);
+      if (rate > 0.25 && rate < 8 && this.playSample('marimba_' + best, { vol: Math.min(1, vol * 5.5), rate, at })) return;
+    }
     this.tone(f, len, { type: 'sine', vol, at, attack: 0.004 });
     this.tone(f * 4, len * 0.35, { type: 'sine', vol: vol * 0.22, at, attack: 0.002 });
     this.tone(f * 10, 0.03, { type: 'sine', vol: vol * 0.12, at, attack: 0.001 });
@@ -150,6 +169,10 @@ class Sound {
     this.knock(0, 0.04, 1600);
   }
   reelStop(i: number) {
+    if (this.playSample('reel_stop', { vol: 0.5, rate: 1.04 - i * 0.025 + (Math.random() - 0.5) * 0.04 })) {
+      this.tone(96 - i * 4, 0.12, { type: 'sine', vol: 0.12, slide: 0.6, attack: 0.003 });
+      return;
+    }
     // stone block settling into place: short low thunk + a little grit
     this.tone(118 - i * 5, 0.16, { type: 'sine', vol: 0.3, slide: 0.55, attack: 0.003 });
     this.noise(0.07, { freq: 700, vol: 0.1, type: 'lowpass' });
@@ -291,6 +314,7 @@ class Sound {
     this.tone(1568, 0.4, { type: 'sine', vol: 0.1, at: 0.06 });
   }
   gong(vol = 0.35) {
+    if (this.playSample('gong', { vol: Math.min(1, vol * 2.4) })) return;
     [110, 164.8, 220, 277].forEach((f, i) => this.tone(f, 2.2, { type: 'sine', vol: vol / (i + 1) }));
     this.noise(0.4, { freq: 800, vol: 0.08 });
   }
@@ -334,12 +358,14 @@ class Sound {
     this.noise(1.2, { freq: 7000, sweep: 4000, vol: 0.12, type: 'highpass' });
     this.tone(55, 0.6, { type: 'sine', vol: 0.4, slide: 0.5 });
     if (level >= 4) this.gong(0.3);
+    if (level >= 3) this.playSample('cheer', { vol: 0.35 + (level - 3) * 0.12 });
   }
   coin() {
     // soft gold "ting" – rate limited so count-ups do not turn into a buzz
     const now = performance.now();
     if (now - this.lastCoin < 70) return;
     this.lastCoin = now;
+    if (this.playSample('coin', { vol: 0.28, rate: 0.9 + Math.random() * 0.3 })) return;
     const f = [1319, 1480, 1568, 1760][Math.floor(Math.random() * 4)];
     this.tone(f, 0.18, { type: 'sine', vol: 0.035, attack: 0.002 });
     this.tone(f * 2.76, 0.07, { type: 'sine', vol: 0.01, attack: 0.002 });
@@ -354,13 +380,18 @@ class Sound {
   /** little sparkling chime when the bonus is triggered */
   bonusChime() {
     this.duck(2.2);
-    [880, 1109, 1319, 1760, 2217, 2637].forEach((f, i) => this.bell(f, i * 0.07, 0.11));
+    if (this.playSample('shimmer', { vol: 0.7 })) [880, 1319, 1760].forEach((f, i) => this.bell(f, i * 0.08, 0.06));
+    else [880, 1109, 1319, 1760, 2217, 2637].forEach((f, i) => this.bell(f, i * 0.07, 0.11));
     this.noise(1.2, { freq: 7000, sweep: 12000, vol: 0.05, type: 'highpass', at: 0.1 });
     this.bell(1760, 0.55, 0.08);
     this.bell(2637, 0.62, 0.06);
   }
   /** heavy stone door of the temple slides open */
   doorOpen() {
+    if (this.playSample('door', { vol: 0.75 })) {
+      this.tone(52, 1.5, { type: 'sine', vol: 0.12, slide: 0.8, attack: 0.2 });
+      return;
+    }
     this.noise(1.5, { freq: 500, sweep: 140, vol: 0.28, type: 'lowpass', q: 3 });
     this.tone(52, 1.5, { type: 'sine', vol: 0.22, slide: 0.8, attack: 0.2 });
     this.tone(880, 0.8, { type: 'sine', vol: 0.06, at: 1.2 });
@@ -405,6 +436,50 @@ class Sound {
   private hypeUntil = 0;
   private bpm = 66;
   private bus: GainNode | null = null; // music -> dry + reverb
+  /** recorded loop layers (jungle ambience, tribal drums, taiko) – all locked to the drum tempo */
+  private layers: { src: AudioBufferSourceNode; g: GainNode; base: number }[] = [];
+  private layersOn = false;
+  private lastOcarina = 0;
+  private startLayers(off = 0) {
+    const need = ['jungle_loop', 'drums_loop', 'taiko_loop'];
+    if (this.layersOn || !need.every((n) => this.samples[n]) || !this.ok()) return;
+    this.layersOn = true;
+    const c = this.ctx!;
+    const at = this.t + off + 0.1;
+    // exact musical lengths (MP3 padding must not break the loop)
+    const spec: [string, number, number][] = [
+      ['jungle_loop', 37.68, 1],
+      ['drums_loop', 28.6766, 1],
+      ['taiko_loop', 17.4613, 17.4613 / (28.6766 / 2)], // 112 → 134 bpm, two bars per drum bar
+    ];
+    for (const [name, len, base] of spec) {
+      const src = c.createBufferSource();
+      src.buffer = this.samples[name];
+      src.loop = true;
+      src.loopStart = 0;
+      src.loopEnd = Math.min(len, src.buffer!.duration);
+      src.playbackRate.value = base;
+      const g = c.createGain();
+      g.gain.value = 0;
+      src.connect(g).connect(this.music);
+      src.start(at);
+      this.layers.push({ src, g, base });
+    }
+  }
+  /** called by the scheduler: layer volumes and tempo follow the energy */
+  private updateLayers(en: number, off = 0) {
+    if (!this.layersOn) return;
+    const [jungle, drums, taiko] = this.layers;
+    const clamp = (v: number) => Math.max(0, Math.min(1, v));
+    const tc = 0.9;
+    jungle.g.gain.setTargetAtTime(0.5 * (1 - clamp((en - 2) / 3) * 0.6), this.t + off, tc);
+    drums.g.gain.setTargetAtTime(0.75 * clamp((en - 0.8) / 1.2), this.t + off, tc);
+    taiko.g.gain.setTargetAtTime(0.8 * clamp((en - 3) / 1.4), this.t + off, tc);
+    // faster and hotter with more energy (big wins, high stages)
+    const push = 1 + clamp((en - 3) / 3) * 0.1;
+    drums.src.playbackRate.setTargetAtTime(drums.base * push, this.t + off, 1.5);
+    taiko.src.playbackRate.setTargetAtTime(taiko.base * push, this.t + off, 1.5);
+  }
 
   setMusic(on: boolean) {
     this.musicOn = on;
@@ -498,6 +573,8 @@ class Sound {
       if (this.nextBeat < this.t) this.nextBeat = this.t + 0.05; // no catch-up after a hidden tab
       while (this.nextBeat < this.t + 0.4) {
         const en = this.energy();
+        this.startLayers();
+        if (this.beat % 4 === 0) this.updateLayers(en);
         // tempo glides towards the target instead of jumping
         const target = 66 + en * 10;
         this.bpm += Math.max(-1.2, Math.min(1.2, target - this.bpm));
@@ -600,6 +677,33 @@ class Sound {
       // choir: every 2nd chord when calm, always from energy 2.5, an octave higher from 5
       if (en >= 2.5 || ci % 2 === 1)
         for (const n of chord.slice(1)) this.voice(hz(n, en >= 5 ? 1 : 0), at + 0.2, chordLen + 0.4, { vol: en >= 3 ? 0.048 : 0.035, attack: 2, release: 1.8, formant: true, detune: [-6, 6] });
+    }
+
+    if (this.layersOn) {
+      // recorded drums carry the rhythm: synth only adds horn calls and an ocarina now and then
+      if (ci % 4 === 2 && (step === 4 || step === 10)) {
+        const n = step === 4 ? chord[2] : chord[1];
+        this.voice(hz(n, -1), at, e * 6, { vol: 0.035, attack: 0.35, release: 0.8, cutoff: 900, type: 'sawtooth', detune: [0, 6] });
+      }
+      const now = performance.now();
+      if (step === 8 && en < 2.5 && now - this.lastOcarina > 26000 && Math.random() < 0.35) {
+        this.lastOcarina = now;
+        const pent = [0, 3, 5, 7, 10];
+        const r = Math.pow(2, (pent[Math.floor(Math.random() * 5)] - 5 + this.keyShift()) / 12);
+        const buf = this.samples['ocarina'];
+        if (buf) {
+          const s2 = this.ctx!.createBufferSource();
+          s2.buffer = buf;
+          s2.playbackRate.value = r;
+          const g2 = this.ctx!.createGain();
+          g2.gain.value = 0.32;
+          s2.connect(g2).connect(this.bus!);
+          s2.start(this.t + at);
+        }
+      }
+      if (en >= 3 && step === 0) for (const n of chord) this.voice(hz(n, -1), at, e * 3, { vol: 0.026, attack: 0.04, release: 0.5, cutoff: 1800, detune: [0, 7] });
+      if (en >= 4 && step === 12) this.noise(e * 4, { freq: 3000, sweep: 11000, vol: 0.04, type: 'highpass', at, dest: this.bus! });
+      return;
     }
 
     if (en < 1) {

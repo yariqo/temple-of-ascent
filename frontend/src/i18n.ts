@@ -1,6 +1,10 @@
 type Dict = Record<string, string>;
 
 const en: Dict = {
+  menu: 'Menu',
+  menuSound: 'Sound effects',
+  menuMusic: 'Music',
+  menuRules: 'Game rules & paytable',
   balance: 'Balance',
   bet: 'Bet',
   win: 'Win',
@@ -138,6 +142,10 @@ const en: Dict = {
 };
 
 const de: Dict = {
+  menu: 'Menü',
+  menuSound: 'Soundeffekte',
+  menuMusic: 'Musik',
+  menuRules: 'Spielregeln & Gewinne',
   balance: 'Guthaben',
   bet: 'Einsatz',
   win: 'Gewinn',

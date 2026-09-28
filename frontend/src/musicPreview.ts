@@ -32,6 +32,14 @@ import { sound } from './sound';
   for (let i = 0; i < SR; i++) d[i] = Math.random() * 2 - 1;
   s.noiseBuf = nb;
   s.ok = () => true;
+  // decode the recorded samples into the offline context
+  const files = import.meta.glob('./sfx/*.mp3', { eager: true, query: '?url', import: 'default' }) as Record<string, string>;
+  s.samples = {};
+  for (const [path, url] of Object.entries(files)) {
+    const name = path.split('/').pop()!.replace(/\.\w+$/, '');
+    s.samples[name] = await off.decodeAudioData(await (await fetch(url)).arrayBuffer());
+  }
+  const useLayers = !location.search.includes('synth');
   s.startMusic();
   clearInterval(s.loopTimer);
   s.music.gain.value = 0.95;
@@ -48,10 +56,33 @@ import { sound } from './sound';
       seg = k;
     }
     s.musicStage = st;
+    if (useLayers) {
+      if (!s.layersOn) s.startLayers(t);
+      if (b % 4 === 0) s.updateLayers(en, t);
+    }
     s.bpm += Math.max(-1.2, Math.min(1.2, 66 + en * 10 - s.bpm));
     s.musicStep(b, en, t);
     t += 60 / s.bpm / 2;
     b++;
+  }
+  if (location.search.includes('sfx')) {
+    // effects tour: every call is placed at its own time via an overridden clock
+    let cur = 0;
+    Object.defineProperty(s, 't', { get: () => cur, configurable: true });
+    const at = (sec: number, f: () => void) => {
+      cur = sec;
+      f();
+    };
+    const T = 4;
+    [0, 1, 2, 3, 4].forEach((i) => at(T + i * 0.2, () => s.reelStop(i)));
+    for (let i = 0; i < 12; i++) at(T + 2 + i * 0.09, () => { s.lastCoin = 0; s.coin(); });
+    at(T + 4, () => s.bonusChime());
+    at(T + 7, () => s.doorOpen());
+    at(T + 11, () => s.gong(0.35));
+    at(T + 15, () => s.tierUp(3));
+    at(T + 19, () => s.tierUp(5));
+    at(T + 24, () => s.roar(true, 1, false));
+    [0, 3, 5, 7, 10, 12, 15, 19, 24].forEach((st, i) => at(T + 28 + i * 0.12, () => s.marimba(440 * Math.pow(2, st / 12), 0, 0.1, 0.4)));
   }
   const buf = await off.startRendering();
   const L = buf.getChannelData(0), R = buf.getChannelData(1);

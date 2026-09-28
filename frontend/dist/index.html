@@ -18,8 +18,8 @@
         window.addEventListener('orientationchange', function () { setTimeout(fit, 50); });
       })();
     </script>
-    <script type="module" crossorigin src="./assets/index-C7NGkwVb.js"></script>
-    <link rel="stylesheet" crossorigin href="./assets/index-rUD7StJp.css">
+    <script type="module" crossorigin src="./assets/index-V4X_UJMt.js"></script>
+    <link rel="stylesheet" crossorigin href="./assets/index-VU9hgmfr.css">
   </head>
   <body>
 
@@ -39,9 +39,14 @@
         <div class="head-left"><span id="demo-badge" hidden></span></div>
         <div class="logo" id="title">BALAM RISING</div>
         <div class="head-right">
-          <button class="icon-btn" id="sound-btn" aria-label="Sound"><svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><path fill="currentColor" d="M4 9h4l5-4v14l-5-4H4z"/><path id="snd-waves" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" d="M16 9c1.3 1.6 1.3 4.4 0 6M18.5 6.5c2.8 3 2.8 8 0 11"/><path id="snd-x" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" d="M16 9l5 6M21 9l-5 6" style="display:none"/></svg></button>
-          <button class="icon-btn" id="music-btn" aria-label="Music"><svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><path fill="currentColor" d="M9 17.5a3 3 0 1 1-2-2.83V5l12-2v11.5a3 3 0 1 1-2-2.83V6.3L9 7.7z"/><path id="mus-x" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" d="M3 3l18 18" style="display:none"/></svg></button>
-          <button class="icon-btn" id="rules-btn" aria-label="Rules">?</button>
+          <button class="menu-btn" id="menu-btn" aria-label="Menu" aria-expanded="false"><span class="mb-bars" aria-hidden="true"><i></i><i></i><i></i></span></button>
+          <div id="game-menu" hidden>
+            <div class="gm-title" id="gm-title">Menu</div>
+            <button class="gm-row" id="sound-btn"><span class="gm-ico"><svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M4 9h4l5-4v14l-5-4H4z"/><path id="snd-waves" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" d="M16 9c1.3 1.6 1.3 4.4 0 6M18.5 6.5c2.8 3 2.8 8 0 11"/><path id="snd-x" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" d="M16 9l5 6M21 9l-5 6" style="display:none"/></svg></span><span class="gm-l" id="gm-sound">Sound</span><span class="gm-sw" aria-hidden="true"><i></i></span></button>
+            <button class="gm-row" id="music-btn"><span class="gm-ico"><svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M9 17.5a3 3 0 1 1-2-2.83V5l12-2v11.5a3 3 0 1 1-2-2.83V6.3L9 7.7z"/><path id="mus-x" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" d="M3 3l18 18" style="display:none"/></svg></span><span class="gm-l" id="gm-music">Music</span><span class="gm-sw" aria-hidden="true"><i></i></span></button>
+            <button class="gm-row" id="rules-btn"><span class="gm-ico gm-q">?</span><span class="gm-l" id="gm-rules">Game rules</span><span class="gm-go" aria-hidden="true">›</span></button>
+            <div class="gm-foot" id="gm-foot"></div>
+          </div>
         </div>
       </header>
 

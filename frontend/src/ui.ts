@@ -112,11 +112,52 @@ export class Ui {
     const x = document.getElementById('snd-x');
     if (w) w.style.display = muted ? 'none' : '';
     if (x) x.style.display = muted ? '' : 'none';
+    $('sound-btn').classList.toggle('off', muted);
+    $('menu-btn').classList.toggle('muted', muted);
   }
   setMusicIcon(on: boolean) {
     const x = document.getElementById('mus-x');
     if (x) x.style.display = on ? 'none' : '';
     $('music-btn').classList.toggle('off', !on);
+  }
+  /** ☰ game menu: sound, music, rules */
+  initMenu() {
+    const btn = $('menu-btn');
+    const menu = $('game-menu');
+    $('gm-title').textContent = t('menu');
+    $('gm-sound').textContent = t('menuSound');
+    $('gm-music').textContent = t('menuMusic');
+    $('gm-rules').textContent = t('menuRules');
+    $('gm-foot').innerHTML = `BALAM RISING · RTP 96.00%<br><span>Solstone Games</span>`;
+    let closeT = 0;
+    const set = (open: boolean) => {
+      if (open === !menu.hidden && !menu.classList.contains('closing')) return;
+      clearTimeout(closeT);
+      btn.classList.toggle('open', open);
+      btn.setAttribute('aria-expanded', String(open));
+      if (open) {
+        menu.classList.remove('closing');
+        menu.hidden = false;
+        sound.menuOpen();
+      } else {
+        menu.classList.add('closing');
+        closeT = window.setTimeout(() => {
+          menu.hidden = true;
+          menu.classList.remove('closing');
+        }, 180);
+      }
+    };
+    btn.onclick = (e) => {
+      e.stopPropagation();
+      set(menu.hidden || menu.classList.contains('closing'));
+    };
+    document.addEventListener('pointerdown', (e) => {
+      if (!menu.hidden && !menu.contains(e.target as Node) && !btn.contains(e.target as Node)) set(false);
+    });
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape' && !menu.hidden) set(false);
+    });
+    $('rules-btn').addEventListener('click', () => set(false));
   }
   setLoading(p: number) {
     $('load-fill').style.width = `${Math.round(p * 100)}%`;
@@ -518,13 +559,21 @@ export class Ui {
    * Bonus & feature menu (opened with the BONUS button).
    * Feature spins toggle on/off with one tap; bonus buys need a second tap to confirm.
    */
-  featureMenu(bet: number, balance: number, current: string | null): Promise<{ toggle?: string | null; buy?: string } | null> {
+  featureMenu(bet: number, balance: number, current: string | null, onBet?: (dir: number) => number): Promise<{ toggle?: string | null; buy?: string } | null> {
     const dlg = $<HTMLDialogElement>('feature-menu');
     const spins = $('fm-spins');
     const buys = $('fm-buys');
-    spins.innerHTML = '';
-    buys.innerHTML = '';
     $('fm-buy-section').hidden = this.buyDisabled;
+    // bet selector inside the menu: prices update live
+    let betBox = document.getElementById('fm-bet');
+    if (!betBox) {
+      betBox = document.createElement('div');
+      betBox.id = 'fm-bet';
+      betBox.innerHTML = `<span class="fb-l"></span><button class="fb-b" data-d="-1" aria-label="lower bet">−</button><b class="fb-v"></b><button class="fb-b" data-d="1" aria-label="raise bet">+</button>`;
+      $('fm-title').parentElement!.insertAdjacentElement('afterend', betBox);
+    }
+    betBox.hidden = !onBet;
+    (betBox.querySelector('.fb-l') as HTMLElement).textContent = t('bet');
     return new Promise((resolve) => {
       let settled = false;
       const done = (v: { toggle?: string | null; buy?: string } | null) => {
@@ -533,6 +582,10 @@ export class Ui {
         dlg.close();
         resolve(v);
       };
+      const render = () => {
+      spins.innerHTML = '';
+      buys.innerHTML = '';
+      (betBox!.querySelector('.fb-v') as HTMLElement).textContent = money(bet);
       // ---- feature spins
       for (const m of ['bonushunt', 'jaguar', 'jaguarking']) {
         const on = current === m;
@@ -555,7 +608,7 @@ export class Ui {
         spins.appendChild(card);
       }
       // ---- bonus buys
-      let armed: string | null = null;
+      armed = null;
       const SPINS: Record<number, number> = { 1: 10, 2: 10, 3: 8 };
       const TOP: Record<number, string> = { 1: 'TB', 2: 'TD', 3: 'TO' };
       for (const b of BUYS) {
@@ -589,6 +642,23 @@ export class Ui {
         };
         buys.appendChild(card);
       }
+      };
+      let armed: string | null = null;
+      render();
+      betBox!.querySelectorAll<HTMLButtonElement>('.fb-b').forEach((bb) => {
+        bb.onclick = () => {
+          if (!onBet) return;
+          const nb = onBet(Number(bb.dataset.d));
+          if (nb === bet) return;
+          sound.click();
+          bet = nb;
+          render();
+          const v = betBox!.querySelector('.fb-v') as HTMLElement;
+          v.classList.remove('bump');
+          void v.offsetWidth;
+          v.classList.add('bump');
+        };
+      });
       $('fm-close').onclick = () => done(null);
       dlg.oncancel = () => done(null);
       dlg.onclick = (e) => {

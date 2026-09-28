@@ -36,6 +36,8 @@ export class RoundPlayer {
     return this.quiet || this.spinQuiet;
   }
 
+  /** called the moment a bonus starts (spun in or bought): main ends turbo + autoplay */
+  onBonus: (() => void) | null = null;
   constructor(private board: Board, private ui: Ui) {
     // chime for every scatter / rune that lands, rising in pitch
     board.onReelStop = (_r, syms) => {
@@ -133,6 +135,7 @@ export class RoundPlayer {
         break;
       }
       case 'freeSpinTrigger': {
+        this.onBonus?.();
         this.board.mascot.setFreeSpins(true);
         void this.board.mascot.roar();
         sound.bonusChime();

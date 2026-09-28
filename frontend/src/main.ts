@@ -150,6 +150,7 @@ async function main() {
   stageObserver.observe(document.getElementById('tiers')!, { subtree: true, attributes: true, attributeFilter: ['class'] });
 
   // ---------- sound ----------
+  ui.initMenu();
   ui.setSoundIcon(sound.muted);
   const unlock = () => sound.unlock();
   window.addEventListener('pointerdown', unlock);
@@ -361,6 +362,11 @@ async function main() {
     }
     stopAuto(auto ? 'autoDone' : undefined);
   }
+  // a bonus (spun in or bought) ends turbo and autoplay – the free spins are played at normal speed
+  player.onBonus = () => {
+    if (speed.level > 0) setSpeed(0);
+    stopAuto();
+  };
   ui.hideAuto(!!jur.disabledAutoplay);
   document.getElementById('auto-btn')!.onclick = async () => {
     if (auto) {
@@ -405,7 +411,11 @@ async function main() {
   document.getElementById('feature-btn')!.onclick = async () => {
     if (busy || auto) return;
     sound.menuOpen();
-    const choice = await ui.featureMenu(bet(), balance, toggle);
+    const choice = await ui.featureMenu(bet(), balance, toggle, (d) => {
+      betIdx = Math.max(0, Math.min(levels.length - 1, betIdx + d));
+      refresh();
+      return bet();
+    });
     if (!choice) return;
     if (choice.buy) {
       sound.purchase();
