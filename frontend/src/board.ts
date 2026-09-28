@@ -1,4 +1,4 @@
-import { Application, Container, Graphics, Sprite, Text, TextStyle, Texture } from 'pixi.js';
+import { Application, CanvasSource, Container, Graphics, Sprite, Text, TextStyle, Texture } from 'pixi.js';
 import { FILLER, REELS, ROWS, totemTier } from './config';
 import type { BoardSymbol, Pos } from './types';
 import { ease, lerp, speed, tween, wait } from './anim';
@@ -7,7 +7,7 @@ import { drawFrame } from './art/frame';
 import { Particles } from './fx/particles';
 import { sound, type Tier } from './sound';
 import { Mascot } from './mascot';
-import { MASCOT_GEO } from './art/mascot';
+import { drawMascotHead, MASCOT_GEO, MASCOT_RES } from './art/mascot';
 import { t } from './i18n';
 
 export const CELL = 150;
@@ -794,48 +794,151 @@ export class Board {
   }
 
   // ------------------------------------------------------------------ jaguar
-  private buildEyes() {
-    const g = new Graphics();
-    for (const sx of [-1, 1]) {
-      g.ellipse(sx * 70, 0, 46, 20).fill({ color: 0xffd23a });
-      g.ellipse(sx * 70, 0, 8, 18).fill({ color: 0x120800 });
+  /**
+   * Jaguar entrance (replaces the old glowing eyes): the board darkens, the roaring jaguar head
+   * leaps up out of the reels, a shockwave and three claw slashes rip across the board, then the
+   * head sinks back. Golden (Jaguar Spin) glows gold, the Jaguar King wears a crown and burns purple-gold.
+   */
+  private roarHeads = new Map<string, Texture>();
+  private roarHead(glow: boolean): Texture {
+    const k = glow ? 'g' : 'n';
+    let tx = this.roarHeads.get(k);
+    if (!tx) {
+      tx = new Texture({ source: new CanvasSource({ resource: drawMascotHead('roar', glow), resolution: MASCOT_RES }) });
+      this.roarHeads.set(k, tx);
     }
-    const glow = new Sprite(TEX.glow);
-    glow.anchor.set(0.5);
-    glow.width = 520;
-    glow.height = 220;
-    glow.tint = 0xffb020;
-    glow.alpha = 0.55;
-    glow.blendMode = 'add';
-    this.eyes.addChild(glow, g);
-    this.eyes.position.set(W / 2, H * 0.3);
+    return tx;
+  }
+  private buildEyes() {
+    this.eyes.position.set(W / 2, H * 0.46);
     this.eyes.alpha = 0;
   }
 
-  private async jaguarRoar(golden: boolean) {
-    // the golden jaguar (Jaguar Spin) already roared when the spin started
+  private async jaguarRoar(golden: boolean, king = false) {
+    // the golden jaguar (Jaguar Spin / King) already roared when the spin started
     if (!golden) {
       sound.roar(false);
       void this.mascot.roar();
+    } else sound.boom(king ? 4 : 2);
+    const f = speed.factor();
+    const c = this.eyes;
+    c.removeChildren().forEach((x) => x.destroy());
+    const col = king ? 0xb070ff : golden ? 0xffc23a : 0xff8a2a;
+    // aura
+    const aura = new Sprite(TEX.glow);
+    aura.anchor.set(0.5);
+    aura.width = aura.height = W * 0.95;
+    aura.tint = col;
+    aura.blendMode = 'add';
+    aura.alpha = 0.7;
+    // light rays behind the head
+    const rays = new Graphics();
+    for (let i = 0; i < 14; i++) {
+      const a0 = (i / 14) * Math.PI * 2;
+      rays.moveTo(0, 0).lineTo(Math.cos(a0 - 0.06) * W * 0.6, Math.sin(a0 - 0.06) * W * 0.6).lineTo(Math.cos(a0 + 0.06) * W * 0.6, Math.sin(a0 + 0.06) * W * 0.6).closePath();
     }
-    const eyes = this.eyes;
-    const dim = this.dim(0.55, 300);
+    rays.fill({ color: king ? 0xe0c0ff : 0xffe6a0, alpha: 0.18 });
+    rays.blendMode = 'add';
+    // head
+    const head = new Sprite(this.roarHead(golden || king));
+    head.anchor.set(0.5, 0.62);
+    const hs = (H * 1.45) / head.texture.height;
+    head.scale.set(hs);
+    c.addChild(aura, rays, head);
+    // crown for the king
+    let crown: Graphics | null = null;
+    if (king) {
+      crown = new Graphics();
+      const cw = 150;
+      crown
+        .moveTo(-cw, 0)
+        .lineTo(-cw, -70)
+        .lineTo(-cw * 0.55, -25)
+        .lineTo(-cw * 0.28, -95)
+        .lineTo(0, -35)
+        .lineTo(cw * 0.28, -95)
+        .lineTo(cw * 0.55, -25)
+        .lineTo(cw, -70)
+        .lineTo(cw, 0)
+        .closePath()
+        .fill({ color: 0xf2b53a })
+        .stroke({ width: 8, color: 0x3a1c00, join: 'round' });
+      crown.rect(-cw, -18, cw * 2, 18).fill({ color: 0xffe08a }).stroke({ width: 5, color: 0x3a1c00 });
+      for (const [x, y, r, cc] of [[0, -9, 11, 0xb070ff], [-cw * 0.6, -9, 8, 0x3fe0b0], [cw * 0.6, -9, 8, 0x3fe0b0], [-cw * 0.28, -95, 10, 0xff4a5a], [cw * 0.28, -95, 10, 0xff4a5a], [-cw, -70, 8, 0xffffff], [cw, -70, 8, 0xffffff]] as [number, number, number, number][])
+        crown.circle(x, y, r).fill({ color: cc }).stroke({ width: 4, color: 0x3a1c00 });
+      crown.scale.set(hs * 0.42);
+      crown.y = (-(0.62 * head.texture.height) + 142) * hs;
+      c.addChild(crown);
+    }
+    const dim = this.dim(0.7, 260 / f);
+    // leap up out of the reels
     await tween(
-      350,
+      420,
       (t) => {
-        eyes.alpha = t;
-        eyes.scale.set(lerp(0.6, 1, t), lerp(0.1, 1, t));
+        c.alpha = Math.min(1, t * 2);
+        c.y = H * 0.46 + lerp(H * 0.6, 0, t);
+        const sc = lerp(0.55, 1, t);
+        c.scale.set(sc);
+        rays.rotation = t * 0.4;
       },
       ease.outBack,
     );
     await dim;
-    await this.shake(golden ? 22 : 14, 600);
-    await tween(300, (t) => (eyes.alpha = 1 - t));
+    // shockwave rings + claw slashes
+    const ring = new Graphics();
+    ring.position.set(W / 2, H * 0.46);
+    ring.blendMode = 'add';
+    this.fx.addChild(ring);
+    void tween(700, (t) => {
+      ring.clear();
+      for (const k of [0, 0.18]) {
+        const tt = Math.max(0, t - k) / (1 - k);
+        ring.circle(0, 0, 60 + tt * W * 0.75).stroke({ width: 16 * (1 - tt) + 1, color: col, alpha: 0.85 * (1 - tt) });
+      }
+    }, ease.outCubic).then(() => ring.destroy());
+    this.particles.emit(TEX.spark, W / 2, H * 0.46, { n: king ? 60 : 36, speed: [200, 620], life: [400, 900], scale: [0.8, 0.05], tint: king ? [0xd8b0ff, 0xfff0c0] : [0xffe066, 0xfff3c4], blend: 'add' });
+    void this.shake(king ? 26 : golden ? 20 : 14, 650);
+    const slash = new Graphics();
+    slash.blendMode = 'add';
+    this.fx.addChild(slash);
+    await tween(
+      320,
+      (t) => {
+        slash.clear();
+        for (let i = 0; i < 3; i++) {
+          const k = Math.min(1, Math.max(0, t * 1.4 - i * 0.12));
+          if (k <= 0) continue;
+          const x0 = W * (0.2 + i * 0.16);
+          const y0 = H * 0.08;
+          const x1 = x0 + W * 0.36;
+          const y1 = H * 0.92;
+          const xe = lerp(x0, x1, k);
+          const ye = lerp(y0, y1, k);
+          slash.moveTo(x0, y0).lineTo(xe, ye).stroke({ width: 26, color: col, alpha: 0.35, cap: 'round' });
+          slash.moveTo(x0, y0).lineTo(xe, ye).stroke({ width: 7, color: 0xffffff, alpha: 0.95, cap: 'round' });
+        }
+      },
+      ease.outCubic,
+    );
+    void tween(380, (t) => (slash.alpha = 1 - t)).then(() => slash.destroy());
+    // hold, head breathes
+    await tween(520, (t) => c.scale.set(1 + 0.04 * Math.sin(t * Math.PI * 3)), ease.linear);
+    // sink back
+    await tween(
+      300,
+      (t) => {
+        c.alpha = 1 - t;
+        c.y = H * 0.46 + t * H * 0.25;
+        c.scale.set(lerp(1, 0.85, t));
+      },
+      ease.inCubic,
+    );
+    c.removeChildren().forEach((x) => x.destroy());
   }
 
   /** Steles crash down onto the given positions, then reveal their value. */
-  async dropTotems(totems: { reel: number; row: number; multiplier: number }[], golden: boolean, values: number[]) {
-    await this.jaguarRoar(golden);
+  async dropTotems(totems: { reel: number; row: number; multiplier: number }[], golden: boolean, values: number[], king = false) {
+    await this.jaguarRoar(golden, king);
     for (const t of totems) {
       const cell = this.cellAt(t);
       if (!cell) continue;

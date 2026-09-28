@@ -101,7 +101,7 @@ export class RoundPlayer {
         const golden = !!ev.golden;
         if (!this.inFreeSpins) sound.hype(1);
         void this.ui.banner(ev.king ? t('kingJaguar') : golden ? t('goldenJaguar') : t('jaguarRoar'), '', 1100, golden ? 'gold' : '');
-        await this.board.dropTotems(ev.totems, golden, ev.king ? KING_TOTEMS : golden ? GOLDEN_TOTEMS : ROAR_TOTEMS);
+        await this.board.dropTotems(ev.totems, golden, ev.king ? KING_TOTEMS : golden ? GOLDEN_TOTEMS : ROAR_TOTEMS, !!ev.king);
         break;
       }
       case 'winInfo': {
