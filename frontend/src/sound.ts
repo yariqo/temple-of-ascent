@@ -30,10 +30,20 @@ class Sound {
     }
   }
 
+  /** false while the player has tabbed / switched away – all sound and music are paused then */
+  private away = false;
+  setAway(away: boolean) {
+    if (away === this.away) return;
+    this.away = away;
+    if (!this.ctx) return;
+    if (away) void this.ctx.suspend().catch(() => {});
+    else void this.ctx.resume().catch(() => {});
+  }
+
   /** Call from a click / key handler. */
   unlock() {
     if (this.ctx) {
-      if (this.ctx.state === 'suspended') this.ctx.resume();
+      if (this.ctx.state === 'suspended' && !this.away) this.ctx.resume();
       return;
     }
     const AC = window.AudioContext || (window as any).webkitAudioContext;

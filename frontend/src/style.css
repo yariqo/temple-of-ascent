@@ -5897,3 +5897,42 @@ body.aligned #pyramid {
     display: none;
   }
 }
+
+/* ================= win value: crisp, no blurry halo ================= */
+footer #win.big {
+  color: #fff1c4;
+  text-shadow: 0 1px 0 #3a2200, 0 2px 3px rgba(0, 0, 0, 0.8);
+  filter: none;
+  animation: winSet 0.35s cubic-bezier(0.2, 1.4, 0.4, 1);
+}
+@keyframes winSet {
+  from {
+    transform: translateY(3px) scale(0.94);
+    opacity: 0.4;
+  }
+}
+footer #stat-win:has(#win.big) {
+  box-shadow:
+    inset 0 3px 7px rgba(0, 0, 0, 0.75),
+    inset 0 0 0 1px rgba(255, 211, 90, 0.35);
+}
+footer #stat-win .st-txt {
+  position: relative;
+}
+/* a thin gold rule sweeps in under the amount instead of a glow */
+footer #stat-win .st-txt::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  bottom: -3px;
+  height: 2px;
+  width: 100%;
+  border-radius: 1px;
+  background: linear-gradient(90deg, #d99a22, #ffe39a 50%, rgba(217, 154, 34, 0));
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: transform 0.45s cubic-bezier(0.2, 0.9, 0.3, 1);
+}
+footer #stat-win:has(#win.big) .st-txt::after {
+  transform: scaleX(1);
+}

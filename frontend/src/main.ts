@@ -152,7 +152,17 @@ async function main() {
   // ---------- sound ----------
   ui.initMenu();
   ui.setSoundIcon(sound.muted);
-  const unlock = () => sound.unlock();
+  // like the games on Stake: switching the tab or the window pauses all sound and music
+  const away = () => document.hidden || !document.hasFocus();
+  const checkAway = () => sound.setAway(away());
+  document.addEventListener('visibilitychange', checkAway);
+  window.addEventListener('blur', () => window.setTimeout(checkAway, 120));
+  window.addEventListener('focus', checkAway);
+  window.addEventListener('pageshow', checkAway);
+  const unlock = () => {
+    sound.setAway(false);
+    sound.unlock();
+  };
   window.addEventListener('pointerdown', unlock);
   window.addEventListener('keydown', unlock);
   document.getElementById('sound-btn')!.onclick = () => {
