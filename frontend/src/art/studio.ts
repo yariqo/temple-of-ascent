@@ -122,3 +122,34 @@ export function drawStudioLogo(layout: 'row' | 'stack' = 'row', theme: 'dark' | 
   }
   return cv;
 }
+
+/** wordmark alone (no sign) for the studio splash */
+export function drawStudioWordmark(height = 160): HTMLCanvasElement {
+  const k = height / 160;
+  const W = 820;
+  const cv = document.createElement('canvas');
+  cv.width = Math.round(W * k);
+  cv.height = Math.round(160 * k);
+  const ctx = cv.getContext('2d')!;
+  ctx.scale(k, k);
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'alphabetic';
+  ctx.lineJoin = 'round';
+  ctx.font = '900 104px Cinzel, Georgia, serif';
+  (ctx as any).letterSpacing = '12px';
+  ctx.lineWidth = 8;
+  ctx.strokeStyle = '#140a02';
+  ctx.strokeText('SOLSTONE', W / 2, 96);
+  ctx.fillStyle = lg(ctx, 0, 14, 0, 96, [
+    [0, '#fff8d6'],
+    [0.45, '#ffd35a'],
+    [0.55, '#c8861a'],
+    [1, '#ffe39a'],
+  ]);
+  ctx.fillText('SOLSTONE', W / 2, 96);
+  ctx.font = '700 36px Cinzel, Georgia, serif';
+  (ctx as any).letterSpacing = '30px';
+  ctx.fillStyle = '#e9d7ac';
+  ctx.fillText('GAMES', W / 2 + 15, 148);
+  return cv;
+}

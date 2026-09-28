@@ -15,7 +15,7 @@ import { drawLogo } from './art/logo';
 import { buildTextures, SYM_CANVAS } from './art/textures';
 import { Backdrop } from './backdrop';
 import { drawMascotHead } from './art/mascot';
-import { drawStudioLogo, drawStudioMark } from './art/studio';
+import { drawStudioLogo, drawStudioMark, drawStudioWordmark } from './art/studio';
 import { makeCanvas } from './art/draw';
 import { sound } from './sound';
 import type { AuthInfo, Rgs, Round } from './types';
@@ -37,6 +37,8 @@ async function main() {
   // ---------- loading: fonts → textures → scenes → renderer ----------
   ui.setLoading(0.1);
   await loadFonts();
+  // studio splash (like other providers: shown once before the game loads, tap to skip)
+  const splashDone = playStudioSplash();
   // studio brand: favicon, loading screen, start screen
   try {
     const fav = document.createElement('link');
@@ -203,6 +205,8 @@ async function main() {
     ui.toast(t('error', { code: e?.code ?? 'AUTH' }), 1e9);
     return;
   }
+  // the studio splash plays to its end before the loading screen fades
+  await splashDone;
   ui.doneLoading();
 
   const jur = auth.jurisdiction ?? {};
@@ -465,3 +469,33 @@ async function main() {
 }
 
 main();
+
+/** SOLSTONE GAMES splash: sun stone rises out of the dark, rays sweep, wordmark fades in (~2.6 s) */
+function playStudioSplash(): Promise<void> {
+  const el = document.getElementById('studio-splash');
+  if (!el || new URLSearchParams(location.search).has('nosplash')) return Promise.resolve();
+  try {
+    (document.getElementById('ss-mark') as HTMLImageElement).src = drawStudioMark(360).toDataURL();
+    (document.getElementById('ss-word') as HTMLImageElement).src = drawStudioWordmark(160).toDataURL();
+  } catch {
+    return Promise.resolve();
+  }
+  el.hidden = false;
+  el.classList.add('play');
+  return new Promise((resolve) => {
+    let done = false;
+    const finish = () => {
+      if (done) return;
+      done = true;
+      el.classList.add('out');
+      window.setTimeout(() => {
+        el.hidden = true;
+        el.classList.remove('play', 'out');
+        resolve();
+      }, 500);
+    };
+    el.addEventListener('pointerdown', finish, { once: true });
+    // ?splashrec keeps the splash on screen (used to render the intro video)
+    if (!new URLSearchParams(location.search).has('splashrec')) window.setTimeout(finish, 2700);
+  });
+}

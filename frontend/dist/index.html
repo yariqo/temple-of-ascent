@@ -4,11 +4,30 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover" />
     <title>BALAM RISING · Solstone Games</title>
-    <script type="module" crossorigin src="./assets/index-DNtY4qbL.js"></script>
-    <link rel="stylesheet" crossorigin href="./assets/index-BJC78hKx.css">
+    <script>
+      // portrait tablets use the phone layout (scaled up) – the 3-column desktop layout leaves the reels tiny there
+      (function () {
+        var m = document.querySelector('meta[name=viewport]');
+        function fit() {
+          var w = screen.width, h = screen.height;
+          var portrait = window.innerHeight > window.innerWidth;
+          var tablet = Math.min(w, h) > 700 && Math.min(w, h) < 1100 && ('ontouchstart' in window || navigator.maxTouchPoints > 0);
+          m.setAttribute('content', portrait && tablet ? 'width=640, user-scalable=no, viewport-fit=cover' : 'width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover');
+        }
+        fit();
+        window.addEventListener('orientationchange', function () { setTimeout(fit, 50); });
+      })();
+    </script>
+    <script type="module" crossorigin src="./assets/index-BYjMC83-.js"></script>
+    <link rel="stylesheet" crossorigin href="./assets/index-rUD7StJp.css">
   </head>
   <body>
 
+    <div id="studio-splash" hidden aria-hidden="true">
+      <div class="ss-glow"></div>
+      <img class="ss-mark" id="ss-mark" alt="" />
+      <img class="ss-word" id="ss-word" alt="Solstone Games" />
+    </div>
     <div id="loading">
       <div class="load-logo" id="load-logo">BALAM RISING</div>
       <div class="load-bar"><i id="load-fill"></i></div>

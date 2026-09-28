@@ -58,7 +58,7 @@ const T = {
     steles: (c: Ctx) => `
       <p><b>Steles</b> are carved pillars that carry a multiplier. When they land, their value rattles and stops. If the spin has <b>at least one line win</b>, the values of <b>all steles on the board are added</b> and multiply the <b>line win of that spin</b> (not the bet). Without a line win the steles pay nothing.</p>
       <div class="example"><b>Example:</b> line win ${c.money(0.4 * c.bet)} and steles 5× + 10× on the board → 15× → ${c.money(6 * c.bet)}.</div>
-      <p>The material shows how strong a stele can be:</p>
+      <p>The material of the steles shows the stage you are on:</p>
       <div class="steles">
         <div><img src="${c.icon('T')}" alt=""><b>Stone</b><span>base game 2×–10×<br>stage 1: 2×–25×</span></div>
         <div><img src="${c.icon('TB')}" alt=""><b>Bronze</b><span>stage 2<br>5×–50×</span></div>
@@ -134,7 +134,7 @@ const T = {
     steles: (c: Ctx) => `
       <p><b>Stelen</b> sind geschnitzte Säulen mit einem Multiplikator. Beim Landen rattert ihr Wert und bleibt stehen. Hat der Spin <b>mindestens einen Liniengewinn</b>, werden die Werte <b>aller Stelen auf dem Feld addiert</b> und multiplizieren den <b>Liniengewinn dieses Spins</b> (nicht den Einsatz). Ohne Liniengewinn zahlen die Stelen nichts.</p>
       <div class="example"><b>Beispiel:</b> Liniengewinn ${c.money(0.4 * c.bet)} und Stelen 5× + 10× auf dem Feld → 15× → ${c.money(6 * c.bet)}.</div>
-      <p>Am Material erkennst du, wie stark eine Stele sein kann:</p>
+      <p>Am Material der Stelen erkennst du die Stufe, auf der du bist:</p>
       <div class="steles">
         <div><img src="${c.icon('T')}" alt=""><b>Stein</b><span>Basisspiel 2×–10×<br>Stufe 1: 2×–25×</span></div>
         <div><img src="${c.icon('TB')}" alt=""><b>Bronze</b><span>Stufe 2<br>5×–50×</span></div>

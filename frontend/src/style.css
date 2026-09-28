@@ -5032,3 +5032,348 @@ body.aligned #pyramid {
     height: 34px;
   }
 }
+
+/* ---------- phones (portrait): the temple becomes a slim strip so the reels get the room ---------- */
+@media (max-width: 760px) {
+  #pyramid,
+  #pyramid.active {
+    min-height: 0 !important;
+    height: 64px;
+    padding: 5px 6px !important;
+    flex-direction: row;
+    align-items: stretch;
+    justify-content: stretch;
+    gap: 6px;
+    border-radius: 14px;
+  }
+  #pyramid::after {
+    inset: 4px;
+    border-radius: 10px;
+  }
+  #pyramid .pyr-title,
+  #pyramid .pyr-info,
+  #pyramid .pyr-torch,
+  #pyramid .pyr-shrine,
+  #pyramid .pyr-embers,
+  #pyramid .pyr-sweep,
+  #pyramid .pyr-pillar {
+    display: none !important;
+  }
+  #pyramid .pyr-door {
+    inset: 3px;
+  }
+  #pyramid .door-seal {
+    width: 40px;
+    height: 40px;
+    margin: -20px 0 0 -20px;
+  }
+  #pyramid .door-seal svg {
+    width: 26px;
+    height: 26px;
+  }
+  /* four tiers side by side: stage 1 on the left … stage 4 on the right */
+  #pyramid .tiers {
+    flex: 1 1 auto;
+    flex-direction: row-reverse;
+    align-items: stretch;
+    justify-content: stretch;
+    gap: 4px;
+    padding: 0;
+  }
+  #pyramid .tier {
+    flex: 1 1 0;
+    width: auto !important;
+    max-height: none;
+    min-height: 0;
+    transform: none !important;
+  }
+  #pyramid .tier.current {
+    transform: none !important;
+  }
+  #pyramid .t-body {
+    clip-path: polygon(6% 0, 94% 0, 100% 100%, 0 100%);
+    flex-direction: column;
+    justify-content: center;
+    gap: 1px;
+    padding: 2px 6px;
+  }
+  #pyramid .t-img {
+    display: none;
+  }
+  #pyramid .t-txt {
+    align-items: center;
+    flex: none;
+  }
+  #pyramid .tier .t-name {
+    font-size: 8px;
+    letter-spacing: 0.08em;
+  }
+  #pyramid .tier .t-vals {
+    font-size: 12px;
+  }
+  #pyramid .tier .t-runes {
+    margin: 1px 0 0;
+    gap: 3px;
+  }
+  #pyramid .rune {
+    width: 7px;
+    height: 7px;
+  }
+  body.aligned #pyramid,
+  body.aligned .bonus-wrap {
+    position: static;
+    transform: none;
+    width: auto;
+    height: auto;
+  }
+}
+
+/* phones in landscape: narrow side column – compact tiers without pictures */
+@media (max-height: 520px) and (orientation: landscape) {
+  #pyramid,
+  #pyramid.active {
+    min-height: 0 !important;
+    padding: 22px 5px 5px !important;
+    justify-content: flex-start;
+  }
+  #pyramid .pyr-title {
+    top: 5px;
+    font-size: 9px;
+  }
+  #pyramid .pyr-info,
+  #pyramid .pyr-torch,
+  #pyramid .pyr-shrine,
+  #pyramid .pyr-embers {
+    display: none !important;
+  }
+  #pyramid .tiers {
+    gap: 3px;
+  }
+  #pyramid .tier {
+    width: 100% !important;
+    min-height: 0;
+    max-height: none;
+    transform: none !important;
+  }
+  #pyramid .t-body {
+    clip-path: none;
+    border-radius: 6px;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    gap: 0;
+    padding: 2px 4px;
+  }
+  #pyramid .t-img {
+    display: none;
+  }
+  #pyramid .t-txt {
+    align-items: center;
+    flex: none;
+  }
+  #pyramid .tier .t-name {
+    font-size: 7px;
+    letter-spacing: 0.06em;
+  }
+  #pyramid .tier .t-vals {
+    font-size: 11px;
+  }
+  #pyramid .tier .t-runes {
+    margin: 1px 0 0;
+    gap: 2px;
+  }
+  #pyramid .rune {
+    width: 6px;
+    height: 6px;
+  }
+}
+@media (max-height: 520px) and (orientation: landscape) {
+  #pyramid,
+  #pyramid.active {
+    align-self: stretch;
+    margin: 8px 0;
+    display: flex;
+    flex-direction: column;
+  }
+  #pyramid .tiers {
+    flex: 1 1 auto;
+  }
+  #pyramid .tier {
+    flex: 1 1 0;
+  }
+}
+@media (max-width: 760px) {
+  main {
+    margin-top: 6px;
+  }
+}
+
+/* +1 free spin: compact badge in the upper half of the reels – the line win and its plaque stay visible */
+#xspin {
+  justify-content: flex-start;
+  padding-top: 26vh;
+  gap: 2px;
+  pointer-events: auto;
+}
+#xspin .xs-glow {
+  top: calc(26vh + 60px);
+  width: min(46vw, 360px);
+}
+#xs-icon {
+  width: clamp(54px, 7vw, 90px);
+}
+#xspin .xs-title {
+  font-size: clamp(30px, 4.6vw, 60px);
+}
+#xspin .xs-sub {
+  font-size: clamp(11px, 1.3vw, 15px);
+}
+#xspin .xs-total {
+  display: none;
+}
+@media (max-width: 760px) {
+  #xspin {
+    padding-top: 22vh;
+  }
+}
+
+/* ---------- studio splash: SOLSTONE GAMES ---------- */
+#studio-splash {
+  position: fixed;
+  inset: 0;
+  z-index: 200;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 3vh;
+  background: radial-gradient(ellipse at 50% 45%, #1a1208, #050302 70%);
+  cursor: pointer;
+}
+#studio-splash[hidden] {
+  display: none;
+}
+#studio-splash .ss-glow {
+  position: absolute;
+  left: 50%;
+  top: 42%;
+  width: min(90vmin, 700px);
+  aspect-ratio: 1;
+  transform: translate(-50%, -50%) scale(0.2);
+  background:
+    radial-gradient(circle, rgba(255, 210, 110, 0.55), transparent 55%),
+    repeating-conic-gradient(from 0deg, rgba(255, 215, 120, 0.22) 0 4deg, transparent 4deg 22deg);
+  -webkit-mask: radial-gradient(circle, #000 0 20%, transparent 62%);
+  mask: radial-gradient(circle, #000 0 20%, transparent 62%);
+  opacity: 0;
+}
+#studio-splash .ss-mark {
+  position: relative;
+  width: min(34vmin, 240px);
+  height: auto;
+  opacity: 0;
+  filter: drop-shadow(0 10px 20px rgba(0, 0, 0, 0.8));
+}
+#studio-splash .ss-word {
+  position: relative;
+  width: min(70vw, 480px);
+  height: auto;
+  opacity: 0;
+}
+#studio-splash.play .ss-glow {
+  animation: ssGlow 2.6s ease-out forwards, ssSpin 12s linear infinite;
+}
+#studio-splash.play .ss-mark {
+  animation: ssMark 1.1s cubic-bezier(0.2, 1.2, 0.3, 1) 0.15s forwards;
+}
+#studio-splash.play .ss-word {
+  animation: ssWord 0.8s ease-out 0.9s forwards;
+}
+#studio-splash.out {
+  animation: ssOut 0.5s ease-in forwards;
+}
+@keyframes ssGlow {
+  0% {
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(0.2);
+  }
+  45% {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1);
+  }
+  100% {
+    opacity: 0.75;
+    transform: translate(-50%, -50%) scale(1.05);
+  }
+}
+@keyframes ssSpin {
+  to {
+    rotate: 360deg;
+  }
+}
+@keyframes ssMark {
+  0% {
+    opacity: 0;
+    transform: scale(0.6) rotate(-40deg);
+    filter: brightness(3) blur(6px);
+  }
+  60% {
+    opacity: 1;
+    filter: brightness(1.6) drop-shadow(0 0 30px rgba(255, 210, 90, 0.9));
+  }
+  100% {
+    opacity: 1;
+    transform: none;
+    filter: drop-shadow(0 10px 20px rgba(0, 0, 0, 0.8));
+  }
+}
+@keyframes ssWord {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+    letter-spacing: 0.2em;
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+@keyframes ssOut {
+  to {
+    opacity: 0;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  #studio-splash * {
+    animation-duration: 0.01s !important;
+  }
+}
+#studio-splash .ss-glow {
+  left: 0;
+  right: 0;
+  top: 0;
+  bottom: 12vh;
+  margin: auto;
+  width: min(90vmin, 700px);
+  height: min(90vmin, 700px);
+  transform: scale(0.2);
+}
+@keyframes ssGlow {
+  0% {
+    opacity: 0;
+    transform: scale(0.2);
+  }
+  45% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  100% {
+    opacity: 0.75;
+    transform: scale(1.05);
+  }
+}
+/* rules: the close button never covers the tabs */
+#rules .rt-tabs {
+  margin-right: 46px;
+  padding-right: 8px;
+}
