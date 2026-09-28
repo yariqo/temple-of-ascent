@@ -5,14 +5,14 @@ import { sound } from './sound';
   // [start second, stage, energy]
   const plan: [number, number, number][] = [
     [0, 0, 0],
-    [14, 0, 1.6],
-    [26, 1, 2.35],
-    [38, 2, 3.1],
+    [10, 0, 1.6],
+    [20, 1, 2.35],
+    [34, 2, 3.1],
     [50, 3, 3.85],
-    [62, 4, 4.6],
-    [74, 4, 6],
+    [66, 4, 4.6],
+    [82, 4, 6],
   ];
-  const secs = 88;
+  const secs = 96;
   const off = new OfflineAudioContext(2, SR * secs, SR);
   const s: any = sound;
   s.ctx = off;
@@ -47,24 +47,30 @@ import { sound } from './sound';
   let b = 0;
   let seg = -1;
   s.bpm = 66;
+  // every call runs on an overridden clock, so the sound code schedules at "now" = t
+  let now = 0;
+  Object.defineProperty(s, 't', { get: () => now, configurable: true });
   while (t < secs - 2) {
+    now = t;
     let k = 0;
     while (k + 1 < plan.length && plan[k + 1][0] <= t) k++;
     const [, st, en] = plan[k];
     if (k !== seg) {
-      if (seg >= 0 && st > plan[seg][1]) s.stinger(st, t);
+      if (useLayers) s.setLoop(st);
+      else if (seg >= 0 && st > plan[seg][1]) s.stinger(st, 0);
       seg = k;
     }
     s.musicStage = st;
     if (useLayers) {
-      if (!s.layersOn) s.startLayers(t);
-      if (b % 4 === 0) s.updateLayers(en, t);
+      if (!s.layersOn) s.startLayers(0);
+      if (b % 4 === 0) s.updateLayers(en, 0);
     }
     s.bpm += Math.max(-1.2, Math.min(1.2, 66 + en * 10 - s.bpm));
-    s.musicStep(b, en, t);
+    s.musicStep(b, en, 0);
     t += 60 / s.bpm / 2;
     b++;
   }
+  now = 0;
   if (location.search.includes('sfx')) {
     // effects tour: every call is placed at its own time via an overridden clock
     let cur = 0;

@@ -1,125 +1,114 @@
 /**
- * Studio brand "SOLSTONE GAMES": a sun stone seen from above – a gold sun disc with a ring of
- * rays, a stepped temple (three nested diamonds) and a glowing eye in the centre.
- * drawStudioMark(size)            – the sign alone (app icon, favicon, small tile badge)
- * drawStudioLogo(layout, theme)   – sign + wordmark, horizontal or stacked, for dark or light ground
+ * Studio brand "SOLSTONE GAMES": the sun rising behind a stepped temple, with short rays above.
+ * Same sign as the white publisher logo on Stake – here in gold for the splash and loading screen.
+ * drawStudioMark(size, mono)      – the sign alone (favicon, splash, small badges)
+ * drawStudioLogo(layout, theme)   – sign + wordmark, horizontal or stacked
+ * drawStudioWordmark(height)      – wordmark alone
  */
-import { MAT, circle, lg, path, rg, solid, sparkle } from './kit';
-
 type Ctx = CanvasRenderingContext2D;
 
-/** the sign, painted into a 256×256 box */
+/** the sign in a 100×100 box */
 function mark(ctx: Ctx, mono = false) {
-  const c = 128;
-  const gold = mono ? [[0, '#ffffff'], [1, '#d8d8d8']] as [number, string][] : MAT.gold;
-  // ray ring
-  for (let i = 0; i < 16; i++) {
-    const a = (i / 16) * Math.PI * 2 - Math.PI / 2;
-    const long = i % 2 === 0;
-    const R = long ? 124 : 110;
-    const w = long ? 0.13 : 0.1;
-    solid(ctx, path([
-      [c + Math.cos(a - w) * 92, c + Math.sin(a - w) * 92],
-      [c + Math.cos(a) * R, c + Math.sin(a) * R],
-      [c + Math.cos(a + w) * 92, c + Math.sin(a + w) * 92],
-    ]), long ? gold : mono ? '#bdbdbd' : MAT.goldDeep, { y0: c - R, y1: c + R, bevel: 2, tex: 0, line: 3 });
-  }
-  // disc
-  solid(ctx, circle(c, c, 96), gold, { y0: 32, y1: 224, shadow: mono ? 0 : 10, bevel: 5, tex: mono ? 0 : 0.1, line: 5 });
-  // three stepped diamonds (a temple seen from above)
-  const dia = (r: number) => path([[c, c - r], [c + r, c], [c, c + r], [c - r, c]]);
-  const tiers: [number, [number, string][] | string][] = mono
-    ? [[78, '#e6e6e6'], [58, '#cfcfcf'], [38, '#e6e6e6']]
-    : [[78, MAT.goldDeep], [58, [[0, '#5a3a10'], [1, '#1c0e03']]], [38, MAT.gold]];
-  for (const [r, m] of tiers) solid(ctx, dia(r), m, { y0: c - r, y1: c + r, bevel: 3, tex: 0, line: 3.5 });
-  // glowing core with an eye
+  const base = 94;
+  const h = 11;
+  const gap = 4.5;
+  const steps: [number, number, number][] = [
+    [8, base - h, 84],
+    [19, base - 2 * h, 62],
+    [30, base - 3 * h, 40],
+  ];
+  const cy = base - 3 * h - 3;
+  const r = 22;
+  const gold = (y0: number, y1: number, stops: [number, string][]) => {
+    if (mono) return '#ffffff';
+    const g = ctx.createLinearGradient(0, y0, 0, y1);
+    for (const [o, c] of stops) g.addColorStop(o, c);
+    return g;
+  };
+  // sun (cut by the temple with a clear gap)
   ctx.save();
-  if (!mono) {
-    ctx.shadowColor = 'rgba(255,220,120,1)';
-    ctx.shadowBlur = 18;
-  }
-  ctx.fillStyle = mono ? '#ffffff' : rg(ctx, c, c - 4, 2, 26, [
-    [0, '#ffffff'],
-    [0.5, '#fff0b0'],
-    [1, '#f0a020'],
+  const clip = new Path2D();
+  clip.rect(0, 0, 100, 100);
+  for (const [x, y, w] of steps) clip.rect(x - gap, y - gap, w + 2 * gap, h + 2 * gap);
+  ctx.clip(clip, 'evenodd');
+  ctx.fillStyle = gold(cy - r, cy + r, [
+    [0, '#fff1b8'],
+    [0.5, '#ffc24a'],
+    [1, '#e0781a'],
   ]);
-  ctx.fill(circle(c, c, 24));
+  ctx.beginPath();
+  ctx.arc(50, cy, r, 0, Math.PI * 2);
+  ctx.fill();
   ctx.restore();
-  ctx.lineWidth = 3.5;
-  ctx.strokeStyle = '#1c0e03';
-  ctx.stroke(circle(c, c, 24));
-  const eye = new Path2D();
-  eye.moveTo(c - 17, c);
-  eye.quadraticCurveTo(c, c - 12, c + 17, c);
-  eye.quadraticCurveTo(c, c + 12, c - 17, c);
-  eye.closePath();
-  ctx.fillStyle = '#1c0e03';
-  ctx.fill(eye);
-  ctx.fillStyle = mono ? '#ffffff' : '#ffd35a';
-  ctx.fill(circle(c, c, 4.5));
-  if (!mono) sparkle(ctx, c - 44, c - 58, 12);
+  // rays
+  ctx.lineCap = 'round';
+  ctx.lineWidth = 6.5;
+  ctx.strokeStyle = gold(cy - r - 17, cy, [
+    [0, '#fff1b8'],
+    [1, '#ffb43a'],
+  ]);
+  for (const a of [-90, -50, -130, -15, -165]) {
+    const t = (a * Math.PI) / 180;
+    ctx.beginPath();
+    ctx.moveTo(50 + Math.cos(t) * (r + 7.5), cy + Math.sin(t) * (r + 7.5));
+    ctx.lineTo(50 + Math.cos(t) * (r + 17), cy + Math.sin(t) * (r + 17));
+    ctx.stroke();
+  }
+  // temple
+  ctx.fillStyle = gold(base - 3 * h, base, [
+    [0, '#fff3cf'],
+    [0.6, '#e9c77a'],
+    [1, '#b88a3a'],
+  ]);
+  for (const [x, y, w] of steps) ctx.fillRect(x, y, w, h + 0.5);
 }
 
 export function drawStudioMark(size = 256, mono = false): HTMLCanvasElement {
   const cv = document.createElement('canvas');
   cv.width = cv.height = size;
   const ctx = cv.getContext('2d')!;
-  ctx.scale(size / 256, size / 256);
-  ctx.lineJoin = 'round';
+  ctx.scale(size / 100, size / 100);
   mark(ctx, mono);
   return cv;
 }
 
-/** sign + wordmark. theme 'dark' = for dark backgrounds (gold/cream text), 'light' = dark text */
+function words(ctx: Ctx, x: number, y1: number, y2: number, big: number, align: CanvasTextAlign, theme: 'dark' | 'light') {
+  ctx.textAlign = align;
+  ctx.textBaseline = 'alphabetic';
+  ctx.fillStyle = theme === 'dark' ? '#ffffff' : '#16110a';
+  ctx.font = `800 ${big}px Outfit, "Alegreya Sans", sans-serif`;
+  (ctx as any).letterSpacing = `${-big * 0.01}px`;
+  ctx.fillText('SOLSTONE', x, y1);
+  const small = big * 0.3;
+  ctx.font = `600 ${small}px Outfit, "Alegreya Sans", sans-serif`;
+  (ctx as any).letterSpacing = `${small * 0.62}px`;
+  ctx.fillStyle = theme === 'dark' ? 'rgba(255,255,255,0.78)' : '#5a4a2a';
+  // letter spacing adds space after the last letter – shift centred text back by half of it
+  ctx.fillText('GAMES', x + (align === 'center' ? small * 0.31 : 3), y2);
+}
+
+/** sign + wordmark. theme 'dark' = for dark backgrounds, 'light' = dark text */
 export function drawStudioLogo(layout: 'row' | 'stack' = 'row', theme: 'dark' | 'light' = 'dark', height = 256): HTMLCanvasElement {
   const k = height / 256;
-  const W = layout === 'row' ? 1160 : 820;
+  const W = layout === 'row' ? 1000 : 720;
   const H = layout === 'row' ? 256 : 470;
   const cv = document.createElement('canvas');
   cv.width = Math.round(W * k);
   cv.height = Math.round(H * k);
   const ctx = cv.getContext('2d')!;
   ctx.scale(k, k);
-  ctx.lineJoin = 'round';
-  // sign
   ctx.save();
-  if (layout === 'row') ctx.translate(0, 0);
-  else ctx.translate((W - 256) / 2, 0);
+  if (layout === 'row') {
+    ctx.translate(0, 18);
+    ctx.scale(2.2, 2.2);
+  } else {
+    ctx.translate(W / 2 - 115, 0);
+    ctx.scale(2.3, 2.3);
+  }
   mark(ctx);
   ctx.restore();
-  // wordmark
-  const tx = layout === 'row' ? 290 : W / 2;
-  const align: CanvasTextAlign = layout === 'row' ? 'left' : 'center';
-  const y1 = layout === 'row' ? 150 : 372;
-  const y2 = layout === 'row' ? 212 : 440;
-  ctx.textAlign = align;
-  ctx.textBaseline = 'alphabetic';
-  ctx.font = '900 118px Cinzel, Georgia, serif';
-  (ctx as any).letterSpacing = '10px';
-  if (theme === 'dark') {
-    ctx.lineWidth = 10;
-    ctx.strokeStyle = '#140a02';
-    ctx.strokeText('SOLSTONE', tx, y1);
-    ctx.fillStyle = lg(ctx, 0, y1 - 96, 0, y1, [
-      [0, '#fff8d6'],
-      [0.45, '#ffd35a'],
-      [0.55, '#c8861a'],
-      [1, '#ffe39a'],
-    ]);
-  } else {
-    ctx.fillStyle = '#1c1206';
-  }
-  ctx.fillText('SOLSTONE', tx, y1);
-  ctx.font = '700 44px Cinzel, Georgia, serif';
-  (ctx as any).letterSpacing = layout === 'row' ? '34px' : '30px';
-  ctx.fillStyle = theme === 'dark' ? '#e9d7ac' : '#6a4a10';
-  ctx.fillText('GAMES', tx + (layout === 'row' ? 6 : 15), y2);
-  // thin gold rules beside GAMES
-  if (layout === 'row') {
-    ctx.fillStyle = theme === 'dark' ? 'rgba(255,211,90,0.7)' : 'rgba(106,74,16,0.7)';
-    const gw = ctx.measureText('GAMES').width;
-    ctx.fillRect(tx + gw + 40, y2 - 16, 300 - gw + 250, 3);
-  }
+  if (layout === 'row') words(ctx, 260, 150, 204, 132, 'left', theme);
+  else words(ctx, W / 2, 360, 424, 132, 'center', theme);
   return cv;
 }
 
@@ -132,24 +121,6 @@ export function drawStudioWordmark(height = 160): HTMLCanvasElement {
   cv.height = Math.round(160 * k);
   const ctx = cv.getContext('2d')!;
   ctx.scale(k, k);
-  ctx.textAlign = 'center';
-  ctx.textBaseline = 'alphabetic';
-  ctx.lineJoin = 'round';
-  ctx.font = '900 104px Cinzel, Georgia, serif';
-  (ctx as any).letterSpacing = '12px';
-  ctx.lineWidth = 8;
-  ctx.strokeStyle = '#140a02';
-  ctx.strokeText('SOLSTONE', W / 2, 96);
-  ctx.fillStyle = lg(ctx, 0, 14, 0, 96, [
-    [0, '#fff8d6'],
-    [0.45, '#ffd35a'],
-    [0.55, '#c8861a'],
-    [1, '#ffe39a'],
-  ]);
-  ctx.fillText('SOLSTONE', W / 2, 96);
-  ctx.font = '700 36px Cinzel, Georgia, serif';
-  (ctx as any).letterSpacing = '30px';
-  ctx.fillStyle = '#e9d7ac';
-  ctx.fillText('GAMES', W / 2 + 15, 148);
+  words(ctx, W / 2, 100, 150, 112, 'center', 'dark');
   return cv;
 }

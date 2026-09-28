@@ -5701,3 +5701,199 @@ body.aligned #pyramid {
 .bt-img {
   animation-duration: 5s;
 }
+
+/* ================= last rounds strip ================= */
+#history {
+  margin-top: 12px;
+  padding: 10px 10px 9px;
+  border-radius: 12px;
+  background: linear-gradient(180deg, rgba(34, 24, 12, 0.82), rgba(14, 10, 5, 0.88));
+  border: 1px solid rgba(232, 184, 88, 0.35);
+  box-shadow: inset 0 1px 0 rgba(255, 236, 190, 0.12), 0 6px 16px rgba(0, 0, 0, 0.4);
+}
+#history[hidden] {
+  display: none;
+}
+.hi-title {
+  font: 700 10px/1 Cinzel, Georgia, serif;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: rgba(233, 215, 172, 0.7);
+  text-align: center;
+  margin-bottom: 8px;
+}
+.hi-row {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 5px;
+}
+.hi-chip {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 3px;
+  min-width: 0;
+  height: 24px;
+  padding: 0 3px;
+  border-radius: 7px;
+  font: 700 12px/1 'Alegreya Sans', system-ui, sans-serif;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+  overflow: hidden;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  color: #cdbf9f;
+}
+.hi-chip.zero {
+  color: rgba(205, 191, 159, 0.4);
+}
+.hi-chip.small {
+  color: #bfae86;
+}
+.hi-chip.win {
+  color: #f6e7bf;
+  background: rgba(255, 220, 150, 0.08);
+  border-color: rgba(232, 184, 88, 0.3);
+}
+.hi-chip.big {
+  color: #2a1602;
+  background: linear-gradient(180deg, #ffe39a, #d99a22);
+  border-color: #ffe7a8;
+}
+.hi-chip.bonus {
+  color: #eafff6;
+  background: linear-gradient(180deg, #1fa889, #0b5a47);
+  border-color: rgba(127, 243, 214, 0.7);
+}
+.hi-chip.bonus i {
+  width: 9px;
+  height: 8px;
+  flex: none;
+  background: currentColor;
+  clip-path: polygon(30% 0, 70% 0, 70% 30%, 85% 30%, 85% 60%, 100% 60%, 100% 100%, 0 100%, 0 60%, 15% 60%, 15% 30%, 30% 30%);
+}
+.hi-chip.new {
+  animation: hiIn 0.4s cubic-bezier(0.2, 1.4, 0.4, 1);
+}
+@keyframes hiIn {
+  from {
+    transform: translateY(-8px) scale(0.7);
+    opacity: 0;
+  }
+}
+/* history hangs under the BONUS tile (desktop), flows in the page on phones, hidden on landscape phones */
+.bonus-wrap #history {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: calc(100% + 12px);
+  margin: 0;
+}
+@media (max-width: 760px) {
+  .bonus-wrap #history {
+    position: static;
+    margin-top: 8px;
+    padding: 6px 8px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .bonus-wrap #history[hidden] {
+    display: none;
+  }
+  .hi-title {
+    margin: 0;
+    flex: none;
+    font-size: 9px;
+    letter-spacing: 0.14em;
+    width: 44px;
+    text-align: left;
+    line-height: 1.2;
+  }
+  .hi-row {
+    flex: 1;
+    display: flex;
+    gap: 4px;
+    overflow: hidden;
+  }
+  .hi-chip {
+    flex: none;
+    height: 22px;
+    padding: 0 6px;
+    font-size: 11px;
+  }
+}
+@media (max-height: 520px) and (orientation: landscape) {
+  .bonus-wrap #history {
+    display: none;
+  }
+}
+/* phones: the single column may never grow wider than the screen (min-content of the temple strip) */
+@media (max-width: 760px) {
+  main,
+  header,
+  footer {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  header {
+    grid-template-columns: minmax(0, 1fr) auto;
+  }
+}
+
+/* ================= temple hint: real BONUS symbols in the base game make the temple glimmer ================= */
+#pyramid.hint-1 {
+  animation: templeHint1 1.6s ease-out;
+}
+#pyramid.hint-2 {
+  animation: templeHint2 2.4s ease-out;
+}
+#pyramid.hint-1 .door-seal,
+#pyramid.hint-2 .door-seal {
+  animation: sealHint 1.2s ease-out;
+}
+#pyramid.hint-2 .door-seal {
+  animation: sealHint 0.8s ease-out 2;
+}
+@keyframes templeHint1 {
+  18% {
+    box-shadow: 0 0 26px rgba(127, 243, 214, 0.45), 0 10px 30px rgba(0, 0, 0, 0.5);
+    filter: brightness(1.08);
+  }
+}
+@keyframes templeHint2 {
+  12%,
+  45% {
+    box-shadow: 0 0 44px rgba(127, 243, 214, 0.75), 0 0 12px rgba(255, 230, 150, 0.6), 0 10px 30px rgba(0, 0, 0, 0.5);
+    filter: brightness(1.16);
+  }
+}
+@keyframes sealHint {
+  30% {
+    transform: scale(1.14);
+    filter: drop-shadow(0 0 14px rgba(127, 243, 214, 0.9)) brightness(1.25);
+  }
+}
+/* small phones: bonus menu title never runs under the close button, balance fits */
+@media (max-width: 400px) {
+  #feature-menu .fm-head h3 {
+    font-size: 19px;
+    padding: 0 40px;
+  }
+  footer .st-txt b {
+    font-size: 15px;
+    letter-spacing: -0.01em;
+  }
+}
+@media (max-width: 400px) {
+  footer .stat {
+    padding-left: 8px;
+    padding-right: 6px;
+    min-width: 0;
+  }
+  footer .st-txt b {
+    font-size: 14px;
+  }
+  footer .st-ico {
+    display: none;
+  }
+}

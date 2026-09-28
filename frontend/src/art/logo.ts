@@ -195,6 +195,78 @@ function subtitle(ctx: Ctx, cx: number, cy: number, text: string) {
   ctx.restore();
 }
 
+/** gold carved lettering (extruded edge, chisel light, grain, engraved step marks) with its top-centre at (cx, top) */
+function paintLettering(ctx: Ctx, text: string, U: number, gap: number, cx: number, top: number) {
+  const L = lettering(text, U, gap);
+  const k = U / 17.5; // effects scale with the letter size
+  const at = (dy = 0) => {
+    ctx.setTransform(1, 0, 0, 1, cx, top + dy);
+  };
+  // carved 3D edge (extrusion)
+  for (let i = 16; i >= 1; i--) {
+    at(i * k);
+    ctx.fillStyle = i > 12 ? '#0d0601' : `rgb(${60 - i * 2},${32 - i},${6})`;
+    ctx.fill(L.path, 'evenodd');
+  }
+  at();
+  ctx.lineJoin = 'miter';
+  ctx.lineWidth = 16 * k;
+  ctx.strokeStyle = '#140a02';
+  ctx.stroke(L.path);
+  ctx.fillStyle = lin(ctx, 0, 0, 0, 12 * U, [
+    [0, '#fff6d2'],
+    [0.3, '#ffd970'],
+    [0.52, '#e0a032'],
+    [0.53, '#a8680e'],
+    [0.78, '#d69420'],
+    [1, '#f7d27a'],
+  ]);
+  ctx.fill(L.path, 'evenodd');
+  // chisel light: bright top-left edge, dark bottom-right edge (inside the letters only)
+  ctx.save();
+  ctx.clip(L.path, 'evenodd');
+  ctx.translate(2.5 * k, 2.5 * k);
+  ctx.lineWidth = 5 * k;
+  ctx.strokeStyle = 'rgba(255,250,225,0.9)';
+  ctx.stroke(L.path);
+  ctx.translate(-5 * k, -5 * k);
+  ctx.strokeStyle = 'rgba(90,48,4,0.8)';
+  ctx.stroke(L.path);
+  ctx.restore();
+  // stone grain on the gold (very subtle, keeps it from looking like a plastic gradient)
+  ctx.save();
+  ctx.clip(L.path, 'evenodd');
+  for (let i = 0; i < 900; i++) {
+    const gx = -L.width / 2 + ((i * 97.13) % L.width);
+    const gy = (i * 53.7) % (12 * U);
+    ctx.fillStyle = i % 3 ? 'rgba(120,70,10,0.10)' : 'rgba(255,245,210,0.12)';
+    ctx.fillRect(gx, gy, 2 + (i % 4), 1.5);
+  }
+  // carved step marks: a tiny stepped pyramid engraved into each stem
+  for (const [mx, my] of L.marks) {
+    const steps: [number, number][] = [[-11, 5], [-7, 0], [-3, -5]];
+    for (const [hx, dy] of steps) {
+      ctx.fillStyle = 'rgba(70,36,2,0.8)';
+      ctx.fillRect(mx + hx, my + dy - 4, -hx * 2, 5);
+      ctx.fillStyle = 'rgba(255,240,190,0.5)';
+      ctx.fillRect(mx + hx, my + dy + 1, -hx * 2, 1.5);
+    }
+  }
+  ctx.restore();
+  ctx.setTransform(1, 0, 0, 1, 0, 0);
+
+  return L;
+}
+
+/** just the lettering on a transparent canvas (covers, lobby tiles) */
+export function drawWord(text: string, U = 17.5, gap = 1.35): HTMLCanvasElement {
+  const L = lettering(text, U, gap);
+  const pad = Math.ceil(U * 1.6);
+  const [c, ctx] = makeCanvas(Math.ceil(L.width + pad * 2), Math.ceil(12 * U + pad * 2));
+  paintLettering(ctx, text, U, gap, c.width / 2, pad);
+  return c;
+}
+
 export function drawLogo(text = 'BALAM', sub = 'RISING'): HTMLCanvasElement {
   const W = 1500;
   const Hh = sub ? 380 : 320;
@@ -232,65 +304,7 @@ export function drawLogo(text = 'BALAM', sub = 'RISING'): HTMLCanvasElement {
   ctx.fill();
   ctx.restore();
 
-  // hand-built lettering (see GLYPHS)
-  const U = 17.5;
-  const L = lettering(text, U, 1.35);
-  const top = base - 12 * U;
-  const at = (dy = 0) => {
-    ctx.setTransform(1, 0, 0, 1, cx, top + dy);
-  };
-  // carved 3D edge (extrusion)
-  for (let i = 16; i >= 1; i--) {
-    at(i);
-    ctx.fillStyle = i > 12 ? '#0d0601' : `rgb(${60 - i * 2},${32 - i},${6})`;
-    ctx.fill(L.path, 'evenodd');
-  }
-  at();
-  ctx.lineJoin = 'miter';
-  ctx.lineWidth = 16;
-  ctx.strokeStyle = '#140a02';
-  ctx.stroke(L.path);
-  ctx.fillStyle = lin(ctx, 0, 0, 0, 12 * U, [
-    [0, '#fff6d2'],
-    [0.3, '#ffd970'],
-    [0.52, '#e0a032'],
-    [0.53, '#a8680e'],
-    [0.78, '#d69420'],
-    [1, '#f7d27a'],
-  ]);
-  ctx.fill(L.path, 'evenodd');
-  // chisel light: bright top-left edge, dark bottom-right edge (inside the letters only)
-  ctx.save();
-  ctx.clip(L.path, 'evenodd');
-  ctx.translate(2.5, 2.5);
-  ctx.lineWidth = 5;
-  ctx.strokeStyle = 'rgba(255,250,225,0.9)';
-  ctx.stroke(L.path);
-  ctx.translate(-5, -5);
-  ctx.strokeStyle = 'rgba(90,48,4,0.8)';
-  ctx.stroke(L.path);
-  ctx.restore();
-  // stone grain on the gold (very subtle, keeps it from looking like a plastic gradient)
-  ctx.save();
-  ctx.clip(L.path, 'evenodd');
-  for (let i = 0; i < 900; i++) {
-    const gx = -L.width / 2 + ((i * 97.13) % L.width);
-    const gy = (i * 53.7) % (12 * U);
-    ctx.fillStyle = i % 3 ? 'rgba(120,70,10,0.10)' : 'rgba(255,245,210,0.12)';
-    ctx.fillRect(gx, gy, 2 + (i % 4), 1.5);
-  }
-  // carved step marks: a tiny stepped pyramid engraved into each stem
-  for (const [mx, my] of L.marks) {
-    const steps: [number, number][] = [[-11, 5], [-7, 0], [-3, -5]];
-    for (const [hx, dy] of steps) {
-      ctx.fillStyle = 'rgba(70,36,2,0.8)';
-      ctx.fillRect(mx + hx, my + dy - 4, -hx * 2, 5);
-      ctx.fillStyle = 'rgba(255,240,190,0.5)';
-      ctx.fillRect(mx + hx, my + dy + 1, -hx * 2, 1.5);
-    }
-  }
-  ctx.restore();
-  ctx.setTransform(1, 0, 0, 1, 0, 0);
+  const L = paintLettering(ctx, text, 17.5, 1.35, cx, base - 12 * 17.5);
 
   // jade gems at the ends
   const tw = L.width;

@@ -43,6 +43,8 @@ export class RoundPlayer {
     board.onReelStop = (_r, syms) => {
       const n = syms.filter((s) => s.name === 'S').length;
       for (let i = 0; i < n; i++) sound.scatterLand(this.scatterCount++);
+      // base game: the temple answers every real BONUS symbol that lands (1 = glimmer, 2 = strong glow)
+      if (n > 0 && !this.inFreeSpins && this.scatterCount <= 2) this.ui.templeHint(this.scatterCount);
     };
   }
 

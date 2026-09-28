@@ -120,6 +120,35 @@ export class Ui {
     if (x) x.style.display = on ? 'none' : '';
     $('music-btn').classList.toggle('off', !on);
   }
+  /** base game: the temple glimmers when 1 or 2 BONUS symbols land */
+  templeHint(level: number) {
+    const el = $('pyramid');
+    el.classList.remove('hint-1', 'hint-2');
+    void el.offsetWidth;
+    el.classList.add(level >= 2 ? 'hint-2' : 'hint-1');
+    window.clearTimeout(this.hintT);
+    this.hintT = window.setTimeout(() => el.classList.remove('hint-1', 'hint-2'), 2600);
+  }
+  private hintT = 0;
+  /** "last rounds" strip: newest first, max 10 chips (win as multiple of the bet) */
+  private hist: { m: number; bonus: boolean }[] = [];
+  pushHistory(mult: number, bonus: boolean) {
+    this.hist.unshift({ m: mult, bonus });
+    this.hist.length = Math.min(this.hist.length, 10);
+    const box = $('history');
+    box.hidden = false;
+    $('hi-title').textContent = t('lastRounds');
+    const row = $('hi-row');
+    row.innerHTML = '';
+    this.hist.forEach((h, i) => {
+      const c = document.createElement('span');
+      const m = h.m;
+      c.className = 'hi-chip ' + (h.bonus ? 'bonus' : m <= 0 ? 'zero' : m >= 20 ? 'big' : m < 1 ? 'small' : 'win') + (i === 0 ? ' new' : '');
+      const txt = m <= 0 ? '0×' : m < 10 ? `${(Math.round(m * 10) / 10).toString()}×` : `${Math.round(m).toLocaleString('en-US')}×`;
+      c.innerHTML = h.bonus ? `<i aria-hidden="true"></i>${txt}` : txt;
+      row.appendChild(c);
+    });
+  }
   /** ☰ game menu: sound, music, rules */
   initMenu() {
     const btn = $('menu-btn');

@@ -313,6 +313,7 @@ class Sound {
     if (king) {
       // king: a second, deeper roar layered underneath + a big gong
       this.playSample('roar', { vol: 0.5 * vol, rate: rate * 0.72, at: 0.06 });
+      this.playSample('death_whistle', { vol: 0.35 * vol, at: 0.5 });
       this.gong(0.3);
     }
     if (golden) {
@@ -485,6 +486,10 @@ class Sound {
   private updateLayers(en: number, off = 0) {
     if (!this.layersOn) return;
     const [jungle, drums, taiko] = this.layers;
+    if (this.stageTrack) {
+      for (const l of this.layers) l.g.gain.setTargetAtTime(0, this.t + off, 0.5);
+      return;
+    }
     const clamp = (v: number) => Math.max(0, Math.min(1, v));
     const tc = 0.9;
     jungle.g.gain.setTargetAtTime(0.5 * (1 - clamp((en - 2) / 3) * 0.6), this.t + off, tc);
@@ -514,11 +519,48 @@ class Sound {
     g.setTargetAtTime(MUSIC_VOL, this.t + sec, 0.8);
   }
 
+  /**
+   * Every temple stage has its own recorded track (war drums → orchestra → pursuit → boss battle);
+   * the tracks crossfade on a stage change, the jungle/drum layers of the base game fade out meanwhile.
+   */
+  private stageTrack: { src: AudioBufferSourceNode; g: GainNode; stage: number } | null = null;
+  private static TRACK_LEN = [0, 14.769229, 34.909093, 108.0, 123.428594];
+  private playStageTrack(st: number) {
+    if (!this.ok()) return;
+    const cur = this.stageTrack;
+    if (cur && cur.stage === st) return;
+    const c = this.ctx!;
+    // fade out the old track
+    if (cur) {
+      cur.g.gain.cancelScheduledValues(this.t);
+      cur.g.gain.setTargetAtTime(0, this.t, 0.35);
+      cur.src.stop(this.t + 2.5);
+      this.stageTrack = null;
+    }
+    const buf = st > 0 ? this.samples['bonus' + Math.min(4, st) + '_loop'] : undefined;
+    if (!buf) return;
+    const src = c.createBufferSource();
+    src.buffer = buf;
+    src.loop = true;
+    src.loopStart = 0;
+    src.loopEnd = Math.min(buf.duration, Sound.TRACK_LEN[Math.min(4, st)] || buf.duration);
+    const g = c.createGain();
+    g.gain.value = 0;
+    src.connect(g).connect(this.music);
+    // enters with the stage hit (a moment after the stinger's drum roll)
+    const at = this.t + (cur ? 0.45 : 0.3);
+    src.start(at);
+    g.gain.setValueAtTime(0, at);
+    g.gain.linearRampToValueAtTime([0, 0.5, 0.55, 0.6, 0.68][Math.min(4, st)], at + 0.25);
+    this.stageTrack = { src, g, stage: st };
+  }
+
   /** stage 0 = base game, 1..4 = free-spin stages */
   setLoop(stage: number) {
     const st = Math.max(0, stage);
     if (st > this.musicStage && st > 0 && this.ok() && this.musicOn) this.stinger(st);
     this.musicStage = st;
+    this.playStageTrack(st);
     if (st === 0) this.hypeLevel = Math.min(this.hypeLevel, 2); // leaving the bonus: calm down
   }
   /** jaguar spins are on: the base game music runs hotter */
@@ -550,6 +592,13 @@ class Sound {
 
   /** stage change: big hit – taiko roll, brass chord in the new key, cymbal */
   private stinger(stage: number, t0 = 0) {
+    if (this.playSample('stage_hit', { vol: 0.9, at: t0 + 0.4 })) {
+      // recorded orchestra hit + taiko roll into it; choir from stage 3, Aztec death whistle on the summit
+      for (let i = 0; i < 6; i++) this.taiko(t0 + i * 0.07, 0.14 + i * 0.04, 70 + i * 4);
+      if (stage >= 3) this.playSample('choir_swell', { vol: 0.7, at: t0 + 0.5 });
+      if (stage >= 4) this.playSample('death_whistle', { vol: 0.55, at: t0 + 0.9 });
+      return;
+    }
     const k = [0, 0, 2, 3, 5][stage] ?? 5;
     for (let i = 0; i < 6; i++) this.taiko(t0 + i * 0.07, 0.18 + i * 0.05, 70 + i * 4);
     const at = t0 + 0.45;
@@ -694,6 +743,7 @@ class Sound {
         for (const n of chord.slice(1)) this.voice(hz(n, en >= 5 ? 1 : 0), at + 0.2, chordLen + 0.4, { vol: en >= 3 ? 0.048 : 0.035, attack: 2, release: 1.8, formant: true, detune: [-6, 6] });
     }
 
+    if (this.stageTrack && this.stageTrack.stage >= 2) return; // the recorded orchestra plays alone
     if (this.layersOn) {
       // recorded drums carry the rhythm: synth only adds horn calls and an ocarina now and then
       if (ci % 4 === 2 && (step === 4 || step === 10)) {

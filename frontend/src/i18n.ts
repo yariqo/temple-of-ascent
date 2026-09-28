@@ -2,6 +2,7 @@ type Dict = Record<string, string>;
 
 const en: Dict = {
   menu: 'Menu',
+  lastRounds: 'Last rounds',
   menuSound: 'Sound effects',
   menuMusic: 'Music',
   menuRules: 'Game rules & paytable',
@@ -143,6 +144,7 @@ const en: Dict = {
 
 const de: Dict = {
   menu: 'Menü',
+  lastRounds: 'Letzte Runden',
   menuSound: 'Soundeffekte',
   menuMusic: 'Musik',
   menuRules: 'Spielregeln & Gewinne',

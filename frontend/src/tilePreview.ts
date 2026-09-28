@@ -3,7 +3,7 @@
  * preview/tile.html?w=900&h=1200 renders one format; the PNG is read back by a script.
  */
 import { drawSymbol } from './art/draw';
-import { drawLogo } from './art/logo';
+import { drawLogo, drawWord } from './art/logo';
 import { drawMascotHead, MASCOT_GEO } from './art/mascot';
 import { loadFonts } from './fonts';
 import { drawStudioMark } from './art/studio';
@@ -175,37 +175,20 @@ function rng(seed: number) {
 
   // --- title
   if (lobby && !land) {
-    const lines = ['BALAM', 'RISING'];
-    const sizes = [0.3, 0.2];
-    let y = H * 0.585;
-    lines.forEach((t, i) => {
-      let fs = S * sizes[i];
-      ctx.font = `900 ${fs}px Cinzel, Georgia, serif`;
-      (ctx as any).letterSpacing = `${Math.round(S * (i ? 0.03 : 0.005))}px`;
-      const tw = ctx.measureText(t).width;
-      if (tw > W * 0.94) {
-        fs *= (W * 0.94) / tw;
-        ctx.font = `900 ${fs}px Cinzel, Georgia, serif`;
-      }
-      ctx.textAlign = 'center';
-      ctx.textBaseline = 'alphabetic';
-      y += fs * (i ? 0.95 : 0.8);
-      ctx.save();
-      ctx.lineJoin = 'round';
-      ctx.shadowColor = 'rgba(0,0,0,0.75)';
-      ctx.shadowBlur = S * 0.03;
-      ctx.shadowOffsetY = S * 0.012;
-      ctx.lineWidth = fs * 0.16;
-      ctx.strokeStyle = '#2a0c02';
-      ctx.strokeText(t, W / 2, y);
-      ctx.restore();
-      const tg = ctx.createLinearGradient(0, y - fs * 0.75, 0, y);
-      tg.addColorStop(0, '#ffffff');
-      tg.addColorStop(0.5, i ? '#ffe9a0' : '#fff6d8');
-      tg.addColorStop(1, i ? '#ffc23a' : '#ffd35a');
-      ctx.fillStyle = tg;
-      ctx.fillText(t, W / 2, y);
-    });
+    // hand-built lettering (same as the in-game logo), stacked
+    const w1 = drawWord('BALAM', 20);
+    const w2 = drawWord('RISING', 20, 2.6);
+    const s1 = (W * 0.96) / w1.width;
+    const s2 = (W * 0.62) / w2.width;
+    let y = H * 0.6;
+    ctx.save();
+    ctx.shadowColor = 'rgba(0,0,0,0.8)';
+    ctx.shadowBlur = S * 0.03;
+    ctx.shadowOffsetY = S * 0.012;
+    ctx.drawImage(w1, (W - w1.width * s1) / 2, y, w1.width * s1, w1.height * s1);
+    y += w1.height * s1 * 0.86;
+    ctx.drawImage(w2, (W - w2.width * s2) / 2, y, w2.width * s2, w2.height * s2);
+    ctx.restore();
   }
   const logo = drawLogo();
   const lw = land ? W * 0.52 : W * 0.98;
@@ -232,9 +215,9 @@ function rng(seed: number) {
   ctx.save();
   ctx.textAlign = 'center';
   ctx.textBaseline = 'middle';
-  ctx.font = `700 ${Math.round(S * (land ? 0.04 : 0.036))}px Cinzel, Georgia, serif`;
-  (ctx as any).letterSpacing = `${Math.round(S * 0.012)}px`;
-  ctx.fillStyle = '#f3dca8';
+  ctx.font = `800 ${Math.round(S * (land ? 0.04 : 0.036))}px Outfit, sans-serif`;
+  (ctx as any).letterSpacing = `${Math.round(S * 0.008)}px`;
+  ctx.fillStyle = '#ffffff';
   ctx.shadowColor = 'rgba(0,0,0,0.9)';
   ctx.shadowBlur = S * 0.01;
   const py = land ? ly + lh + H * 0.06 : H - H * (lobby ? 0.03 : 0.042);

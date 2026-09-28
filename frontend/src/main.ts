@@ -321,6 +321,7 @@ async function main() {
       await runRound(round, bet(), closeEarly);
       const fw = (round.events.find((e) => e.type === 'finalWin') as any)?.amount ?? 0;
       result = { win: (fw / 100) * bet(), bonus: isBonus };
+      ui.pushHistory(fw / 100, isBonus);
     } catch (e) {
       ui.toast(errorText(e), 6000);
     }
