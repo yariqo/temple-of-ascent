@@ -170,8 +170,8 @@ export function drawStele2(ctx: Ctx, skin: SteleSkin2) {
   // highlights
   if (skin !== 'stone') {
     gloss(ctx, c - 40, 60, 16, 60, skin === 'obsidian' ? 0.25 : 0.4, 0.05, pillar);
-    sparkle(ctx, c - 50, 44, skin === 'diamond' ? 15 : 11);
     if (skin === 'diamond') {
+      sparkle(ctx, c - 50, 44, 15);
       sparkle(ctx, c + 56, 196, 10);
       sparkle(ctx, c + 40, 70, 7);
     }

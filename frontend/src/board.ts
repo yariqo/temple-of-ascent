@@ -156,6 +156,84 @@ class SymbolView extends Container {
     this.setGlow(false);
   }
 
+  /**
+   * Small character move – each symbol has its own, so the board feels hand-animated:
+   * jaguar shakes its head, quetzal flaps, serpent sways, frog hops, gems settle, steles thud, wild pulses.
+   * Only the inner sprite moves (the container's scale is used by wins/pulses).
+   */
+  private moving = false;
+  move(kind: 'land' | 'idle' = 'land') {
+    const n = this.sym.name;
+    if (n === 'S' || this.moving || this.destroyed) return;
+    const sp = this.sprite;
+    const bs = sp.scale.x;
+    const by = sp.y;
+    const set = (sx: number, sy: number, y = 0, rot = 0) => {
+      if (this.destroyed) return;
+      sp.scale.set(bs * sx, bs * sy);
+      sp.y = by + y;
+      sp.rotation = rot;
+    };
+    const decay = (p: number) => Math.pow(1 - p, 2);
+    let ms = 420;
+    let f: (p: number) => void;
+    const idle = kind === 'idle';
+    switch (n) {
+      case 'H1': // jaguar: squash on landing, then a short head shake
+        ms = idle ? 700 : 520;
+        f = (p) => {
+          const sq = idle ? 0 : Math.sin(Math.min(1, p * 3) * Math.PI) * 0.08;
+          set(1 + sq * 0.6, 1 - sq, 0, Math.sin(p * Math.PI * 4) * 0.07 * decay(p));
+        };
+        break;
+      case 'H2': // quetzal: two wing flaps (horizontal stretch) with a little lift
+        ms = idle ? 640 : 520;
+        f = (p) => set(1 + Math.sin(p * Math.PI * 4) * 0.07 * decay(p), 1 - Math.sin(p * Math.PI * 4) * 0.03 * decay(p), -Math.sin(p * Math.PI) * 6);
+        break;
+      case 'H3': // serpent: slow sway
+        ms = idle ? 1100 : 760;
+        f = (p) => set(1, 1 + Math.sin(p * Math.PI * 2) * 0.02, 0, Math.sin(p * Math.PI * 3) * 0.09 * decay(p));
+        break;
+      case 'H4': // frog: crouch, hop, land
+        ms = idle ? 620 : 540;
+        f = (p) => {
+          const crouch = p < 0.25 ? Math.sin((p / 0.25) * Math.PI) * 0.12 : 0;
+          const hop = p >= 0.2 ? Math.sin(Math.min(1, (p - 0.2) / 0.55) * Math.PI) : 0;
+          const land = p > 0.75 ? Math.sin(((p - 0.75) / 0.25) * Math.PI) * 0.08 : 0;
+          set(1 + crouch * 0.6 + land * 0.6, 1 - crouch + hop * 0.06 - land, -hop * (idle ? 12 : 9));
+        };
+        break;
+      case 'W': // wild sun: a warm pulse with a slight turn
+        ms = 560;
+        f = (p) => {
+          const k = Math.sin(p * Math.PI);
+          set(1 + k * 0.09, 1 + k * 0.09, 0, Math.sin(p * Math.PI * 2) * 0.05 * decay(p));
+        };
+        break;
+      case 'T': // stele: heavy stone thud
+        ms = 360;
+        f = (p) => {
+          const k = Math.sin(Math.min(1, p * 2.2) * Math.PI) * 0.07 * (1 - p);
+          set(1 + k, 1 - k * 1.4, k * 30);
+        };
+        break;
+      default: {
+        // gems: a tiny settle, each gem with its own timing
+        const d = 0.035 + (n.charCodeAt(1) % 3) * 0.01;
+        ms = 300 + (n.charCodeAt(1) % 3) * 40;
+        f = (p) => {
+          const k = Math.sin(p * Math.PI * 2) * decay(p);
+          set(1 - k * d, 1 + k * d);
+        };
+      }
+    }
+    this.moving = true;
+    void tween(ms, f, ease.linear).then(() => {
+      this.moving = false;
+      if (!this.destroyed) set(1, 1);
+    });
+  }
+
   /** called every frame – bonus symbols glow and breathe */
   animate(time: number) {
     if (!this._rays?.visible) return;
@@ -376,6 +454,18 @@ export class Board {
     };
     this.layout();
     let time = 0;
+    // board life: while nobody spins, a random character on the board moves now and then
+    let idleIn = 6;
+    app.ticker.add((tk) => {
+      if (!reelsSpinning && !this.winsShown) {
+        idleIn -= tk.deltaMS / 1000;
+        if (idleIn <= 0) {
+          idleIn = 5 + Math.random() * 6;
+          const chars = this.cells.flat().filter((v) => !v.destroyed && ['H1', 'H2', 'H3', 'H4'].includes(v.sym.name));
+          chars[Math.floor(Math.random() * chars.length)]?.move('idle');
+        }
+      } else idleIn = Math.max(idleIn, 4);
+    });
     app.ticker.add((tk) => {
       time += tk.deltaMS / 1000;
       for (const col of this.cells) for (const v of col) if (!v.destroyed) v.animate(time);
@@ -571,6 +661,8 @@ export class Board {
     this.cells[r] = fresh;
     if (this.antic[r].visible) this.stopTease(r);
     sound.reelStop(r);
+    // every symbol lands with its own little move (slightly staggered from top to bottom)
+    fresh.forEach((f, i) => window.setTimeout(() => f.move('land'), i * 35));
     // landed bonus symbols hop and flash
     fresh.forEach((f, i) => {
       if (f.sym.name !== 'S') return;
@@ -1116,7 +1208,10 @@ export class Board {
     }
   }
 
+  /** true while a win is on display – the idle character moves pause then */
+  winsShown = false;
   async showWins(wins: { positions: Pos[]; win?: number }[], amountText: string, fmt?: (w: number) => string) {
+    this.winsShown = true;
     const all = new Set<SymbolView>();
     const byReel = new Map<number, { v: SymbolView; p: Pos }[]>();
     wins.forEach((w) =>
@@ -1227,6 +1322,7 @@ export class Board {
   }
 
   clearWins() {
+    this.winsShown = false;
     this.lines.clear();
     this.pills.removeChildren().forEach((c) => c.destroy());
     this.setPlaque('');

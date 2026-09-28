@@ -187,6 +187,21 @@ class Sound {
     this.tone(base, dur, { type: 'triangle', vol: 0.05, slide: 2.4, attack: dur * 0.6 });
     this.tone(base * 1.5, dur, { type: 'sine', vol: 0.05, slide: 2.4, attack: dur * 0.7 });
     this.noise(dur, { freq: 400, sweep: 3500, vol: 0.045, type: 'bandpass' });
+    // real taiko roll: accelerating hits with a crescendo (falls back to the synth heartbeat)
+    if (this.samples['taiko_hit']) {
+      let at2 = 0.02;
+      let gap2 = 0.46 - level * 0.03;
+      let i = 0;
+      while (at2 < dur - 0.06) {
+        const k = at2 / dur;
+        const hit = i % 2 === 0 || !this.samples['taiko_hit2'] ? 'taiko_hit' : 'taiko_hit2';
+        this.playSample(hit, { vol: 0.35 + 0.55 * k, rate: 0.96 + k * 0.1 + (i % 2) * 0.04, at: at2 });
+        at2 += gap2;
+        gap2 = Math.max(0.085, gap2 * 0.86);
+        i++;
+      }
+      return;
+    }
     // heartbeat, getting faster
     let at = 0.05;
     let gap = 0.5;

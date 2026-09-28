@@ -5684,3 +5684,20 @@ body.aligned #pyramid {
   }
   #game-menu::before { right: 14px; }
 }
+
+/* ================= calmer idle state: light is saved for the moments that matter ================= */
+.has-img::after {
+  animation-duration: 14s;
+}
+.bt-rays {
+  display: none;
+}
+.bonus-tile {
+  animation: none !important;
+}
+.bt-shine {
+  animation-duration: 10s;
+}
+.bt-img {
+  animation-duration: 5s;
+}

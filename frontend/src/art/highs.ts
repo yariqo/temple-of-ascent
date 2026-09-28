@@ -3,7 +3,7 @@
  * a stepped gold cartouche with a coloured stone field, the figure sculpted in gold / jade /
  * turquoise on top of it (and breaking out of the frame).
  */
-import { Ctx, INK, MAT, Stops, blob, bevel, circle, curve, engrave, gloss, lg, oval, path, rg, solid, sparkle, texture, dropShadow, noShadow } from './kit';
+import { Ctx, INK, MAT, Stops, blob, bevel, circle, curve, engrave, gloss, lg, oval, path, rg, solid, texture, dropShadow, noShadow } from './kit';
 
 type P2 = [number, number];
 
@@ -285,7 +285,6 @@ export function drawJaguar2(ctx: Ctx) {
   }
   ctx.restore();
   gloss(ctx, c - 34, 76, 30, 12, 0.5, -0.4, head);
-  sparkle(ctx, c - 48, 84, 12);
 }
 
 // ------------------------------------------------------------------ H2 quetzal
@@ -396,7 +395,6 @@ export function drawQuetzal2(ctx: Ctx) {
   ctx.fill(circle(106, 70, 1.8));
   gloss(ctx, 104, 62, 12, 5, 0.6, -0.4, head);
   gloss(ctx, 118, 100, 16, 7, 0.4, -0.6, body);
-  sparkle(ctx, 88, 58, 11);
 }
 
 // ------------------------------------------------------------------ H3 feathered serpent
@@ -541,7 +539,6 @@ export function drawSerpent2(ctx: Ctx) {
   ctx.fillStyle = '#062a30';
   ctx.fill(oval(228, 70, 2.5, 2));
   gloss(ctx, 180, 58, 20, 6, 0.55, -0.2, head);
-  sparkle(ctx, 64, 110, 11);
 }
 
 // ------------------------------------------------------------------ H4 frog idol
@@ -653,7 +650,6 @@ export function drawFrog2(ctx: Ctx) {
     gloss(ctx, ex - 6, 87, 7, 4, 0.9, -0.3);
   }
   gloss(ctx, c - 30, 110, 30, 12, 0.45, -0.3, body);
-  sparkle(ctx, c + 60, 90, 11);
 }
 
 // ------------------------------------------------------------------ Wild: sun stone
@@ -780,7 +776,6 @@ export function drawWild2(ctx: Ctx) {
   ]);
   ctx.fillText('WILD', c + 2, 229);
   ctx.restore();
-  sparkle(ctx, c - 58, cy - 62, 13);
 }
 
 function rrectP(x: number, y: number, w: number, h: number, r: number): Path2D {

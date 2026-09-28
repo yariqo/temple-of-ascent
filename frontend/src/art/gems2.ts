@@ -3,7 +3,7 @@
  * Every facet is shaded from its orientation to the light (top left), so the stones read as real
  * cut jewels instead of flat shapes.
  */
-import { Ctx, INK, MAT, bevel, gloss, lg, path, rg, solid, sparkle, texture } from './kit';
+import { Ctx, INK, MAT, bevel, gloss, lg, path, rg, solid, texture } from './kit';
 
 type P2 = [number, number];
 interface Gem {
@@ -251,6 +251,4 @@ export function drawGem2(ctx: Ctx, g: Gem) {
 
   // --- highlights
   gloss(ctx, c - s * 0.32, c - s * 0.45, s * 0.35, s * 0.14, 0.55, -0.7, outline);
-  sparkle(ctx, c - s * 0.38, c - s * 0.5, 18);
-  sparkle(ctx, c + s * 0.42, c + s * 0.2, 9, 0.7);
 }

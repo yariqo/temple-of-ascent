@@ -4,7 +4,7 @@
  * All drawing is procedural Canvas2D (no image files).
  */
 import { lin, makeCanvas, rad } from './draw';
-import { MAT, bevel, gloss, solid, sparkle, texture } from './kit';
+import { MAT, bevel, gloss, solid, texture } from './kit';
 
 type Ctx = CanvasRenderingContext2D;
 
@@ -493,7 +493,6 @@ export function drawMascotHead(face: Face, glowEyes = false): HTMLCanvasElement 
   gem.lineTo(cx - 11, cy - 66);
   gem.closePath();
   solid(ctx, gem, MAT.jade, { y0: cy - 80, y1: cy - 52, bevel: 2, tex: 0, line: 2.5 });
-  sparkle(ctx, cx - 4, cy - 72, 8);
 
   // eyes
   for (const sx of [-1, 1]) {
@@ -718,6 +717,5 @@ export function drawMascotHead(face: Face, glowEyes = false): HTMLCanvasElement 
   const pj = new Path2D();
   pj.arc(cx, cy + 92, 6, 0, Math.PI * 2);
   solid(ctx, pj, MAT.jade, { y0: cy + 86, y1: cy + 98, bevel: 1.5, tex: 0, line: 1.5 });
-  sparkle(ctx, cx - 3, cy + 89, 6);
   return c;
 }
