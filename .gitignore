@@ -9,3 +9,7 @@ _to_delete/
 Hoerproben/
 sounds/
 _github_upload/
+
+# large upload bundle (math books ~230 MB) – not for git
+RELEASE/
+Claude outputs/
