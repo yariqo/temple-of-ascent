@@ -875,20 +875,30 @@ export class Ui {
     const tabs = Array.from(body.querySelectorAll<HTMLButtonElement>('.rt-tab'));
     const sections = Array.from(body.querySelectorAll<HTMLElement>('.rs'));
     const tabBar = body.querySelector('.rt-tabs') as HTMLElement;
-    for (const b of tabs)
+    const mark = (i: number) => tabs.forEach((b, k) => b.classList.toggle('on', k === i));
+    // a tapped tab stays lit while the smooth scroll runs (the last sections are too short to reach the top)
+    let lockUntil = 0;
+    tabs.forEach((b, i) => {
       b.onclick = () => {
         sound.click();
+        mark(i);
+        lockUntil = performance.now() + 1500;
         const sec = body.querySelector<HTMLElement>('#' + b.dataset.go);
         if (sec) body.scrollTo({ top: sec.offsetTop - tabBar.offsetHeight - 6, behavior: 'smooth' });
       };
+    });
     body.onscroll = () => {
+      if (performance.now() < lockUntil) return;
+      // at the very end of the page the last tab is the current one
+      if (body.scrollTop + body.clientHeight >= body.scrollHeight - 4) return mark(tabs.length - 1);
       const y = body.scrollTop + tabBar.offsetHeight + 20;
       let cur = 0;
       sections.forEach((s, i) => {
         if (s.offsetTop <= y) cur = i;
       });
-      tabs.forEach((b, i) => b.classList.toggle('on', i === cur));
+      mark(cur);
     };
+    (body as any).onscrollend = () => (lockUntil = 0);
     dlg.onclick = (e) => {
       const r = dlg.getBoundingClientRect();
       if (e.clientX < r.left || e.clientX > r.right || e.clientY < r.top || e.clientY > r.bottom) dlg.close();

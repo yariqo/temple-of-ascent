@@ -540,11 +540,17 @@ main()
 /** SOLSTONE GAMES splash: sun stone rises out of the dark, rays sweep, wordmark fades in (~2.6 s) */
 function playStudioSplash(): Promise<void> {
   const el = document.getElementById('studio-splash');
-  if (!el || new URLSearchParams(location.search).has('nosplash')) return Promise.resolve();
+  // the game's own loading screen (BALAM RISING logo) only appears after the studio splash
+  const reveal = () => document.body.classList.remove('pre-splash');
+  if (!el || new URLSearchParams(location.search).has('nosplash') || urlParam('replay') === 'true') {
+    reveal();
+    return Promise.resolve();
+  }
   try {
     (document.getElementById('ss-mark') as HTMLImageElement).src = drawStudioMark(360).toDataURL();
     (document.getElementById('ss-word') as HTMLImageElement).src = drawStudioWordmark(160).toDataURL();
   } catch {
+    reveal();
     return Promise.resolve();
   }
   el.hidden = false;
@@ -555,6 +561,7 @@ function playStudioSplash(): Promise<void> {
       if (done) return;
       done = true;
       el.classList.add('out');
+      reveal();
       window.setTimeout(() => {
         el.hidden = true;
         el.classList.remove('play', 'out');

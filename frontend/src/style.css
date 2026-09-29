@@ -6004,3 +6004,8 @@ body.replay-mode #menu-btn {
     width: calc(100% - 24px);
   }
 }
+
+/* before the studio splash only a plain dark screen – no game logo (order: Stake → Solstone → BALAM RISING) */
+body.pre-splash #loading > * {
+  visibility: hidden;
+}
