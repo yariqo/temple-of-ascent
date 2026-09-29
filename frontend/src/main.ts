@@ -184,14 +184,31 @@ async function main() {
 
   // ---------- replay of a finished round ----------
   if (urlParam('replay') === 'true') {
+    // slim replay UI: no balance, no bet controls, no way into normal play
+    document.body.classList.add('replay-mode');
     ui.setDemo(t('replay'));
-    ui.doneLoading();
+    if (urlParam('currency')) setCurrency(urlParam('currency')!);
     const r = await fetchReplay().catch(() => null);
-    if (!r) return ui.toast(t('error', { code: 'REPLAY' }), 1e9);
+    ui.doneLoading();
+    if (!r) return ui.toast(t('replayError'), 1e9);
     ui.setBet(r.amount);
-    ui.setBusy(true, false);
-    await player.play(r.round, r.amount, MODES[r.round.mode]?.cost ?? 1);
-    ui.setBusy(false, false);
+    const cost = r.amount * (MODES[r.round.mode]?.cost ?? 1);
+    const fw = (r.round.events.find((e) => e.type === 'finalWin') as any)?.amount;
+    const win = fw !== undefined ? (fw / 100) * r.amount : (r.round.payoutMultiplier ?? 0) * r.amount;
+    const btn = document.getElementById('replay-btn') as HTMLButtonElement;
+    const info = document.getElementById('replay-info')!;
+    info.textContent = t('replayInfo', { cost: money(cost), win: money(win) });
+    document.getElementById('replay-ui')!.hidden = false;
+    btn.textContent = t('replayPlay');
+    btn.onclick = async () => {
+      sound.unlock();
+      document.getElementById('replay-ui')!.hidden = true;
+      ui.setWin(null);
+      await player.play(r.round, r.amount, MODES[r.round.mode]?.cost ?? 1);
+      ui.setWin(win, win > 0);
+      btn.textContent = t('replayAgain');
+      document.getElementById('replay-ui')!.hidden = false;
+    };
     return;
   }
 

@@ -111,7 +111,10 @@ export async function fetchReplay(): Promise<{ round: Round; amount: number } | 
   const res = await fetch(`${rgsBase(rgsUrl)}${path}`);
   if (!res.ok) throw new RgsError(`HTTP_${res.status}`);
   const data = await res.json();
-  const round = parseRound({ ...data, mode: urlParam('mode') ?? 'base' });
+  const round = parseRound({ ...data, mode: (urlParam('mode') ?? 'base').toLowerCase() });
   if (!round) return null;
-  return { round, amount: Number(urlParam('amount') ?? 0) / API_MULTIPLIER || 1 };
+  // "amount" may come in whole units (1.00) or in API units (1000000)
+  const raw = Number(urlParam('amount') ?? 0);
+  const amount = raw >= 1000 ? raw / API_MULTIPLIER : raw > 0 ? raw : 1;
+  return { round, amount };
 }

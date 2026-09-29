@@ -5942,3 +5942,65 @@ footer #stat-win:has(#win.big) .st-txt::after {
     gap: 6px;
   }
 }
+
+/* ================= bet replay ================= */
+body.replay-mode #stat-balance,
+body.replay-mode .controls,
+body.replay-mode #bonus-wrap,
+body.replay-mode #history,
+body.replay-mode #menu-btn {
+  visibility: hidden;
+}
+#replay-ui {
+  position: fixed;
+  left: 50%;
+  bottom: 14px;
+  transform: translateX(-50%);
+  z-index: 70;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  padding: 16px 22px;
+  border-radius: 16px;
+  background: rgba(14, 10, 5, 0.88);
+  border: 1.5px solid rgba(232, 184, 88, 0.6);
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.6);
+}
+#replay-ui[hidden] {
+  display: none;
+}
+.rp-info {
+  font: 700 14px/1.2 'Alegreya Sans', sans-serif;
+  color: #f3e3bd;
+  letter-spacing: 0.04em;
+}
+#replay-btn {
+  font: 800 18px/1 Cinzel, Georgia, serif;
+  padding: 14px 28px;
+  letter-spacing: 0.08em;
+  border-radius: 12px;
+  border: 1.5px solid #ffe7a8;
+  color: #2a1602;
+  background: linear-gradient(180deg, #ffe39a, #e0a434 55%, #b87a14);
+  box-shadow: 0 4px 0 #6a4206, 0 8px 18px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.6);
+  cursor: pointer;
+}
+#replay-btn:active {
+  transform: translateY(2px);
+  box-shadow: 0 2px 0 #6a4206, 0 4px 10px rgba(0, 0, 0, 0.5);
+}
+#replay-ui {
+  flex-direction: row;
+  left: auto;
+  right: 22px;
+  transform: none;
+}
+@media (max-width: 760px) and (orientation: portrait) {
+  #replay-ui {
+    flex-direction: column;
+    bottom: 10px;
+    right: 12px;
+    width: calc(100% - 24px);
+  }
+}
