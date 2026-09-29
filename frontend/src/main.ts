@@ -509,7 +509,33 @@ async function main() {
       } });
 }
 
-main();
+/** last line of defence: never leave the player on a silent black screen */
+function showFatal(e: unknown) {
+  console.error(e);
+  const msg = (e as any)?.message ?? String(e);
+  let el = document.getElementById('fatal');
+  if (!el) {
+    el = document.createElement('div');
+    el.id = 'fatal';
+    el.style.cssText = 'position:fixed;inset:0;z-index:9999;display:flex;align-items:center;justify-content:center;text-align:center;padding:24px;background:#0b0906;color:#f3e3bd;font:600 16px/1.5 system-ui,sans-serif';
+    document.body.appendChild(el);
+  }
+  el.innerHTML = '';
+  const box = document.createElement('div');
+  const h = document.createElement('div');
+  h.style.cssText = 'font-size:20px;font-weight:800;margin-bottom:8px;color:#ffd35a';
+  h.textContent = 'The game could not be started.';
+  const p = document.createElement('div');
+  p.textContent = 'Please reload the page. (' + msg.slice(0, 160) + ')';
+  box.append(h, p);
+  el.appendChild(box);
+}
+window.addEventListener('unhandledrejection', (ev) => {
+  if (!document.body.classList.contains('game-ready')) showFatal(ev.reason);
+});
+main()
+  .then(() => document.body.classList.add('game-ready'))
+  .catch(showFatal);
 
 /** SOLSTONE GAMES splash: sun stone rises out of the dark, rays sweep, wordmark fades in (~2.6 s) */
 function playStudioSplash(): Promise<void> {

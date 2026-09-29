@@ -22,7 +22,8 @@ export async function loadFonts(): Promise<void> {
     FACES.map(async ([family, url, weight]) => {
       try {
         const f = new FontFace(family, `url(${url})`, { weight });
-        await f.load();
+        // never let a slow or blocked font hold the game back
+        await Promise.race([f.load(), new Promise((_, rej) => setTimeout(() => rej(new Error('font timeout')), 4000))]);
         document.fonts.add(f);
       } catch {
         /* fall back to Georgia / system fonts */
