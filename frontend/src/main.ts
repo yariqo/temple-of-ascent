@@ -4,7 +4,10 @@ import { Board } from './board';
 import { Ui } from './ui';
 import { RoundPlayer } from './player';
 import { MODES } from './config';
-import { setLanguage, t } from './i18n';
+import { setLanguage, socialize, t } from './i18n';
+
+/** social wording only in text, never inside tags / attributes */
+const socializeHtml = (html: string) => html.replace(/>([^<]+)</g, (_m, txt: string) => `>${socialize(txt)}<`);
 import { rulesPage } from './rules';
 import { money } from './format';
 import { setCurrency } from './format';
@@ -177,7 +180,7 @@ async function main() {
     ui.setMusicIcon(sound.musicOn);
   };
   document.getElementById('rules-btn')!.onclick = () =>
-    ui.showRules(rulesPage(LANG, (n) => iconUrl(n, 96), (window as any).__rulesBet ?? 1, money));
+    ui.showRules(socializeHtml(rulesPage(LANG, (n) => iconUrl(n, 96), (window as any).__rulesBet ?? 1, money)));
 
   // ---------- replay of a finished round ----------
   if (urlParam('replay') === 'true') {

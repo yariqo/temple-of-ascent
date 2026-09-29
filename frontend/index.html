@@ -17,6 +17,18 @@
         fit();
         window.addEventListener('orientationchange', function () { setTimeout(fit, 50); });
       })();
+      // tiny pop-out players (e.g. Stake's small mini player 400×225): lay the game out like a 375 px high
+      // landscape phone and scale the whole page down, so nothing is cut off or oversized
+      (function () {
+        function mini() {
+          var w = window.innerWidth, h = window.innerHeight, z = 1;
+          if (w > h && h < 340) z = Math.max(0.5, Math.min(1, h / 375, w / 667));
+          else if (w <= h && w < 330) z = Math.max(0.6, w / 360);
+          document.documentElement.style.zoom = z === 1 ? '' : String(z);
+        }
+        mini();
+        window.addEventListener('resize', mini);
+      })();
     </script>
   </head>
   <body>

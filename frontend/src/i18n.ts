@@ -291,15 +291,71 @@ const socialOverrides: Record<string, Dict> = {
 };
 
 let dict: Dict = en;
+let socialMode = false;
+let socialLang = 'en';
+
+/** social casino (Stake US): every text is run through the restricted-phrase replacements */
+const SOCIAL_RULES: Record<string, [RegExp, string][]> = {
+  en: [
+    [/\bbonus buys?\b/gi, 'bonus features'],
+    [/\bbets\b/g, 'plays'],
+    [/\bBets\b/g, 'Plays'],
+    [/\bbet\b/g, 'play amount'],
+    [/\bBet\b/g, 'Play amount'],
+    [/\bBET\b/g, 'PLAY AMOUNT'],
+    [/\bbetting\b/gi, 'playing'],
+    [/\bwagers?\b/gi, 'play'],
+    [/\bstakes?\b/g, 'play amount'],
+    [/\bbought\b/gi, 'activated'],
+    [/\bpurchase price\b/gi, 'price'],
+    [/\bpurchases?\b/gi, 'activation'],
+    [/\bbuys\b/g, 'gets'],
+    [/\bbuy\b/g, 'get'],
+    [/\bBuy\b/g, 'Get'],
+    [/\bBUY\b/g, 'GET'],
+    [/\bcash\b/gi, 'coins'],
+    [/\bmoney\b/gi, 'coins'],
+    [/\bdeposit\b/gi, 'get coins'],
+    [/\bwithdraw\b/gi, 'redeem'],
+    [/\bgambl(e|ing)\b/gi, 'play'],
+    [/\bcasino\b/gi, 'game'],
+    [/\bpaid\b/g, 'won'],
+    [/\bpays\b/g, 'wins'],
+    [/\bpay\b/g, 'win'],
+  ],
+  de: [
+    [/Einsatzes/g, 'Spielbetrags'],
+    [/Einsatz/g, 'Spielbetrag'],
+    [/EINSATZ/g, 'SPIELBETRAG'],
+    [/Kaufpreis/g, 'Preis'],
+    [/gekauft(e[nrs]?)?/g, 'geholt$1'],
+    [/Bonus-Käufe/g, 'Bonus-Features'],
+    [/Käufe/g, 'Features'],
+    [/Kauf\b/g, 'Holen'],
+    [/kaufen/g, 'holen'],
+    [/Kaufen/g, 'Holen'],
+    [/kaufst/g, 'holst'],
+    [/\bGeld\b/g, 'Coins'],
+    [/Glücksspiel/g, 'Spiel'],
+  ],
+};
+export function socialize(text: string): string {
+  if (!socialMode) return text;
+  let s = text;
+  for (const [re, rep] of SOCIAL_RULES[socialLang] ?? SOCIAL_RULES.en) s = s.replace(re, rep);
+  return s;
+}
 
 export function setLanguage(lang: string, social: boolean) {
   const base = lang === 'de' ? de : en;
   dict = { ...base, ...(social ? socialOverrides[lang === 'de' ? 'de' : 'en'] : {}) };
+  socialMode = social;
+  socialLang = lang === 'de' ? 'de' : 'en';
 }
 
 export function t(key: string, vars: Record<string, string | number> = {}): string {
   let s = dict[key] ?? en[key] ?? key;
   for (const [k, v] of Object.entries(vars)) s = s.replace(`{${k}}`, String(v));
-  return s;
+  return socialize(s);
 }
 

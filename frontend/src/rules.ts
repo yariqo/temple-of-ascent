@@ -40,7 +40,7 @@ const T = {
         <div><b>5 × 4</b><span>reels × rows</span></div>
         <div><b>20</b><span>fixed paylines</span></div>
         <div><b>96.00%</b><span>RTP in every mode</span></div>
-        <div><b>10,000×</b><span>max win</span></div>
+        <div><b>10,000×</b><span>max win (Jaguar Spin 1,272×)</span></div>
       </div>
       <p>Wins pay from left to right on adjacent reels, starting on reel 1. Only the highest win per payline is paid; wins on different lines are added. All values in the paytable are multiples of the bet (${c.money(c.bet)} at your current bet).</p>
       <p>If a round reaches the maximum win of <b>10,000× the bet</b>, it ends immediately and the max win is paid.</p>`,
@@ -94,6 +94,15 @@ const T = {
         <tr><td><b>Temple Bonus</b></td><td>${MODES.bonus.cost}× bet</td><td>Same as 3 BONUS symbols.</td></tr>
         <tr><td><b>Super Bonus</b></td><td>${MODES.superbonus.cost}× bet</td><td>Same as 4 BONUS symbols.</td></tr>
         <tr><td><b>Divine Bonus</b></td><td>${MODES.godbonus.cost}× bet</td><td>Same as 5 BONUS symbols.</td></tr></table>
+      <h4>Modes at a glance</h4>
+      <table class="modes"><tr><th>Mode</th><th>Cost</th><th>RTP</th><th>Max win</th></tr>
+        <tr><td><b>Base game</b></td><td>${MODES.base.cost}× bet</td><td>96.00%</td><td>10,000× bet</td></tr>
+        <tr><td><b>Bonus Hunt</b></td><td>${MODES.bonushunt.cost}× bet</td><td>96.00%</td><td>10,000× bet</td></tr>
+        <tr><td><b>Jaguar Spin</b></td><td>${MODES.jaguar.cost}× bet</td><td>96.00%</td><td>1,272× bet</td></tr>
+        <tr><td><b>Jaguar King</b></td><td>${MODES.jaguarking.cost}× bet</td><td>96.00%</td><td>10,000× bet</td></tr>
+        <tr><td><b>Temple Bonus</b></td><td>${MODES.bonus.cost}× bet</td><td>96.00%</td><td>10,000× bet</td></tr>
+        <tr><td><b>Super Bonus</b></td><td>${MODES.superbonus.cost}× bet</td><td>96.00%</td><td>10,000× bet</td></tr>
+        <tr><td><b>Divine Bonus</b></td><td>${MODES.godbonus.cost}× bet</td><td>96.00%</td><td>10,000× bet</td></tr></table>
       <h4>Big wins</h4>
       <p>Wins of at least 20× the bet are celebrated (in a bought bonus only from its purchase price on). While the amount counts up, the title climbs: <b>BIG WIN</b> (20×) → <b>MEGA WIN</b> (50×) → <b>EPIC WIN</b> (100×) → <b>LEGENDARY WIN</b> (500×) → <b>BALAM WIN</b> (1,000×). In free spins every single spin can be a big win, and the bonus total is celebrated at the end.</p>`,
     lines: () => `<p>20 fixed paylines. Wins count from reel 1 (left) to the right.</p><div class="lines">${PAYLINES.map((l, i) => lineSvg(l, i + 1)).join('')}</div>`,
@@ -104,9 +113,10 @@ const T = {
         <li><b>TURBO</b>: one lit bolt = turbo (faster), two lit bolts = super turbo (fastest). Press again to switch off.</li>
         <li><b>AUTO</b>: choose the number of spins and the speed. Press AUTO or SPIN to stop autoplay. Autoplay also stops when the balance is too low.</li>
         <li><b>BONUS</b>: feature spins and bonus buys.</li>
-        <li>Top right: sound, music and this info.</li>
+        <li><b>☰</b> (top right): sound effects, music and these rules.</li>
+        <li>Turbo and autoplay switch off automatically when a bonus starts.</li>
       </ul>
-      <p class="legal">The theoretical return to player (RTP) is 96.00% in every mode. Malfunction voids all pays and plays. An unfinished round is resumed when the game is opened again.</p>`,
+      <p class="legal">The theoretical return to player (RTP) is 96.00% in every mode; it is a long-term average over a very large number of plays, a single session can differ a lot. All results are determined by the game server – what is shown on screen is only an illustration of that result, and in case of any difference the server result counts. Malfunction voids all pays and plays. A stable internet connection is required; if the connection is lost, an unfinished round is completed on the server and shown again the next time the game is opened. BALAM RISING © 2026 Solstone Games. All rights reserved; all trademarks belong to their owners.</p>`,
   },
   de: {
     tabs: ['Übersicht', 'Symbole', 'Stelen', 'Bonus', 'Features', 'Linien', 'Bedienung'],
@@ -116,7 +126,7 @@ const T = {
         <div><b>5 × 4</b><span>Walzen × Reihen</span></div>
         <div><b>20</b><span>feste Gewinnlinien</span></div>
         <div><b>96,00 %</b><span>RTP in jedem Modus</span></div>
-        <div><b>10.000×</b><span>Max. Gewinn</span></div>
+        <div><b>10.000×</b><span>Max. Gewinn (Jaguar-Spin 1.272×)</span></div>
       </div>
       <p>Gewinne zählen von links nach rechts auf benachbarten Walzen, beginnend bei Walze 1. Pro Linie wird nur der höchste Gewinn gezahlt; Gewinne auf verschiedenen Linien werden addiert. Alle Werte sind Vielfache des Einsatzes (${c.money(c.bet)} bei deinem aktuellen Einsatz).</p>
       <p>Erreicht eine Runde den Max-Gewinn von <b>10.000× Einsatz</b>, endet sie sofort und der Max-Gewinn wird ausgezahlt.</p>`,
@@ -170,6 +180,15 @@ const T = {
         <tr><td><b>Tempel-Bonus</b></td><td>${MODES.bonus.cost}× Einsatz</td><td>Wie 3 BONUS-Symbole.</td></tr>
         <tr><td><b>Super-Bonus</b></td><td>${MODES.superbonus.cost}× Einsatz</td><td>Wie 4 BONUS-Symbole.</td></tr>
         <tr><td><b>Göttlicher Bonus</b></td><td>${MODES.godbonus.cost}× Einsatz</td><td>Wie 5 BONUS-Symbole.</td></tr></table>
+      <h4>Alle Modi im Überblick</h4>
+      <table class="modes"><tr><th>Modus</th><th>Kosten</th><th>RTP</th><th>Max. Gewinn</th></tr>
+        <tr><td><b>Basisspiel</b></td><td>${MODES.base.cost}× Einsatz</td><td>96,00 %</td><td>10.000× Einsatz</td></tr>
+        <tr><td><b>Bonus-Jagd</b></td><td>${MODES.bonushunt.cost}× Einsatz</td><td>96,00 %</td><td>10.000× Einsatz</td></tr>
+        <tr><td><b>Jaguar-Spin</b></td><td>${MODES.jaguar.cost}× Einsatz</td><td>96,00 %</td><td>1.272× Einsatz</td></tr>
+        <tr><td><b>Jaguar-König</b></td><td>${MODES.jaguarking.cost}× Einsatz</td><td>96,00 %</td><td>10.000× Einsatz</td></tr>
+        <tr><td><b>Tempel-Bonus</b></td><td>${MODES.bonus.cost}× Einsatz</td><td>96,00 %</td><td>10.000× Einsatz</td></tr>
+        <tr><td><b>Super-Bonus</b></td><td>${MODES.superbonus.cost}× Einsatz</td><td>96,00 %</td><td>10.000× Einsatz</td></tr>
+        <tr><td><b>Göttlicher Bonus</b></td><td>${MODES.godbonus.cost}× Einsatz</td><td>96,00 %</td><td>10.000× Einsatz</td></tr></table>
       <h4>Große Gewinne</h4>
       <p>Gewinne ab 20× Einsatz werden gefeiert (bei einem gekauften Bonus erst ab seinem Kaufpreis). Während der Betrag hochzählt, steigt der Titel: <b>BIG WIN</b> (20×) → <b>MEGA WIN</b> (50×) → <b>EPIC WIN</b> (100×) → <b>LEGENDARY WIN</b> (500×) → <b>BALAM WIN</b> (1.000×). In den Freispielen kann jeder einzelne Spin ein Big Win sein, am Ende wird der Bonus-Gesamtgewinn gefeiert.</p>`,
     lines: () => `<p>20 feste Gewinnlinien. Gewinne zählen ab Walze 1 (links) nach rechts.</p><div class="lines">${PAYLINES.map((l, i) => lineSvg(l, i + 1)).join('')}</div>`,
@@ -180,9 +199,10 @@ const T = {
         <li><b>TURBO</b>: ein Blitz leuchtet = Turbo (schneller), zwei Blitze = Super-Turbo (am schnellsten). Nochmal drücken schaltet aus.</li>
         <li><b>AUTO</b>: Anzahl der Spins und Tempo wählen. AUTO oder SPIN stoppt Autoplay. Autoplay stoppt auch, wenn das Guthaben nicht reicht.</li>
         <li><b>BONUS</b>: Feature-Spins und Bonus-Käufe.</li>
-        <li>Oben rechts: Sound, Musik und diese Info.</li>
+        <li><b>☰</b> (oben rechts): Soundeffekte, Musik und diese Regeln.</li>
+        <li>Turbo und Autoplay schalten sich automatisch aus, wenn ein Bonus beginnt.</li>
       </ul>
-      <p class="legal">Die theoretische Auszahlungsquote (RTP) beträgt in jedem Modus 96,00 %. Fehlfunktionen machen alle Gewinne und Spiele ungültig. Eine unterbrochene Runde wird beim nächsten Öffnen fortgesetzt.</p>`,
+      <p class="legal">Die theoretische Auszahlungsquote (RTP) beträgt in jedem Modus 96,00 %; sie ist ein Durchschnitt über sehr viele Spiele, eine einzelne Sitzung kann stark davon abweichen. Alle Ergebnisse werden vom Spielserver bestimmt – die Anzeige auf dem Bildschirm ist nur eine Darstellung dieses Ergebnisses, bei Abweichungen gilt das Ergebnis des Servers. Fehlfunktionen machen alle Gewinne und Spiele ungültig. Eine stabile Internetverbindung ist nötig; bricht sie ab, wird eine unterbrochene Runde auf dem Server abgeschlossen und beim nächsten Öffnen des Spiels erneut gezeigt. BALAM RISING © 2026 Solstone Games. Alle Rechte vorbehalten; alle Marken gehören ihren Inhabern.</p>`,
   },
 };
 

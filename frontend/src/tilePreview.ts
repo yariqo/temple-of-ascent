@@ -28,10 +28,18 @@ function rng(seed: number) {
   const S = Math.min(W, H); // scale reference
   const land = W > H * 1.2;
   const cx = land ? W * 0.3 : W / 2;
+  // layers for the Stake tile: bg (no text, no characters) · fg (characters only, transparent) · title (lettering only)
+  const layer = q.get('layer') ?? '';
+  const BG = layer === '' || layer === 'bg';
+  const FG = layer === '' || layer === 'fg';
+  const TITLE = layer === '' || layer === 'title';
 
-  // --- sky: deep jungle teal into a hot sunset
   const lobby = q.get('style') === 'lobby';
-  let g = ctx.createLinearGradient(0, 0, 0, H);
+  const sunY = land ? H * 0.46 : lobby ? H * 0.33 : H * 0.4;
+  let g: CanvasGradient;
+  if (BG) {
+  // --- sky: deep jungle teal into a hot sunset
+  g = ctx.createLinearGradient(0, 0, 0, H);
   if (lobby) {
     g.addColorStop(0, '#0a5a4a');
     g.addColorStop(0.4, '#1f8a5a');
@@ -47,7 +55,6 @@ function rng(seed: number) {
   ctx.fillRect(0, 0, W, H);
 
   // --- sun behind the jaguar
-  const sunY = land ? H * 0.46 : lobby ? H * 0.33 : H * 0.4;
   ctx.save();
   ctx.globalCompositeOperation = 'lighter';
   g = ctx.createRadialGradient(cx, sunY, 0, cx, sunY, S * 0.9);
@@ -124,6 +131,8 @@ function rng(seed: number) {
     leaf(W, 0, S * (0.42 + (i % 2) * 0.12), Math.PI - 0.2 - i * 0.3, i % 2 ? '#145a38' : '#0f4a2e');
   }
 
+  }
+  if (FG) {
   // --- floating steles and BONUS symbols
   const sym = (name: string, x: number, y: number, size: number, rot: number, glow: string) => {
     const img = drawSymbol(name);
@@ -157,6 +166,8 @@ function rng(seed: number) {
   ctx.drawImage(head, cx - hw * (HG.ax / HG.w), sunY - hh * (HG.ay / HG.h) + S * 0.02, hw, hh);
   ctx.restore();
 
+  }
+  if (BG) {
   // --- sparks
   const r = rng(9);
   ctx.save();
@@ -173,6 +184,8 @@ function rng(seed: number) {
   }
   ctx.restore();
 
+  }
+  if (TITLE) {
   // --- title
   if (lobby && !land) {
     // hand-built lettering (same as the in-game logo), stacked
@@ -229,11 +242,14 @@ function rng(seed: number) {
   ctx.fillText(label, px + 0, py);
   ctx.restore();
 
+  }
+  if (BG && layer !== 'bg') {
   // vignette
   g = ctx.createRadialGradient(W / 2, H / 2, S * 0.4, W / 2, H / 2, Math.max(W, H) * 0.8);
   g.addColorStop(0, 'rgba(0,0,0,0)');
   g.addColorStop(1, 'rgba(0,0,0,0.35)');
   ctx.fillStyle = g;
   ctx.fillRect(0, 0, W, H);
+  }
   document.title = 'done';
 })();
